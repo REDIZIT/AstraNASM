@@ -1,18 +1,15 @@
 ﻿public class PtrShift_EmbeddedFunctionInfo : EmbeddedFunctionInfo
 {
-    public string Generate(Generator.Context ctx, string pointerVariableName, string shiftVariableName)
+    public Variable Generate(Generator.Context ctx, string pointerVariableName, Variable shiftVariable)
     {
         ctx.b.Space();
-        ctx.b.CommentLine($"Shift pointer {pointerVariableName} by {shiftVariableName}");
+        ctx.b.CommentLine($"Shift pointer {pointerVariableName} by {shiftVariable.name}");
 
-        string shiftValue = Utils.SureNotPointer(shiftVariableName, ctx);
-        string depointed = ctx.NextTempVariableName(PrimitiveTypeInfo.PTR);
-        string tempValue = ctx.NextTempVariableName(PrimitiveTypeInfo.INT);
+        var pointerVariable = ctx.GetVariable(pointerVariableName);
 
-        ctx.b.Line($"{depointed} = load i32, i32* %{pointerVariableName}");
-        ctx.b.Line($"{tempValue} = add i32 {shiftValue}, {depointed}");
-
-        ctx.b.Line($"store i32 {tempValue}, i32* %{pointerVariableName}");
+        ctx.b.Line($"mov rax, {pointerVariable.GetRBP()}");
+        ctx.b.Line($"add rax, {shiftVariable.GetRBP()}");
+        ctx.b.Line($"mov {pointerVariable.GetRBP()}, rax");
 
         ctx.b.Space();
 

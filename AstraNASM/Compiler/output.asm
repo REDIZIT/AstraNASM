@@ -12,28 +12,24 @@ main:
 	
 	mov [rbp-8], [rbp-16]
 	
-	sub rsp, 8
-	mov [rbp-32], 3
-	
+	mov rax, rbp
+	add rax, -8
+	mov [rbp-32], rax
 	mov [rbp-24], [rbp-32]
 	
 	sub rsp, 8
-	mov [rbp-48], 2
+	mov [rbp-40], 123
 	
-	mov rax, [rbp-8]
-	mov rbx, [rbp-24]
-	mul rax, rbx
-	mov [rbp-56], rax
+; -- Set anon_3 to pointer
+	mov [rbp-24], [rbp-40]
+	
+; -- Get value from pointer
+	mov [rbp-56], [rbp-24]
+	
+	mov [rbp-48], [rbp-56]
+	
 	
 	mov rax, [rbp-48]
-	mov rbx, [rbp-56]
-	add rax, rbx
-	mov [rbp-64], rax
-	
-	mov [rbp-40], [rbp-64]
-	
-	
-	mov rax, [rbp-40]
 	mov rsp, rbp
 	pop rbp
 	ret

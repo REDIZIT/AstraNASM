@@ -1,16 +1,14 @@
 ﻿public class PtrSet_EmbeddedFunctionInfo : EmbeddedFunctionInfo
 {
-    public string Generate(Generator.Context ctx, string pointerVariableName, string argumentVariableName)
+    public Variable Generate(Generator.Context ctx, string pointerVariableName, Variable targetVar)
     {
         ctx.b.Space();
-        ctx.b.CommentLine($"Set {argumentVariableName} to {pointerVariableName}");
+        ctx.b.CommentLine($"Set {targetVar.name} to {pointerVariableName}");
 
-        string argumentValueName = Utils.SureNotPointer(argumentVariableName, ctx);
+        var pointerVar = ctx.GetVariable(pointerVariableName);
 
-        string depointed = ctx.NextTempVariableName(PrimitiveTypeInfo.PTR);
+        ctx.b.Line($"mov {pointerVar.GetRBP()}, {targetVar.GetRBP()}");
 
-        ctx.b.Line($"{depointed} = load i32*, i32* %{pointerVariableName}");
-        ctx.b.Line($"store i32 {argumentValueName}, i32* {depointed}");
         ctx.b.Space();
 
         return null;

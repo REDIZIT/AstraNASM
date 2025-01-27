@@ -1,19 +1,21 @@
 ﻿public class PtrGet_EmbeddedFunctionInfo : EmbeddedFunctionInfo
 {
-    public string Generate(Generator.Context ctx, string pointerVariableName)
+    public Variable Generate(Generator.Context ctx, string pointerVariableName)
     {
         ctx.b.Space();
         ctx.b.CommentLine($"Get value from {pointerVariableName}");
 
 
-        string depointed = ctx.NextTempVariableName(PrimitiveTypeInfo.PTR);
+        var pointerVar = ctx.GetVariable(pointerVariableName);
 
-        string tempValue = ctx.NextTempVariableName(PrimitiveTypeInfo.INT);
+        TypeInfo pointedType = PrimitiveTypeInfo.LONG; // TODO
 
-        ctx.b.Line($"{depointed} = load i32*, i32* %{pointerVariableName}");
-        ctx.b.Line($"{tempValue} = load i32, i32* {depointed}");
+        var result = ctx.AllocateStackVariable(pointedType);
+
+        ctx.b.Line($"mov {result.GetRBP()}, {pointerVar.GetRBP()}");
+
         ctx.b.Space();
 
-        return tempValue;
+        return result;
     }
 }
