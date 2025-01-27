@@ -18,7 +18,7 @@
     {
         base.Generate(ctx);
 
-        generatedVariableName = ctx.NextPointerVariableName(variable.type, variable.name);
+        result = ctx.AllocateStackVariable(variable.type, variable.name);
 
         if (initValue == null)
         {
@@ -42,22 +42,22 @@
 
     private void Generate_WithDefaultValue(Generator.Context ctx)
     {
-        if (variable.type == PrimitiveTypeInfo.ARRAY)
-        {
-            Generate_Array_WithDefaultValue(ctx);
-            return;
-        }
+        //if (variable.type == PrimitiveTypeInfo.ARRAY)
+        //{
+        //    Generate_Array_WithDefaultValue(ctx);
+        //    return;
+        //}
 
-        ctx.b.Line($"{generatedVariableName} = alloca {variable.type}");
+        //ctx.b.Line($"mov {result.GetRBP()}, 0");
 
-        if (variable.type is PrimitiveTypeInfo)
-        {
-            ctx.b.Line($"store {variable.type} 0, i32* {generatedVariableName}");
-        }
-        else
-        {
-            ctx.b.Line("; todo: allocate struct (or class) with default value.");
-        }
+        //if (variable.type is PrimitiveTypeInfo)
+        //{
+        //    ctx.b.Line($"store {variable.type} 0, i32* {generatedVariableName}");
+        //}
+        //else
+        //{
+        //    ctx.b.Line("; todo: allocate struct (or class) with default value.");
+        //}
     }
     private void Generate_WithInit_Literal(Generator.Context ctx, Node_Literal literal)
     {
@@ -68,12 +68,12 @@
     {
         initValue.Generate(ctx);
 
-        ctx.b.Line($"{generatedVariableName} = alloca {variable.type}");
-        Utils.MoveValue(initValue.generatedVariableName, generatedVariableName, ctx);
+        ctx.b.Line($"mov {result.GetRBP()}, {initValue.result.GetRBP()}");
     }
     private void Generate_WithInit_New(Generator.Context ctx, Node_New tokenNew)
     {
-        tokenNew.Generate(ctx, "%" + variable.name);
+        throw new Exception("Not upgraded");
+        //tokenNew.Generate(ctx, "%" + variable.name);
     }
 
 
@@ -98,6 +98,7 @@ public class Node_VariableUse : Node
     {
         base.Generate(ctx);
 
-        generatedVariableName = "%" + variableName;
+        result = ctx.GetVariable(variableName);
+        //generatedVariableName = "%" + variableName;
     }
 }

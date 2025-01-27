@@ -53,7 +53,13 @@ public class Simulator
             else
             {
                 long toAddress = Utils.ParseDec(destStr, regs);
+
                 long value = Utils.ParseDec(valueStr, regs);
+                if (valueStr.StartsWith('['))
+                {
+                    value = ram.Read64(value);
+                }
+                
 
                 ram.Write64(toAddress, value);
             }
@@ -143,7 +149,7 @@ public class Simulator
             // Breakpoint
 
             ram.Dump(ramDumpFilepath);
-            //Console.ReadLine();
+            Console.ReadLine();
         }
         else if (cmd == "neg")
         {

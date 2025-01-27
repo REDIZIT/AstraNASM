@@ -2,6 +2,8 @@
 {
     public static void MoveValue(string sourceVarName, string destVarName, Generator.Context ctx)
     {
+        throw new Exception("Depreceted");
+
         bool isPtr_source = ctx.IsPointer(sourceVarName);
         bool isPtr_dest = ctx.IsPointer(destVarName);
 
