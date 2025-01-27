@@ -56,13 +56,13 @@
 
         result = initValue.result;
         result.name = variable.name;
-
-        //ctx.b.Line($"mov {result.GetRBP()}, {initValue.result.GetRBP()}");
     }
     private void Generate_WithInit_New(Generator.Context ctx, Node_New tokenNew)
     {
-        throw new Exception("Not upgraded");
-        //tokenNew.Generate(ctx, "%" + variable.name);
+        tokenNew.Generate(ctx);
+
+        result = tokenNew.result;
+        result.name = variable.name;
     }
 }
 

@@ -50,17 +50,17 @@
 
         ctorBlock.children.Add(new Node_Return());
 
-        Node_Function ctorNode = new Node_Function()
-        {
-            name = name + "__ctor",
-            body = ctorBlock,
-        };
-        ctorNode.parameters.Add(new VariableRawData()
-        {
-            name = "self",
-            rawType = name
-        });
-        body.children.Add(ctorNode);
+        //Node_Function ctorNode = new Node_Function()
+        //{
+        //    name = name + "__ctor",
+        //    body = ctorBlock,
+        //};
+        //ctorNode.parameters.Add(new VariableRawData()
+        //{
+        //    name = "self",
+        //    rawType = name
+        //});
+        //body.children.Add(ctorNode);
 
 
         body.RegisterRefs(raw);
@@ -84,34 +84,5 @@
                 throw new Exception($"For class generation expected only {nameof(Node_Function)} or {nameof(Node_VariableDeclaration)} but got {statement}");
             }
         }
-    }
-}
-public class Node_New : Node
-{
-    public string className;
-
-    public ClassTypeInfo classInfo;
-
-    public override void RegisterRefs(RawModule module)
-    {
-        
-    }
-    public override void ResolveRefs(ResolvedModule resolved)
-    {
-        classInfo = resolved.classInfoByName[className];
-    }
-    public override void Generate(Generator.Context ctx)
-    {
-        base.Generate(ctx);
-
-        string tempName = ctx.NextPointerVariableName(classInfo);
-        Generate(ctx, tempName);
-    }
-    public void Generate(Generator.Context ctx, string generatedName)
-    {
-        ctx.b.Line($"{generatedName} = alloca %{classInfo.name}");
-        ctx.b.Line($"call void @{classInfo.name}__ctor(ptr {generatedName})");
-        ctx.b.Space();
-        generatedVariableName = generatedName;
     }
 }

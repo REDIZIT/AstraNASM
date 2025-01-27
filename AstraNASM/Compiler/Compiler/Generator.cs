@@ -80,6 +80,8 @@ public static class Generator
         }
         public string NextPointerVariableName(TypeInfo pointedType, string name = null)
         {
+            throw new Exception("Depercated");
+
             string generatedName;
             if (string.IsNullOrWhiteSpace(name))
             {

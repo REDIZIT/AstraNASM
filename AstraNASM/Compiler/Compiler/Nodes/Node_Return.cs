@@ -20,7 +20,17 @@
         {
             expr.Generate(ctx);
 
-            ctx.b.Line($"mov rax, {expr.result.GetRBP()}");
+            ctx.b.Space(1);
+
+            if (expr is Node_FieldAccess)
+            {
+                ctx.b.Line($"mov rbx, {expr.result.GetRBP()}");
+                ctx.b.Line($"mov rax, [rbx]");
+            }
+            else
+            {
+                ctx.b.Line($"mov rax, {expr.result.GetRBP()}");
+            }
         }
 
         ctx.b.Line("mov rsp, rbp");

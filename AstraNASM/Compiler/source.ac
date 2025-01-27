@@ -2,11 +2,17 @@ public main(): int
 {
 	int a = 42
 
-	ptr pointer = a.to_ptr()
+	Pointer pointer = new Pointer()
+	pointer.address = 160
 
-	pointer.set(123)
 
-	int b = pointer.get()
+	pointer.set(1)
 
-	return a
+
+	return pointer.address
+}
+
+class Pointer 
+{
+	int address
 }
