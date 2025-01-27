@@ -8,5 +8,5 @@ public main(): int
 
 	int b = pointer.get()
 
-	return b
+	return a
 }

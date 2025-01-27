@@ -14,6 +14,7 @@
         //    }
         //}
 
+        Console.WriteLine("Simulation end");
         Console.ReadLine();
     }
 

@@ -142,6 +142,7 @@ public static class Generator
         //ctx.b.Line(";");
 
         ctx.b.Line("call main");
+        ctx.b.Line("mov 0x00, rax");
         ctx.b.Line("exit");
 
         ctx.b.Space(2);

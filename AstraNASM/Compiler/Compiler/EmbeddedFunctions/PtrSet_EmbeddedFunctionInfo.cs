@@ -7,7 +7,8 @@
 
         var pointerVar = ctx.GetVariable(pointerVariableName);
 
-        ctx.b.Line($"mov {pointerVar.GetRBP()}, {targetVar.GetRBP()}");
+        ctx.b.Line($"mov rax, {pointerVar.GetRBP()}");
+        ctx.b.Line($"mov [rax], {targetVar.GetRBP()}");
 
         ctx.b.Space();
 

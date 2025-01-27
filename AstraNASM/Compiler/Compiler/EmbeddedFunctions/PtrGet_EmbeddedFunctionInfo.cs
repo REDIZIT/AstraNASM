@@ -12,7 +12,8 @@
 
         var result = ctx.AllocateStackVariable(pointedType);
 
-        ctx.b.Line($"mov {result.GetRBP()}, {pointerVar.GetRBP()}");
+        ctx.b.Line($"mov rax, {pointerVar.GetRBP()}");
+        ctx.b.Line($"mov {result.GetRBP()}, [rax]");
 
         ctx.b.Space();
 

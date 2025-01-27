@@ -1,5 +1,5 @@
 	call main
-	mov 0, rax
+	mov 0x00, rax
 	exit
 	
 	
@@ -7,49 +7,27 @@
 main:
 	push rbp
 	mov rbp, rsp
-	
+	#
+	mov [rbp-8], 42
+	#
+; -- ToPtr a
+	mov rax, rbp
+	add rax, -8
+	mov [rbp-16], rax
+	#
 	sub rsp, 8
-	mov [rbp-16], 42
-
+	mov [rbp-24], 123
 	#
-	
-	mov [rbp-8], [rbp-16]
-
+; -- Set anon_2 to pointer
+	mov rax, [rbp-16]
+	mov [rax], [rbp-24]
 	#
-	
-	sub rsp, 8
-	mov [rbp-32], 3
-
-	#
-	
-	mov [rbp-24], [rbp-32]
-
-	#
-	
-	sub rsp, 8
-	mov [rbp-48], 2
-	
+; -- Get value from pointer
+	mov rax, [rbp-16]
+	mov [rbp-32], [rax]
 	#
 	
 	mov rax, [rbp-8]
-	mov rbx, [rbp-24]
-	mul rax, rbx
-	mov [rbp-56], rax
-
-	#
-	
-	mov rax, [rbp-48]
-	mov rbx, [rbp-56]
-	add rax, rbx
-	mov [rbp-64], rax
-
-	#
-	
-	mov [rbp-40], [rbp-64]
-
-	#
-	
-	mov rax, [rbp-40]
 	mov rsp, rbp
 	pop rbp
 	ret

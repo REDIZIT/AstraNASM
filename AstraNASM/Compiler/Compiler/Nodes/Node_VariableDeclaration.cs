@@ -18,16 +18,16 @@
     {
         base.Generate(ctx);
 
-        result = ctx.AllocateStackVariable(variable.type, variable.name);
+       
 
         if (initValue == null)
         {
             Generate_WithDefaultValue(ctx);
         }
-        //else if (initValue is Node_Literal literal)
-        //{
-        //    Generate_WithInit_Literal(ctx, literal);
-        //}
+        else if (initValue is Node_Literal literal)
+        {
+            Generate_WithInit_Literal(ctx, literal);
+        }
         else if (initValue is Node_New tokenNew)
         {
             Generate_WithInit_New(ctx, tokenNew);
@@ -42,44 +42,27 @@
 
     private void Generate_WithDefaultValue(Generator.Context ctx)
     {
-        //if (variable.type == PrimitiveTypeInfo.ARRAY)
-        //{
-        //    Generate_Array_WithDefaultValue(ctx);
-        //    return;
-        //}
-
-        //ctx.b.Line($"mov {result.GetRBP()}, 0");
-
-        //if (variable.type is PrimitiveTypeInfo)
-        //{
-        //    ctx.b.Line($"store {variable.type} 0, i32* {generatedVariableName}");
-        //}
-        //else
-        //{
-        //    ctx.b.Line("; todo: allocate struct (or class) with default value.");
-        //}
+        result = ctx.AllocateStackVariable(variable.type, variable.name);
+        ctx.b.Line($"mov {result.GetRBP()}, 0");
     }
     private void Generate_WithInit_Literal(Generator.Context ctx, Node_Literal literal)
     {
-        ctx.b.Line($"{generatedVariableName} = alloca {variable.type}");
-        ctx.b.Line($"store {variable.type} {literal.constant.value}, i32* {generatedVariableName}");
+        result = ctx.AllocateStackVariable(variable.type, variable.name);
+        ctx.b.Line($"mov {result.GetRBP()}, {literal.constant.value}");
     }
     private void Generate_WithInit_AnyExpression(Generator.Context ctx)
     {
         initValue.Generate(ctx);
 
-        ctx.b.Line($"mov {result.GetRBP()}, {initValue.result.GetRBP()}");
+        result = initValue.result;
+        result.name = variable.name;
+
+        //ctx.b.Line($"mov {result.GetRBP()}, {initValue.result.GetRBP()}");
     }
     private void Generate_WithInit_New(Generator.Context ctx, Node_New tokenNew)
     {
         throw new Exception("Not upgraded");
         //tokenNew.Generate(ctx, "%" + variable.name);
-    }
-
-
-    private void Generate_Array_WithDefaultValue(Generator.Context ctx)
-    {
-        ctx.b.Line($"{generatedVariableName} = alloca [10 x i32]");
     }
 }
 
