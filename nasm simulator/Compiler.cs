@@ -1,4 +1,6 @@
-﻿public static class Compiler
+﻿namespace Astra.Simulation;
+
+public static class Compiler
 {
     public static List<string> Compile_NASM_to_Instructions(string[] nasm)
     {

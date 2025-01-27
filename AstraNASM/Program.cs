@@ -1,4 +1,6 @@
-﻿public static class Program
+﻿using Astra.Compilation;
+
+public static class Program
 {
     public static void Main()
     {

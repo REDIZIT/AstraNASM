@@ -1,4 +1,6 @@
-﻿public static class Compiler
+﻿namespace Astra.Compilation;
+
+public static class Compiler
 {
     public static string Compile_Astra_to_NASM(string astraCode)
     {

@@ -1,4 +1,6 @@
-﻿public class Simulator
+﻿using Astra.Simulation;
+
+public class Simulator
 {
     public Regs regs = new();
     public RAM ram = new();
