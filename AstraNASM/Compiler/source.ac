@@ -1,4 +1,4 @@
 public main(): int
 {
-	retutrn 42
+	return 42
 }

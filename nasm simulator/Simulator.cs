@@ -41,12 +41,21 @@ public class Simulator
 
             if (regs.TryGetReg(destStr, out Reg64 destReg))
             {
-                regs.Set(destStr, Utils.ParseDec(valueStr, regs));
+                long value = Utils.ParseDec(valueStr, regs);
+
+                if (valueStr.StartsWith('['))
+                {
+                    value = ram.Read64(value);
+                }
+
+                regs.Set(destStr, value);
             }
             else
             {
                 long toAddress = Utils.ParseDec(destStr, regs);
-                ram.Write64(toAddress, Utils.ParseDec(valueStr, regs));
+                long value = Utils.ParseDec(valueStr, regs);
+
+                ram.Write64(toAddress, value);
             }
         }
         else if (cmd == "add" || cmd == "sub" || cmd == "mul" || cmd == "div")

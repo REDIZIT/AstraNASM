@@ -1,6 +1,5 @@
-using System.Diagnostics;
-
 namespace Astra.Tests;
+
 public class CodeExamplesTests
 {
     [SetUp]
@@ -51,31 +50,8 @@ public class CodeExamplesTests
         }
         finally
         {
-            File.Delete(folder + "/temp.ll");
-            File.Delete(folder + "/temp.exe");
         }
 
         Assert.Pass($"{files.Length} code examples checked");
-    }
-
-    private Process ExecuteCommand(string folder, string cmd)
-    {
-        string strCmdText;
-        strCmdText = $"/C {cmd.Trim().Replace("\n", "&")}";
-
-        ProcessStartInfo info = new()
-        {
-            FileName = "CMD.exe",
-            Arguments = strCmdText,
-            RedirectStandardOutput = true,
-            WorkingDirectory = folder,
-        };
-
-        Process process = Process.Start(info);
-
-        //string strOutput = process.StandardOutput.ReadToEnd();
-        //process.WaitForExit();
-
-        return process;
     }
 }

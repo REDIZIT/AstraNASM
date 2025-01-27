@@ -86,12 +86,6 @@
 
         body.Generate(ctx);
 
-        ctx.b.Line("mov rsp, rbp");
-        ctx.b.Line("pop rbp");
-        ctx.b.Line("ret");
-
-        //ctx.b.Line("}");
-
         ctx.b.Space(1);
     }
 }

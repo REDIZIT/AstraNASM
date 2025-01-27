@@ -19,7 +19,7 @@
             stackVariables.Add(name);
             typeByVariableName.Add(name, type);
 
-            return "[rbp-4]";
+            return "[rbp-8]";
         }
 
         public string NextTempVariableName(TypeInfo type)
