@@ -16,6 +16,6 @@
         base.Generate(ctx);
 
         expression.Generate(ctx);
-        generatedVariableName = expression.generatedVariableName;
+        result = expression.result;
     }
 }

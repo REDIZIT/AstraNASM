@@ -20,10 +20,7 @@
         {
             expr.Generate(ctx);
 
-            //string retVarName = Utils.SureNotPointer(expr.generatedVariableName, ctx);
-            //ctx.b.Line($"ret {ctx.GetVariableType(retVarName)} {retVarName}");
-
-            ctx.b.Line($"mov rax, {expr.generatedVariableName}");
+            ctx.b.Line($"mov rax, {expr.result.GetRBP()}");
         }
 
         ctx.b.Line("mov rsp, rbp");

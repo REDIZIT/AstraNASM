@@ -4,6 +4,11 @@ public class Variable
     public string name;
     public TypeInfo type;
     public int rbpOffset;
+
+    public string GetRBP()
+    {
+        return $"[rbp{rbpOffset}]";
+    }
 }
 
 public static class Generator
@@ -29,28 +34,33 @@ public static class Generator
         public int lastAnonVariableIndex = 0;
 
 
-        public string AllocateStackVariable(TypeInfo type, string name = null)
+        public Variable AllocateStackVariable(TypeInfo type, string name = null)
         {
             if (name == null)
             {
                 name = NextStackAnonVariableName();
             }
 
-            localVariables.Add(new Variable()
+            lastLocalVariableIndex -= 8;
+
+            Variable variable = new Variable()
             {
                 name = name,
                 type = type,
                 rbpOffset = lastLocalVariableIndex,
-            });
+            };
+            localVariables.Add(variable);
 
-            lastLocalVariableIndex -= 8;
-
-            return $"[rbp{lastLocalVariableIndex}]";
+            return variable;
         }
         public string NextStackAnonVariableName()
         {
             lastAnonVariableIndex++;
             return "anon_" + lastAnonVariableIndex;
+        }
+        public Variable GetVariable(string name)
+        {
+            return localVariables.First(v => v.name == name);
         }
 
 

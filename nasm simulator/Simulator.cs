@@ -145,6 +145,13 @@ public class Simulator
             ram.Dump(ramDumpFilepath);
             //Console.ReadLine();
         }
+        else if (cmd == "neg")
+        {
+            Reg64 reg = regs.GetReg(args[1]);
+            long value = reg.Get64();
+            value = -value;
+            reg.Set64(value);
+        }
         else
         {
             throw new($"Unknown instruction '{line}'");

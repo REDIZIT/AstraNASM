@@ -39,12 +39,22 @@ public class CodeExamplesTests
                     throw;
                 }
 
-                Simulator sim = new();
-                sim.Execute(nasm);
-
-                if (sim.regs.rax.Get32() != int.Parse(returnResult))
+                try
                 {
-                    Assert.Fail($"Run failed: '{Path.GetFileName(filepath)}'\nExpected: {returnResult}\nGot: {sim.regs.rax.Get32()}");
+                    Simulator sim = new();
+                    sim.Execute(nasm);
+
+                    if (sim.regs.rax.Get32() != int.Parse(returnResult))
+                    {
+                        Assert.Fail($"Run failed: '{Path.GetFileName(filepath)}'\nExpected: {returnResult}\nGot: {sim.regs.rax.Get32()}");
+                    }
+                }
+                catch
+                {
+                    string message = $"Simulation failed: '{Path.GetFileName(filepath)}'";
+
+                    Console.WriteLine(message);
+                    throw;
                 }
             }
         }
