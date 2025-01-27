@@ -55,6 +55,8 @@
 
     public static string SureNotPointer(string varName, Generator.Context ctx)
     {
+        throw new Exception("Deprecated");
+
         if (ctx.IsPointer(varName) == false) return varName;
 
         TypeInfo type = ctx.GetPointedType(varName);

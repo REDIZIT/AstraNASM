@@ -14,13 +14,10 @@
 
         PrimitiveTypeInfo literalType = PrimitiveTypeInfo.INT;
 
-        //generatedVariableName = ctx.NextPointerVariableName(literalType);
-        generatedVariableName = ctx.AllocateStackVariable(literalType, "literal");
+        generatedVariableName = ctx.AllocateStackVariable(literalType);
 
-        //ctx.b.Line($"{generatedVariableName} = alloca {literalType.asmName}");
-        //ctx.b.Line($"store {literalType.asmName} {constant.value}, {PrimitiveTypeInfo.PTR} {generatedVariableName}");
         ctx.b.Line($"sub rsp, 8");
-        ctx.b.Line($"mov [rbp-8], 42");
+        ctx.b.Line($"mov {generatedVariableName}, {constant.value}");
 
         ctx.b.Space();
     }

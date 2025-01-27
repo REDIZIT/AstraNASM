@@ -14,7 +14,7 @@
     {
         base.Generate(ctx);
 
-        ctx.b.Space();
+        ctx.b.Space(2);
 
         if (expr != null)
         {

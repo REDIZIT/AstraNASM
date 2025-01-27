@@ -1,4 +1,12 @@
-﻿public static class Generator
+﻿
+public class Variable
+{
+    public string name;
+    public TypeInfo type;
+    public int rbpOffset;
+}
+
+public static class Generator
 {
     public class Context
     {
@@ -14,16 +22,46 @@
         public ResolvedModule module;
 
 
-        public string AllocateStackVariable(TypeInfo type, string name)
-        {
-            stackVariables.Add(name);
-            typeByVariableName.Add(name, type);
 
-            return "[rbp-8]";
+        public List<Variable> localVariables = new();
+
+        public int lastLocalVariableIndex = 0;
+        public int lastAnonVariableIndex = 0;
+
+
+        public string AllocateStackVariable(TypeInfo type, string name = null)
+        {
+            if (name == null)
+            {
+                name = NextStackAnonVariableName();
+            }
+
+            localVariables.Add(new Variable()
+            {
+                name = name,
+                type = type,
+                rbpOffset = lastLocalVariableIndex,
+            });
+
+            lastLocalVariableIndex -= 8;
+
+            return $"[rbp{lastLocalVariableIndex}]";
         }
+        public string NextStackAnonVariableName()
+        {
+            lastAnonVariableIndex++;
+            return "anon_" + lastAnonVariableIndex;
+        }
+
+
+
+
+
 
         public string NextTempVariableName(TypeInfo type)
         {
+            throw new Exception("Depercated");
+
             string varName = $"%tmp_{tempVariablesCount}_{type.name}";
             tempVariablesCount++;
             tempVariables.Add(varName);

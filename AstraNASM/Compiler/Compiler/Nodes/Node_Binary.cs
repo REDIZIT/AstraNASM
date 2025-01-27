@@ -20,13 +20,17 @@
         left.Generate(ctx);
         right.Generate(ctx);
 
-        string leftName = Utils.SureNotPointer(left.generatedVariableName, ctx);
-        string rightName = Utils.SureNotPointer(right.generatedVariableName, ctx);
+        string leftName = left.generatedVariableName;
+        string rightName = right.generatedVariableName;
 
         TypeInfo resultType = ctx.module.GetType(@operator.ResultType);
 
-        generatedVariableName = ctx.NextTempVariableName(resultType);
-        ctx.b.Line($"{generatedVariableName} = {@operator.asmOperatorName} i32 {leftName}, {rightName}");
+        generatedVariableName = ctx.AllocateStackVariable(resultType);
+
+        ctx.b.Line($"mov rax, {leftName}");
+        ctx.b.Line($"mov rbx, {rightName}");
+        ctx.b.Line($"{@operator.asmOperatorName} rax, rbx");
+        ctx.b.Line($"mov {generatedVariableName}, rax");
 
         ctx.b.Space();
     }
