@@ -24,25 +24,16 @@ public static class Generator
 {
     public class Context
     {
+        public Context parent;
+
         public CodeStringBuilder b = new();
-        public HashSet<string> stackVariables = new();
-        public HashSet<string> tempVariables = new();
-        public int tempVariablesCount = 0;
-        public int localVariablesCount = 0;
-
-        public Dictionary<string, TypeInfo> typeByVariableName = new();
-        public Dictionary<string, TypeInfo> pointedTypeByVariableName = new();
-
         public ResolvedModule module;
-
 
 
         private List<Variable> localVariables = new();
 
-        public int lastLocalVariableIndex = 0;
-        public int lastAnonVariableIndex = 0;
-
-        public Context parent;
+        private int lastLocalVariableIndex = 0;
+        private int lastAnonVariableIndex = 0;
 
 
         public Variable Register_FunctionArgumentVariable(FieldInfo info, int index)
@@ -103,32 +94,6 @@ public static class Generator
 
             return ctx;
         }
-
-
-        public string NextTempVariableName(TypeInfo type)
-        {
-            throw new Exception("Depercated");
-
-            string varName = $"%tmp_{tempVariablesCount}_{type.name}";
-            tempVariablesCount++;
-            tempVariables.Add(varName);
-            typeByVariableName.Add(varName, type);
-            return varName;
-        }
-
-        public bool IsPointer(string generatedName)
-        {
-            return typeByVariableName[generatedName] == PrimitiveTypeInfo.PTR;
-        }
-
-        public TypeInfo GetPointedType(string pointerVariableName)
-        {
-            if (pointedTypeByVariableName.ContainsKey(pointerVariableName) == false)
-            {
-                throw new Exception($"Failed to get type behind the pointer variable named '{pointerVariableName}'. This variable is not a pointer or not defined at all.");
-            }
-            return pointedTypeByVariableName[pointerVariableName];
-        }
     }
 
     public static string Generate(List<Node> statements, ResolvedModule module)
@@ -165,35 +130,6 @@ public static class Generator
         }
 
         return FormatNASM(ctx.b.BuildString());
-    }
-
-
-    private static string FormatLLVM(string llvm)
-    {
-        int depth = 0;
-
-        string[] lines = llvm.Split('\n');
-        for (int i = 0; i < lines.Length; i++)
-        {
-            string line = lines[i];
-
-            if (line.Contains("}"))
-            {
-                depth--;
-            }
-            
-            if (depth > 0 && line.Contains(":") == false)
-            {
-                lines[i] = '\t' + line;
-            }
-
-            if (line.Contains("{"))
-            {
-                depth++;
-            }
-        }
-
-        return string.Join('\n', lines);
     }
 
     private static string FormatNASM(string nasm)

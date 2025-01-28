@@ -4,10 +4,7 @@ class program
 	{
 		Array arr = new Array()
 
-		arr.write(0, 11)
-		arr.write(1, 22)
-		arr.write(2, 33)
-		arr.write(3, 44)
+		arr.write(0)
 
 		return 1
 	}
@@ -20,13 +17,19 @@ class Pointer
 
 class Array 
 {
-	public write(int index, int value)
+	public write(int index)
 	{
 		ptr pointer = self.to_ptr()
 
-		pointer.shift(index * 8)
-		pointer.set(value);
+		pointer.set(123)
+
+		pointer.shift(8)
+		pointer.set(124)
 
 		return
 	}
 }
+
+---
+
+1
