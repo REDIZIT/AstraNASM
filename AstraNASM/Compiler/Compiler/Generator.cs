@@ -121,10 +121,6 @@ public static class Generator
             return typeByVariableName[generatedName] == PrimitiveTypeInfo.PTR;
         }
 
-        public TypeInfo GetVariableType(string variableName)
-        {
-            return typeByVariableName[variableName];
-        }
         public TypeInfo GetPointedType(string pointerVariableName)
         {
             if (pointedTypeByVariableName.ContainsKey(pointerVariableName) == false)

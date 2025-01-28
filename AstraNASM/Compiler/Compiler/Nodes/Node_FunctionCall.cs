@@ -63,7 +63,12 @@
             ctx.b.Space();
             ctx.b.CommentLine($"{caller}.{function.name}");
 
-            //var functionCtx = ctx.CreateSubContext();
+
+            //if (function.owner != null)
+            //{
+            //    ctx.b.Line($"mov rax, {caller.result.RBP} ; self");
+            //    ctx.b.Line($"push rax");
+            //}
 
             for (int i = 0; i < arguments.Count; i++)
             {
@@ -73,7 +78,7 @@
                 node.Generate(ctx);
 
                 ctx.AllocateStackVariable(node.result.type, argInfo.name);
-                ctx.b.Line($"mov rax, {node.result.GetRBP()}");
+                ctx.b.Line($"mov rax, {node.result.GetRBP()} ; arg[{i}] = {argInfo.name}");
                 ctx.b.Line($"push rax");
             }
 

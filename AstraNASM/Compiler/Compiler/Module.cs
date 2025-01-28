@@ -6,7 +6,6 @@
 
     public void RegisterClass(ClassTypeInfo classInfo)
     {
-        //RegisterType(classInfo);
         classInfoByName.Add(classInfo.name, classInfo);
     }
     public void RegisterFunction(FunctionInfo functionInfo)
@@ -31,6 +30,7 @@
 public class FunctionInfo
 {
     public string name;
+    public ClassTypeInfo owner;
 
     public List<FieldInfo> arguments = new();
     public List<TypeInfo> returns = new();
@@ -53,6 +53,7 @@ public class FieldInfo
 public class ClassTypeInfo : TypeInfo
 {
     public List<FieldInfo> fields = new();
+    public List<FunctionInfo> functions = new();
 
     public override string ToString()
     {

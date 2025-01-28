@@ -15,7 +15,7 @@
 
 
 
-        Node_Block ctorBlock = new();
+        //Node_Block ctorBlock = new();
 
         //
         // Register RawFieldInfos
@@ -31,24 +31,31 @@
                 };
                 rawInfo.fields.Add(field);
 
-                
 
-                ctorBlock.children.Add(new Node_VariableAssign()
-                {
-                    target = new Node_FieldAccess()
-                    {
-                        target = new Node_VariableUse()
-                        {
-                            variableName = "self"
-                        },
-                        targetFieldName = field.name
-                    },
-                    value = declaration.initValue
-                });
+
+                //ctorBlock.children.Add(new Node_VariableAssign()
+                //{
+                //    target = new Node_FieldAccess()
+                //    {
+                //        target = new Node_VariableUse()
+                //        {
+                //            variableName = "self"
+                //        },
+                //        targetFieldName = field.name
+                //    },
+                //    value = declaration.initValue
+                //});
             }
+            //else if (statement is Node_Function func)
+            //{
+            //    RawFunctionInfo funcInfo = raw.functionInfoByName[func.name];
+            //    funcInfo.owner = rawInfo;
+
+            //    rawInfo.functions.Add(funcInfo);
+            //}
         }
 
-        ctorBlock.children.Add(new Node_Return());
+        //ctorBlock.children.Add(new Node_Return());
 
         //Node_Function ctorNode = new Node_Function()
         //{
@@ -64,6 +71,20 @@
 
 
         body.RegisterRefs(raw);
+
+        //
+        // Register Functions
+        //
+        foreach (Node statement in body.children)
+        {
+            if (statement is Node_Function func)
+            {
+                RawFunctionInfo funcInfo = raw.functionInfoByName[func.name];
+                funcInfo.owner = rawInfo;
+
+                rawInfo.functions.Add(funcInfo);
+            }
+        }
     }
     public override void ResolveRefs(ResolvedModule resolved)
     {

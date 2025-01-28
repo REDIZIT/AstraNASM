@@ -2,17 +2,27 @@ class program
 {
 	public main(): int
 	{
-		int a = 2
+		Array arr = new Array()
 
-		if (a <= 100)
-		{
-			return 10
-		}
-		else
-		{
-			return 9
-		}
+		arr.write(0)
 
 		return 1
+	}
+}
+
+class Pointer
+{
+	int address
+}
+
+class Array 
+{
+	public write(int index)
+	{
+		ptr pointer = self.to_ptr
+
+		pointer.set(123 + 1)
+
+		return
 	}
 }

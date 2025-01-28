@@ -17,6 +17,7 @@
 public class RawFunctionInfo
 {
     public string name;
+    public RawClassTypeInfo owner;
 
     public List<RawFieldInfo> arguments = new();
     public List<RawTypeInfo> returns = new();
@@ -24,6 +25,7 @@ public class RawFunctionInfo
 public class RawClassTypeInfo : RawTypeInfo
 {
     public List<RawFieldInfo> fields = new();
+    public List<RawFunctionInfo> functions = new();
 }
 public class RawFieldInfo
 {

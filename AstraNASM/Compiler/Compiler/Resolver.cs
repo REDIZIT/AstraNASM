@@ -114,6 +114,15 @@
 
                 classInfo.fields.Add(fieldInfo);
             }
+
+            foreach (RawFunctionInfo rawFunc in rawInfo.functions)
+            {
+                FunctionInfo funcInfo = resolved.functionInfoByName[rawFunc.name];
+                funcInfo.owner = classInfo;
+
+                classInfo.functions.Add(funcInfo);
+            }
+
             resolved.RegisterClass(classInfo);
 
         }

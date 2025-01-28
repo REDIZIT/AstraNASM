@@ -70,7 +70,7 @@
         //string paramsStr = string.Join(", ", paramsDeclars);
 
 
-        ctx.b.Space(3);
+        //ctx.b.Space(3);
 
         //if (returnValues.Count == 0)
         //{
@@ -83,20 +83,36 @@
         
         //ctx.b.Line("{");
 
+       
+
+        ctx = ctx.CreateSubContext();
+
+        ctx.b.Space(3);
+
+        int index = 0;
+        if (functionInfo.owner != null)
+        {
+            ctx.Register_FunctionArgumentVariable(new FieldInfo()
+            {
+                name = "self",
+                type = functionInfo.owner
+            }, index);
+            index++;
+        }
+
         ctx.b.Line($"{name}:");
         ctx.b.Line("push rbp");
         ctx.b.Line("mov rbp, rsp");
 
         ctx.b.Space(1);
 
-        var functionCtx = ctx.CreateSubContext();
-
         foreach (FieldInfo argInfo in functionInfo.arguments)
         {
-            functionCtx.Register_FunctionArgumentVariable(argInfo, 0);
+            ctx.Register_FunctionArgumentVariable(argInfo, index);
+            index++;
         }
 
-        body.Generate(functionCtx);
+        body.Generate(ctx);
 
         ctx.b.Space(1);
     }
