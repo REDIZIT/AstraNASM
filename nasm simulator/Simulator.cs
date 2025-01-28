@@ -151,6 +151,11 @@ public class Simulator
             ram.Dump(ramDumpFilepath);
             Console.ReadLine();
         }
+        else if (cmd == "print")
+        {
+            long value = Utils.ParseDec(args[1], regs);
+            Console.WriteLine(args[1] + " = " + value + " (0x" + value.ToString("x") + ")");
+        }
         else if (cmd == "neg")
         {
             Reg64 reg = regs.GetReg(args[1]);

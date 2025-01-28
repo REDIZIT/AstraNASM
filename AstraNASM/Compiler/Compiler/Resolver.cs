@@ -146,6 +146,13 @@
             arguments = new List<TypeInfo>() { PrimitiveTypeInfo.INT },
         };
         module.RegisterFunction(shift);
+
+        Print_EmbeddedFunctionInfo print = new()
+        {
+            name = "print",
+            arguments = new List<TypeInfo>() { PrimitiveTypeInfo.PTR }
+        };
+        module.RegisterFunction(print);
     }
 
     private static void AppendRawLLVMTypes(RawModule module)

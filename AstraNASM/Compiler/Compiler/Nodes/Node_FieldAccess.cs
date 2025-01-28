@@ -24,11 +24,25 @@
 
         result = ctx.AllocateStackVariable(PrimitiveTypeInfo.PTR);
 
+        int totalOffset = target.result.rbpOffset + fieldOffsetInBytes;
+       
+
         ctx.b.Space();
         ctx.b.CommentLine($"{target.result.name}.{targetFieldName}");
         ctx.b.Line($"sub rsp, 8");
-        ctx.b.Line($"mov rax, rbp");
-        ctx.b.Line($"add rax, {target.result.rbpOffset + fieldOffsetInBytes}");
+        //ctx.b.Line($"mov rax, rbp");
+        //ctx.b.Line($"add rax, {}");
+
+        if (target is Node_FieldAccess)
+        {
+            ctx.b.Line($"mov rax, [rbp{totalOffset}]");
+        }
+        else
+        {
+            ctx.b.Line($"mov rax, rbp");
+            ctx.b.Line($"add rax, {totalOffset}");
+        }
+
         ctx.b.Line($"mov {result.GetRBP()}, rax");
 
         //string typeName = ctx.GetPointedType(target.generatedVariableName).name;

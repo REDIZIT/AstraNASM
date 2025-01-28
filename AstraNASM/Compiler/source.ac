@@ -6,13 +6,21 @@ public main(): int
 	pointer.address = 160
 
 
-	pointer.set(1)
+	Array arr = new Array()
+	arr.pointer = pointer
+
+	print(a.to_ptr)
 
 
-	return pointer.address
+	return arr.pointer.address
 }
 
 class Pointer 
 {
 	int address
+}
+
+class Array
+{
+	Pointer pointer
 }

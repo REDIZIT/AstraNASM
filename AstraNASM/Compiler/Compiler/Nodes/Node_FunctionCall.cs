@@ -46,6 +46,13 @@
                 arguments[0].Generate(ctx);
                 result = ptrShift.Generate(ctx, pointerVariableName, arguments[0].result);
             }
+            else if (embeddedFunctionInfo is Print_EmbeddedFunctionInfo print)
+            {
+                Node variable = arguments[0];
+                variable.Generate(ctx);
+
+                print.Generate(ctx, variable.result);
+            }
             else
             {
                 throw new Exception($"Unknown EmbeddedFunctionInfo '{embeddedFunctionInfo}'");

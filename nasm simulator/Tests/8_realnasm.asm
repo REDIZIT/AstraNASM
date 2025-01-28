@@ -24,21 +24,43 @@ main:
 ; -- anon_1 = anon_2
 	mov rax, [rbp-24]
 	mov [rax], [rbp-32]
+	
+; -- new Array
 	sub rsp, 8
-	mov [rbp-40], 1
 	
-; -- Set anon_3 to pointer
-	mov rax, [rbp-16]
-	mov [rax], [rbp-40]
-	
-	
-; -- pointer.address
+; -- arr.pointer
 	sub rsp, 8
 	mov rax, rbp
-	add rax, -16
+	add rax, -40
 	mov [rbp-48], rax
 	
-	mov rbx, [rbp-48]
+; -- anon_3 = pointer
+	mov rax, [rbp-48]
+	mov [rax], [rbp-16]
+	
+; -- a.to_ptr
+	sub rsp, 8
+	mov rax, rbp
+	add rax, -8
+	mov [rbp-56], rax
+	
+; -- print anon_4
+	mov rax [rbp-56]
+	print [rax]
+	
+	
+; -- arr.pointer
+	sub rsp, 8
+	mov rax, rbp
+	add rax, -40
+	mov [rbp-64], rax
+	
+; -- anon_5.address
+	sub rsp, 8
+	mov rax, [rbp-64]
+	mov [rbp-72], rax
+	
+	mov rbx, [rbp-72]
 	mov rax, [rbx]
 	mov rsp, rbp
 	pop rbp

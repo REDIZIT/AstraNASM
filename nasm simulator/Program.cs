@@ -14,7 +14,7 @@
         //    }
         //}
 
-        Console.WriteLine("Simulation end");
+        Console.WriteLine("Simulations end");
         Console.ReadLine();
     }
 
@@ -87,6 +87,7 @@
             }
         }
 
+        if (!silent) Console.WriteLine($"Exit code (rax) = {sim.regs.rax.ToString(32)}");
         return isSuccess;
     }
 }
