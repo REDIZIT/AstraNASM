@@ -1,18 +1,15 @@
 public main(): int
 {
-	int a = 42
-
 	Pointer pointer = new Pointer()
 	pointer.address = 160
-
 
 	Array arr = new Array()
 	arr.pointer = pointer
 
-	print(a.to_ptr)
+	arr.write(777)
 
 
-	return arr.pointer.address
+	return 1
 }
 
 class Pointer 
@@ -23,4 +20,11 @@ class Pointer
 class Array
 {
 	Pointer pointer
+
+	public write(int index)
+	{
+		print(index)
+
+		return
+	}
 }

@@ -17,7 +17,7 @@
 
     public Regs()
     {
-        rsp.value = 128;
+        rsp.value = 256;
         rbp.value = rsp.value;
     }
 

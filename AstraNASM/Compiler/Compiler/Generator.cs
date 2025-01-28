@@ -5,9 +5,18 @@ public class Variable
     public TypeInfo type;
     public int rbpOffset;
 
+    public string RBP
+    {
+        get
+        {
+            if (rbpOffset > 0) return $"[rbp+{rbpOffset}]";
+            else return $"[rbp{rbpOffset}]";
+        }
+    }
+
     public string GetRBP()
     {
-        return $"[rbp{rbpOffset}]";
+        return RBP;
     }
 }
 
@@ -28,12 +37,26 @@ public static class Generator
 
 
 
-        public List<Variable> localVariables = new();
+        private List<Variable> localVariables = new();
 
         public int lastLocalVariableIndex = 0;
         public int lastAnonVariableIndex = 0;
 
+        public Context parent;
 
+
+        public Variable Register_FunctionArgumentVariable(FieldInfo info, int index)
+        {
+            Variable variable = new Variable()
+            {
+                name = info.name,
+                type = info.type,
+                rbpOffset = index * 8 + 16, // index * 8 (arguments sizeInBytes) + 16 (pushed rbp (8 bytes) + pushed rsi (8 bytes)
+            };
+            localVariables.Add(variable);
+
+            return variable;
+        }
         public Variable AllocateStackVariable(TypeInfo type, string name = null)
         {
             if (name == null)
@@ -60,12 +83,23 @@ public static class Generator
         }
         public Variable GetVariable(string name)
         {
-            return localVariables.First(v => v.name == name);
+            Variable var = localVariables.FirstOrDefault(v => v.name == name);
+            if (var != null) return var;
+
+            if (parent != null) return parent.GetVariable(name);
+
+            throw new Exception($"Variable '{name}' not found in context");
         }
 
 
+        public Context CreateSubContext()
+        {
+            Context ctx = new();
+            ctx.parent = this;
+            ctx.b = b;
 
-
+            return ctx;
+        }
 
 
         public string NextTempVariableName(TypeInfo type)
@@ -77,29 +111,6 @@ public static class Generator
             tempVariables.Add(varName);
             typeByVariableName.Add(varName, type);
             return varName;
-        }
-        public string NextPointerVariableName(TypeInfo pointedType, string name = null)
-        {
-            throw new Exception("Depercated");
-
-            string generatedName;
-            if (string.IsNullOrWhiteSpace(name))
-            {
-                generatedName = $"%ptr_{localVariablesCount}_{pointedType.name}";
-                localVariablesCount++;
-            }
-            else
-            {
-                generatedName = "%" + name;
-            }
-
-
-            stackVariables.Add(generatedName);
-
-            typeByVariableName.Add(generatedName, PrimitiveTypeInfo.PTR);
-            pointedTypeByVariableName.Add(generatedName, pointedType);
-
-            return generatedName;
         }
 
         public bool IsPointer(string generatedName)

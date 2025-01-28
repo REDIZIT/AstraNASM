@@ -32,13 +32,22 @@ public class FunctionInfo
 {
     public string name;
 
-    public List<TypeInfo> arguments = new();
+    public List<FieldInfo> arguments = new();
     public List<TypeInfo> returns = new();
 }
 public class FieldInfo
 {
     public string name;
     public TypeInfo type;
+
+    public FieldInfo()
+    {
+    }
+    public FieldInfo(TypeInfo type, string name)
+    {
+        this.type = type;
+        this.name = name;
+    }
 
 }
 public class ClassTypeInfo : TypeInfo

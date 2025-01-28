@@ -82,9 +82,13 @@
                 name = rawInfo.name
             };
 
-            foreach (RawTypeInfo rawTypeInfo in rawInfo.arguments)
+            foreach (RawFieldInfo rawArgInfo in rawInfo.arguments)
             {
-                functionInfo.arguments.Add(resolved.GetType(rawTypeInfo));
+                functionInfo.arguments.Add(new FieldInfo()
+                {
+                    name = rawArgInfo.name,
+                    type = resolved.GetType(rawArgInfo.typeName),
+                });
             }
             foreach (RawTypeInfo rawTypeInfo in rawInfo.returns)
             {
@@ -129,7 +133,7 @@
         PtrSet_EmbeddedFunctionInfo set = new()
         {
             name = "set",
-            arguments = new List<TypeInfo>() { PrimitiveTypeInfo.INT }
+            arguments = new List<FieldInfo>() { new(PrimitiveTypeInfo.INT, "newValue") }
         };
         module.RegisterFunction(set);
 
@@ -143,14 +147,14 @@
         PtrShift_EmbeddedFunctionInfo shift = new()
         {
             name = "shift",
-            arguments = new List<TypeInfo>() { PrimitiveTypeInfo.INT },
+            arguments = new List<FieldInfo>() { new(PrimitiveTypeInfo.INT, "offseInBytes") }
         };
         module.RegisterFunction(shift);
 
         Print_EmbeddedFunctionInfo print = new()
         {
             name = "print",
-            arguments = new List<TypeInfo>() { PrimitiveTypeInfo.PTR }
+            arguments = new List<FieldInfo>() { new(PrimitiveTypeInfo.PTR, "pointer") }
         };
         module.RegisterFunction(print);
     }

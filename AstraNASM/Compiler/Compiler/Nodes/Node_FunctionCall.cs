@@ -60,33 +60,37 @@
         }
         else
         {
-            //string functionName = ((Node_VariableUse)caller).variableName;
-            string functionName = function.name;
+            ctx.b.Space();
+            ctx.b.CommentLine($"{caller}.{function.name}");
 
+            //var functionCtx = ctx.CreateSubContext();
 
-            List<string> paramsDeclars = new();
-            foreach (Node arg in arguments)
+            for (int i = 0; i < arguments.Count; i++)
             {
-                arg.Generate(ctx);
-                TypeInfo argType = ctx.GetVariableType(arg.generatedVariableName);
-                string generatedType = (argType is PrimitiveTypeInfo) ? argType.ToString() : "ptr";
+                Node node = arguments[i];
+                FieldInfo argInfo = function.arguments[0];
 
-                paramsDeclars.Add($"{generatedType} {arg.generatedVariableName}");
+                node.Generate(ctx);
+
+                ctx.AllocateStackVariable(node.result.type, argInfo.name);
+                ctx.b.Line($"mov rax, {node.result.GetRBP()}");
+                ctx.b.Line($"push rax");
             }
-            string paramsStr = string.Join(", ", paramsDeclars);
 
 
             if (function.returns.Count > 0)
             {
-                TypeInfo returnValueType = function.returns[0];
+                throw new Exception("Not upgraded");
+                //TypeInfo returnValueType = function.returns[0];
 
-                string tempName = ctx.NextTempVariableName(returnValueType);
-                ctx.b.Line($"{tempName} = call {returnValueType} @{functionName}({paramsStr})");
-                generatedVariableName = tempName;
+                //string tempName = ctx.NextTempVariableName(returnValueType);
+                //ctx.b.Line($"{tempName} = call {returnValueType} @{functionName}({paramsStr})");
+                //generatedVariableName = tempName;
             }
             else
             {
-                ctx.b.Line($"call void @{functionName}({paramsStr})");
+                //ctx.b.Line($"call void @{functionName}({paramsStr})");
+                ctx.b.Line($"call {function.name}");
             }
         }
     }

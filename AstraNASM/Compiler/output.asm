@@ -8,22 +8,20 @@ main:
 	push rbp
 	mov rbp, rsp
 	
-	mov [rbp-8], 42
-	
 ; -- new Pointer
 	sub rsp, 8
 	
 ; -- pointer.address
 	sub rsp, 8
 	mov rax, rbp
-	add rax, -16
-	mov [rbp-24], rax
+	add rax, -8
+	mov [rbp-16], rax
 	sub rsp, 8
-	mov [rbp-32], 160
+	mov [rbp-24], 160
 	
 ; -- anon_1 = anon_2
-	mov rax, [rbp-24]
-	mov [rax], [rbp-32]
+	mov rax, [rbp-16]
+	mov [rax], [rbp-24]
 	
 ; -- new Array
 	sub rsp, 8
@@ -31,37 +29,41 @@ main:
 ; -- arr.pointer
 	sub rsp, 8
 	mov rax, rbp
-	add rax, -40
-	mov [rbp-48], rax
+	add rax, -32
+	mov [rbp-40], rax
 	
 ; -- anon_3 = pointer
-	mov rax, [rbp-48]
-	mov [rax], [rbp-16]
+	mov rax, [rbp-40]
+	mov [rax], [rbp-8]
 	
-; -- a.to_ptr
+; -- Node_FieldAccess.write
 	sub rsp, 8
-	mov rax, rbp
-	add rax, -8
-	mov [rbp-56], rax
+	mov [rbp-48], 777
 	
-; -- print anon_4
-	mov rax [rbp-56]
+	mov rax, [rbp-48]
+	push rax
+	call write
+	
+	
+	sub rsp, 8
+	mov [rbp-64], 1
+	
+	mov rax, [rbp-64]
+	mov rsp, rbp
+	pop rbp
+	ret
+	
+	
+	
+write:
+	push rbp
+	mov rbp, rsp
+	
+; -- print index
+	mov rax, [rbp+16]
 	print [rax]
 	
 	
-; -- arr.pointer
-	sub rsp, 8
-	mov rax, rbp
-	add rax, -40
-	mov [rbp-64], rax
-	
-; -- anon_5.address
-	sub rsp, 8
-	mov rax, [rbp-64]
-	mov [rbp-72], rax
-	
-	mov rbx, [rbp-72]
-	mov rax, [rbx]
 	mov rsp, rbp
 	pop rbp
 	ret

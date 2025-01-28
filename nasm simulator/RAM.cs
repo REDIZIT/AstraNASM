@@ -1,6 +1,6 @@
 ﻿public class RAM
 {
-    public byte[] bytes = new byte[256];
+    public byte[] bytes = new byte[512];
 
     public void Write64(long address, long value)
     {

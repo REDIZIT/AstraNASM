@@ -5,6 +5,8 @@
     public List<VariableRawData> parameters = new();
     public List<VariableRawData> returnValues = new();
 
+    private FunctionInfo functionInfo;
+
     public override void RegisterRefs(RawModule raw)
     {
         RawFunctionInfo rawInfo = new()
@@ -14,9 +16,10 @@
 
         foreach (VariableRawData data in parameters)
         {
-            rawInfo.arguments.Add(new RawTypeInfo()
+            rawInfo.arguments.Add(new RawFieldInfo()
             {
-                name = data.rawType
+                name = data.name,
+                typeName = data.rawType,
             });
         }
 
@@ -43,6 +46,8 @@
         {
             rawData.Resolve(module);
         }
+
+        functionInfo = module.functionInfoByName[name];
     }
 
     public override void Generate(Generator.Context ctx)
@@ -54,15 +59,15 @@
             throw new NotImplementedException("Function has 1+ return values. Generation for this is not supported yet");
         }
 
-        List<string> paramsDeclars = new();
-        foreach (VariableRawData param in parameters)
-        {
-            string generatedName = ctx.NextPointerVariableName(param.type, param.name);
-            string generatedType = (param.type is PrimitiveTypeInfo) ? param.type.ToString() : "ptr";
+        //List<string> paramsDeclars = new();
+        //foreach (VariableRawData param in parameters)
+        //{
+        //    string generatedName = ctx.NextPointerVariableName(param.type, param.name);
+        //    string generatedType = (param.type is PrimitiveTypeInfo) ? param.type.ToString() : "ptr";
 
-            paramsDeclars.Add($"{generatedType} {generatedName}");
-        }
-        string paramsStr = string.Join(", ", paramsDeclars);
+        //    paramsDeclars.Add($"{generatedType} {generatedName}");
+        //}
+        //string paramsStr = string.Join(", ", paramsDeclars);
 
 
         ctx.b.Space(3);
@@ -84,7 +89,14 @@
 
         ctx.b.Space(1);
 
-        body.Generate(ctx);
+        var functionCtx = ctx.CreateSubContext();
+
+        foreach (FieldInfo argInfo in functionInfo.arguments)
+        {
+            functionCtx.Register_FunctionArgumentVariable(argInfo, 0);
+        }
+
+        body.Generate(functionCtx);
 
         ctx.b.Space(1);
     }
