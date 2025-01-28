@@ -59,7 +59,7 @@ public class Simulator
                 {
                     value = ram.Read64(value);
                 }
-                
+
 
                 ram.Write64(toAddress, value);
             }
@@ -99,8 +99,8 @@ public class Simulator
         }
         else if (cmd == "cmp")
         {
-            long a = Convert.ToInt64(regs.Get(args[1]));
-            long b = Convert.ToInt64(regs.Get(args[2]));
+            long a = Utils.ParseDec(args[1], regs);
+            long b = Utils.ParseDec(args[2], regs);
 
             regs.eflags.RememberComprassion(a, b);
         }
@@ -163,10 +163,27 @@ public class Simulator
             value = -value;
             reg.Set64(value);
         }
+        else if (cmd.StartsWith("set"))
+        {
+            string p = cmd[3..];
+            regs.Set(args[1], CanSet(p) ? 1 : 0);
+        }
         else
         {
             throw new($"Unknown instruction '{line}'");
         }
+    }
+
+    private bool CanSet(string p)
+    {
+        if (p == "e") return regs.eflags.a == regs.eflags.b;
+        if (p == "ne") return regs.eflags.a != regs.eflags.b;
+        if (p == "g") return regs.eflags.a > regs.eflags.b;
+        if (p == "ge") return regs.eflags.a >= regs.eflags.b;
+        if (p == "l") return regs.eflags.a < regs.eflags.b;
+        if (p == "le") return regs.eflags.a <= regs.eflags.b;
+
+        throw new Exception($"Unknown setXXX instruction {p}");
     }
 
     private void JumpTo(long absAddress)

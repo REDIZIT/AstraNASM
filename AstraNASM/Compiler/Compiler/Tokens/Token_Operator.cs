@@ -19,8 +19,8 @@ public class Token_Equality : Token_Operator
         {
             op = new Token_Equality();
 
-            if (word == "==") op.asmOperatorName = "icmp eq";
-            if (word == "!=") op.asmOperatorName = "icmp ne";
+            if (word == "==") op.asmOperatorName = "e";
+            if (word == "!=") op.asmOperatorName = "ne";
 
             return true;
         }
@@ -43,10 +43,10 @@ public class Token_Comprassion : Token_Operator
         {
             op = new Token_Comprassion();
 
-            if (word == ">") op.asmOperatorName = "icmp sgt";
-            if (word == ">=") op.asmOperatorName = "icmp sge";
-            if (word == "<") op.asmOperatorName = "icmp slt";
-            if (word == "<=") op.asmOperatorName = "icmp sle";
+            if (word == ">=") op.asmOperatorName = "ge";
+            if (word == ">") op.asmOperatorName = "g";
+            if (word == "<=") op.asmOperatorName = "le";
+            if (word == "<") op.asmOperatorName = "l";
 
             return true;
         }

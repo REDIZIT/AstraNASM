@@ -26,8 +26,19 @@
 
         ctx.b.Line($"mov rax, {left.result.GetRBP()}");
         ctx.b.Line($"mov rbx, {right.result.GetRBP()}");
-        ctx.b.Line($"{@operator.asmOperatorName} rax, rbx");
-        ctx.b.Line($"mov {result.GetRBP()}, rax");
+
+        if (@operator is Token_Comprassion || @operator is Token_Equality)
+        {
+            ctx.b.Line($"cmp rax, rbx");
+            ctx.b.Line($"mov rax, 0");
+            ctx.b.Line($"set{@operator.asmOperatorName} al");
+            ctx.b.Line($"mov {result.GetRBP()}, rax");
+        }
+        else
+        {
+            ctx.b.Line($"{@operator.asmOperatorName} rax, rbx");
+            ctx.b.Line($"mov {result.GetRBP()}, rax");
+        }
 
         ctx.b.Space();
     }

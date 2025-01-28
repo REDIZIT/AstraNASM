@@ -35,7 +35,7 @@
         {
             char currentChar = rawCode[ci++];
 
-            // Skip spaces and tabs
+            // Skip tabs
             if (currentChar == '\t')
             {
                 continue;
@@ -69,10 +69,10 @@
             }
 
 
-            // On line end reach
+            // On word end reach (new line or space)
             if (currentChar == '\r' || currentChar == '\n' || currentChar == ' ')
             {
-                // If line reached, but word has not be recognized
+                // If word end reached, but word still has not be recognized
                 if (word != "")
                 {
                     if (Token_Visibility.TryMatch(word, out var vis))
@@ -88,7 +88,17 @@
                     }
                     else
                     {
-                        throw new Exception($"Failed to tokenize word '{word}'");
+                        Token wholeWordToken = TryTokenize(word, true);
+                        if (wholeWordToken != null)
+                        {
+                            tokens.Add(wholeWordToken);
+                            word = "";
+                            continue;
+                        }
+                        else
+                        {
+                            throw new Exception($"Failed to tokenize word '{word}'");
+                        }
                     }
                 }
 
@@ -103,7 +113,7 @@
 
 
             // Try tokenize single char
-            Token token = TryTokenize(currentChar.ToString());
+            Token token = TryTokenize(currentChar.ToString(), false);
             if (token != null)
             {
                 if (Token_Identifier.IsMatch(word))
@@ -120,7 +130,7 @@
             // Try tokenize whole word
             word += currentChar;
 
-            token = TryTokenize(word);
+            token = TryTokenize(word, false);
             if (token != null)
             {
                 tokens.Add(token);
@@ -132,18 +142,32 @@
         return tokens;
     }
 
-    private static Token TryTokenize(string word)
+    private static Token TryTokenize(string word, bool isWholeWord)
     {
         if (Token_Equality.TryMatch(word, out var eq)) return eq;
-        if (Token_Comprassion.TryMatch(word, out var cmp)) return cmp;
+        
         if (Token_AddSub.TryMatch(word, out var term)) return term;
         if (Token_Factor.TryMatch(word, out var fact)) return fact;
         if (Token_Unary.TryMatch(word, out var un)) return un;
 
-        if (tokenTypeBySingleWord.TryGetValue(word, out Type tokenType))
+        if (isWholeWord)
         {
-            return (Token)Activator.CreateInstance(tokenType);
+            if (Token_Comprassion.TryMatch(word, out var cmp)) return cmp;
         }
+
+        if (word == "=" && isWholeWord == false)
+        {
+            // '=' is not single token, '=' may be '=='
+        }
+        else
+        {
+            if (tokenTypeBySingleWord.TryGetValue(word, out Type tokenType))
+            {
+                return (Token)Activator.CreateInstance(tokenType);
+            }
+        }
+
+
 
         return null;
     }

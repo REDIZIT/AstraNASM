@@ -94,9 +94,12 @@ public static class Generator
 
         public Context CreateSubContext()
         {
-            Context ctx = new();
-            ctx.parent = this;
-            ctx.b = b;
+            Context ctx = new()
+            {
+                parent = this,
+                b = b,
+                module = module,
+            };
 
             return ctx;
         }

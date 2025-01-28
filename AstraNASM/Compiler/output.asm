@@ -8,62 +8,49 @@ main:
 	push rbp
 	mov rbp, rsp
 	
-; -- new Pointer
+	mov [rbp-8], 2
+	
 	sub rsp, 8
+	mov [rbp-16], 100
 	
-; -- pointer.address
-	sub rsp, 8
-	mov rax, rbp
-	add rax, -8
-	mov [rbp-16], rax
-	sub rsp, 8
-	mov [rbp-24], 160
+	mov rax, [rbp-8]
+	mov rbx, [rbp-16]
+	cmp rax, rbx
+	mov rax, 0
+	setle al
+	mov [rbp-24], rax
 	
-; -- anon_1 = anon_2
-	mov rax, [rbp-16]
-	mov [rax], [rbp-24]
-	
-; -- new Array
-	sub rsp, 8
-	
-; -- arr.pointer
-	sub rsp, 8
-	mov rax, rbp
-	add rax, -32
-	mov [rbp-40], rax
-	
-; -- anon_3 = pointer
-	mov rax, [rbp-40]
-	mov [rax], [rbp-8]
-	
-; -- Node_FieldAccess.write
-	sub rsp, 8
-	mov [rbp-48], 777
-	
-	mov rax, [rbp-48]
-	push rax
-	call write
+; -- if anon_2
+	mov rax, [rbp-24]
+	cmp rax, 0
+	jle if_false
 	
 	
 	sub rsp, 8
-	mov [rbp-64], 1
+	mov [rbp-32], 10
 	
-	mov rax, [rbp-64]
+	mov rax, [rbp-32]
 	mov rsp, rbp
 	pop rbp
 	ret
+	jmp if_end
+if_false:
 	
 	
+	sub rsp, 8
+	mov [rbp-40], 9
 	
-write:
-	push rbp
-	mov rbp, rsp
-	
-; -- print index
-	mov rax, [rbp+16]
-	print [rax]
+	mov rax, [rbp-40]
+	mov rsp, rbp
+	pop rbp
+	ret
+if_end:
 	
 	
+	sub rsp, 8
+	mov [rbp-48], 1
+	
+	mov rax, [rbp-48]
 	mov rsp, rbp
 	pop rbp
 	ret

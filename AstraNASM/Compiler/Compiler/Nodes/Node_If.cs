@@ -20,37 +20,40 @@
 
         condition.Generate(ctx);
 
-        string valueConditionVariable = Utils.SureNotPointer(condition.generatedVariableName, ctx);
 
-        if (ctx.GetVariableType(valueConditionVariable) != PrimitiveTypeInfo.BOOL)
-        {
-            string castedConditionVariable = ctx.NextTempVariableName(PrimitiveTypeInfo.BOOL);
-            ctx.b.Line($"{castedConditionVariable} = trunc {ctx.GetVariableType(valueConditionVariable)} {valueConditionVariable} to i1");
-            valueConditionVariable = castedConditionVariable;
-        }
+        //if (condition.result.type != PrimitiveTypeInfo.BOOL)
+        //{
+        //    string castedConditionVariable = ctx.NextTempVariableName(PrimitiveTypeInfo.BOOL);
+        //    ctx.b.Line($"{castedConditionVariable} = trunc {ctx.GetVariableType(valueConditionVariable)} {valueConditionVariable} to i1");
+        //    valueConditionVariable = castedConditionVariable;
+        //}
+
+        ctx.b.Space();
+        ctx.b.CommentLine($"if {condition.result.name}");
 
 
         if (elseBranch == null)
         {
-            ctx.b.Line($"br i1 {valueConditionVariable}, label %if_true, label %if_end");
+            ctx.b.Line($"mov rax, {condition.result.RBP}");
+            ctx.b.Line($"cmp rax, 0");
+            ctx.b.Line($"jle if_false");
 
-            ctx.b.Line("if_true:");
             thenBranch.Generate(ctx);
-            ctx.b.Line("br label %if_end");
 
-            ctx.b.Line("if_end:");
+            ctx.b.Line($"if_false:");
         }
         else
         {
-            ctx.b.Line($"br i1 {valueConditionVariable}, label %if_true, label %if_false");
+            ctx.b.Line($"mov rax, {condition.result.RBP}");
+            ctx.b.Line($"cmp rax, 0");
+            ctx.b.Line($"jle if_false");
 
-            ctx.b.Line("if_true:");
             thenBranch.Generate(ctx);
-            ctx.b.Line("br label %if_end");
 
-            ctx.b.Line("if_false:");
+            ctx.b.Line($"jmp if_end");
+            ctx.b.Line($"if_false:");
+
             elseBranch.Generate(ctx);
-            ctx.b.Line("br label %if_end");
 
             ctx.b.Line("if_end:");
         }

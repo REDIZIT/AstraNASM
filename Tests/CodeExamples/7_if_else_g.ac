@@ -4,7 +4,7 @@ class program
 	{
 		int a = 2
 
-		if (a <= 100)
+		if (a > 100)
 		{
 			return 10
 		}
@@ -16,3 +16,7 @@ class program
 		return 1
 	}
 }
+
+---
+
+9

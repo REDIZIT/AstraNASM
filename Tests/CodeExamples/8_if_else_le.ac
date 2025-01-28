@@ -16,3 +16,7 @@ class program
 		return 1
 	}
 }
+
+---
+
+10
