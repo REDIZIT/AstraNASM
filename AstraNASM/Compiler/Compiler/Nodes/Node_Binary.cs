@@ -23,6 +23,7 @@
         TypeInfo resultType = ctx.module.GetType(@operator.ResultType);
 
         result = ctx.AllocateStackVariable(resultType);
+        ctx.b.Line($"sub rsp, 8");
 
         ctx.b.Line($"mov rax, {left.result.GetRBP()}");
         ctx.b.Line($"mov rbx, {right.result.GetRBP()}");

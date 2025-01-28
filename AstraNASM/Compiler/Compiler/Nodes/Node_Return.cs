@@ -1,6 +1,7 @@
 ﻿public class Node_Return : Node
 {
     public Node expr;
+    public FunctionInfo function;
 
     public override void RegisterRefs(RawModule module)
     {
@@ -16,22 +17,36 @@
 
         ctx.b.Space(2);
 
-        if (expr != null)
+        if (function.returns.Count > 0)
         {
-            expr.Generate(ctx);
+            if (function.returns.Count > 1) throw new Exception("Not supported yet");
 
-            ctx.b.Space(1);
+            int rbpOffset = 16 + function.arguments.Count * 8;
+            if (function.owner != null) rbpOffset += 8;
 
-            if (expr is Node_FieldAccess)
+            if (expr != null)
             {
-                ctx.b.Line($"mov rbx, {expr.result.GetRBP()}");
-                ctx.b.Line($"mov rax, [rbx]");
+                expr.Generate(ctx);
+
+                ctx.b.Space(1);
+
+                if (expr is Node_FieldAccess)
+                {
+                    ctx.b.Line($"mov rax, {expr.result.GetRBP()}");
+                    ctx.b.Line($"mov [rbp+{rbpOffset}], [rax]");
+                }
+                else
+                {
+                    ctx.b.Line($"mov rax, {expr.result.GetRBP()}");
+                    ctx.b.Line($"mov [rbp+{rbpOffset}], rax");
+                }
             }
             else
             {
-                ctx.b.Line($"mov rax, {expr.result.GetRBP()}");
+                throw new Exception("Syntax error: Function has return type, but return node does not have any expression to return.");
             }
         }
+        
 
         ctx.b.Line("mov rsp, rbp");
         ctx.b.Line("pop rbp");

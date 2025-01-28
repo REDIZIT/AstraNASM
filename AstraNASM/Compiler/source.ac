@@ -2,31 +2,17 @@ class program
 {
 	public main(): int
 	{
-		Array arr = new Array()
+		int a = 2;
 
-		arr.write(0, 11)
-		arr.write(1, 22)
-		arr.write(2, 33)
-		arr.write(3, 44)
+		if (a != 2)
+		{
+			return 10
+		}
+		else
+		{
+			return 9
+		}
 
 		return 1
-	}
-}
-
-class Pointer
-{
-	int address
-}
-
-class Array 
-{
-	public write(int index, int value)
-	{
-		ptr pointer = self.to_ptr()
-
-		pointer.shift(index * 8)
-		pointer.set(value);
-
-		return
 	}
 }

@@ -48,6 +48,28 @@
         }
 
         functionInfo = module.functionInfoByName[name];
+
+        ResolveReturnNodesRecursive((Node_Block)body);
+    }
+
+    private void ResolveReturnNodesRecursive(Node_Block block)
+    {
+        foreach (Node childNode in block.children)
+        {
+            if (childNode is Node_Return returnNode)
+            {
+                returnNode.function = functionInfo;
+            }
+            else if (childNode is Node_Block anotherBlock)
+            {
+                ResolveReturnNodesRecursive(anotherBlock);
+            }
+            else if (childNode is Node_If ifNode)
+            {
+                if (ifNode.thenBranch is Node_Block thenBlock) ResolveReturnNodesRecursive(thenBlock);
+                if (ifNode.elseBranch is Node_Block elseBlock) ResolveReturnNodesRecursive(elseBlock);
+            }
+        }
     }
 
     public override void Generate(Generator.Context ctx)
