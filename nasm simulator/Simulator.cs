@@ -153,8 +153,23 @@ public class Simulator
         }
         else if (cmd == "print")
         {
-            long value = Utils.ParseDec(args[1], regs);
-            Console.WriteLine(args[1] + " = " + value + " (0x" + value.ToString("x") + ")");
+            if (args[1].StartsWith('"'))
+            {
+                int begin = line.IndexOf('"');
+                int end = line.LastIndexOf('"');
+                Console.WriteLine(line.Substring(begin, end - begin + 1));
+            }
+            else
+            {
+                long value = Utils.ParseDec(args[1], regs);
+
+                if (args[1].StartsWith("["))
+                {
+                    value = ram.Read64(value);
+                }
+
+                Console.WriteLine(args[1] + " = " + value + " (0x" + value.ToString("x") + ")");
+            }
         }
         else if (cmd == "neg")
         {

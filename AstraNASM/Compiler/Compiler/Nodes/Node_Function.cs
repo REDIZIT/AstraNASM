@@ -89,16 +89,7 @@
 
         ctx.b.Space(3);
 
-        int index = 0;
-        if (functionInfo.owner != null)
-        {
-            ctx.Register_FunctionArgumentVariable(new FieldInfo()
-            {
-                name = "self",
-                type = functionInfo.owner
-            }, index);
-            index++;
-        }
+        
 
         ctx.b.Line($"{name}:");
         ctx.b.Line("push rbp");
@@ -106,9 +97,23 @@
 
         ctx.b.Space(1);
 
-        foreach (FieldInfo argInfo in functionInfo.arguments)
+        int index = 0;
+
+        for (int i = functionInfo.arguments.Count - 1; i >= 0; i--)
         {
+            FieldInfo argInfo = functionInfo.arguments[i];
             ctx.Register_FunctionArgumentVariable(argInfo, index);
+            index++;
+        }
+
+        
+        if (functionInfo.owner != null)
+        {
+            ctx.Register_FunctionArgumentVariable(new FieldInfo()
+            {
+                name = "self",
+                type = functionInfo.owner
+            }, index);
             index++;
         }
 

@@ -19,9 +19,12 @@ class Array
 {
 	public write(int index)
 	{
-		ptr pointer = self.to_ptr
+		ptr pointer = self.to_ptr()
 
-		pointer.set(123 + 1)
+		pointer.set(123)
+
+		pointer.shift(8)
+		pointer.set(124)
 
 		return
 	}

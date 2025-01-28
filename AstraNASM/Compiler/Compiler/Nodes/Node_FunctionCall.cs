@@ -61,26 +61,45 @@
         else
         {
             ctx.b.Space();
-            ctx.b.CommentLine($"{caller}.{function.name}");
+            ctx.b.CommentLine($"{caller}.{function.name}()");
 
 
-            //if (function.owner != null)
-            //{
-            //    ctx.b.Line($"mov rax, {caller.result.RBP} ; self");
-            //    ctx.b.Line($"push rax");
-            //}
+            ctx.b.CommentLine($"arguments generation");
+
+            Variable[] argumentsResults = new Variable[arguments.Count];
 
             for (int i = 0; i < arguments.Count; i++)
             {
                 Node node = arguments[i];
-                FieldInfo argInfo = function.arguments[0];
 
                 node.Generate(ctx);
 
-                ctx.AllocateStackVariable(node.result.type, argInfo.name);
-                ctx.b.Line($"mov rax, {node.result.GetRBP()} ; arg[{i}] = {argInfo.name}");
+                argumentsResults[i] = node.result;                
+            }
+
+            ctx.b.CommentLine($"arguments pushing");
+
+            if (function.owner != null)
+            {
+                Node_VariableUse variableNode = (Node_VariableUse)((Node_FieldAccess)caller).target;
+
+                Variable variable = ctx.GetVariable(variableNode.variableName);
+                ctx.AllocateStackVariable(variable.type);
+
+                ctx.b.Line($"mov rax, {variable.RBP} ; self");
                 ctx.b.Line($"push rax");
             }
+
+            for (int i = 0; i < arguments.Count; i++)
+            {
+                Variable result = argumentsResults[i];
+                FieldInfo argInfo = function.arguments[i];
+
+                ctx.AllocateStackVariable(result.type, argInfo.name);
+                ctx.b.Line($"mov rax, {result.GetRBP()} ; arg[{i}] = {argInfo.name}");
+                ctx.b.Line($"push rax");
+            }
+
 
 
             if (function.returns.Count > 0)

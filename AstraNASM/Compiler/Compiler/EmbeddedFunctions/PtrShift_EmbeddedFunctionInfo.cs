@@ -8,7 +8,8 @@
         var pointerVariable = ctx.GetVariable(pointerVariableName);
 
         ctx.b.Line($"mov rax, {pointerVariable.GetRBP()}");
-        ctx.b.Line($"add rax, {shiftVariable.GetRBP()}");
+        ctx.b.Line($"mov rbx, {shiftVariable.GetRBP()}");
+        ctx.b.Line($"add rax, rbx");
         ctx.b.Line($"mov {pointerVariable.GetRBP()}, rax");
 
         ctx.b.Space();
