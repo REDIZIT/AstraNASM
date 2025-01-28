@@ -94,6 +94,16 @@ public static class Generator
 
             return ctx;
         }
+
+        public void Release(Variable variable)
+        {
+            if (localVariables.Contains(variable) == false)
+            {
+                throw new Exception("Failed to release variable due to variable is not presented in current context");
+            }
+
+            lastLocalVariableIndex += 8; // sizeInBytes
+        }
     }
 
     public static string Generate(List<Node> statements, ResolvedModule module)

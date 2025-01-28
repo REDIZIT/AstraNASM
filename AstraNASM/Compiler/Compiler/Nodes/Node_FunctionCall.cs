@@ -66,37 +66,49 @@
 
             ctx.b.CommentLine($"arguments generation");
 
-            Variable[] argumentsResults = new Variable[arguments.Count];
+            bool isStatic = function.owner == null;
 
-            for (int i = 0; i < arguments.Count; i++)
+            Variable[] argumentsResults = new Variable[isStatic ? arguments.Count : arguments.Count + 1];
+
+            for (int i =0; i < arguments.Count; i++)
             {
                 Node node = arguments[i];
+                if (node is Node_Literal) continue;
 
                 node.Generate(ctx);
-
-                argumentsResults[i] = node.result;                
+                argumentsResults[isStatic ? 0 : 1] = node.result;
             }
 
             ctx.b.CommentLine($"arguments pushing");
 
-            if (function.owner != null)
+            if (isStatic == false)
             {
                 Node_VariableUse variableNode = (Node_VariableUse)((Node_FieldAccess)caller).target;
 
-                Variable variable = ctx.GetVariable(variableNode.variableName);
-                ctx.AllocateStackVariable(variable.type);
+                Variable selfVar = ctx.GetVariable(variableNode.variableName);
+                ctx.AllocateStackVariable(selfVar.type);
 
-                ctx.b.Line($"mov rax, {variable.RBP} ; self");
+                ctx.b.Line($"mov rax, {selfVar.RBP} ; self");
                 ctx.b.Line($"push rax");
+
+                argumentsResults[0] = selfVar;
             }
 
             for (int i = 0; i < arguments.Count; i++)
             {
-                Variable result = argumentsResults[i];
+                Variable result = argumentsResults[isStatic ? 0 : 1];
                 FieldInfo argInfo = function.arguments[i];
 
-                ctx.AllocateStackVariable(result.type, argInfo.name);
-                ctx.b.Line($"mov rax, {result.GetRBP()} ; arg[{i}] = {argInfo.name}");
+                if (arguments[i] is Node_Literal literal)
+                {
+                    ctx.b.Line($"mov rax, {literal.constant.value} ; arg[{i}] = {argInfo.name}");
+                }
+                else
+                {
+                    ctx.AllocateStackVariable(result.type, argInfo.name);
+                    ctx.b.Line($"mov rax, {result.GetRBP()} ; arg[{i}] = {argInfo.name}");
+                }
+                
                 ctx.b.Line($"push rax");
             }
 
@@ -116,6 +128,29 @@
                 //ctx.b.Line($"call void @{functionName}({paramsStr})");
                 ctx.b.Line($"call {function.name}");
             }
+
+            int argumentsSizeInBytes = 0;
+            //for (int i = 0; i < argumentsResults.Length; i++)
+            //{
+            //    if (isStatic == false && i == 0) continue;
+
+            //    Variable arg = argumentsResults[i];
+            //    if (arg == null) continue;
+
+            //    ctx.Release(arg);
+            //    argumentsSizeInBytes += 8; // FIXME when diffenent datatypes will be implemented
+            //}
+
+            for (int i = 0; i < argumentsResults.Length; i++)
+            {
+                Variable arg = argumentsResults[i];
+
+                if (arg != null) ctx.Release(arg);
+
+                argumentsSizeInBytes += 8;
+            }
+
+            ctx.b.Line($"add rsp, {argumentsSizeInBytes}");
         }
     }
 }
