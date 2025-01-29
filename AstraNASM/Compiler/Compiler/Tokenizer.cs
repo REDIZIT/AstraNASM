@@ -1,4 +1,6 @@
-﻿public static class Tokenizer
+﻿namespace Astra.Compilation;
+
+public static class Tokenizer
 {
     public static Dictionary<string, Type> tokenTypeBySingleWord = new()
     {

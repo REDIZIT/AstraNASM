@@ -1,3 +1,5 @@
-﻿public abstract class EmbeddedFunctionInfo : FunctionInfo
+﻿namespace Astra.Compilation;
+
+public abstract class EmbeddedFunctionInfo : FunctionInfo
 {
 }

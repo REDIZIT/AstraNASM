@@ -1,4 +1,6 @@
-﻿public abstract class Token_Operator : Token
+﻿namespace Astra.Compilation;
+
+public abstract class Token_Operator : Token
 {
     public virtual string ResultType => "int";
 

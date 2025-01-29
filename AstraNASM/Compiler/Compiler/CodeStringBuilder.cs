@@ -1,4 +1,6 @@
-﻿public class CodeStringBuilder
+﻿namespace Astra.Compilation;
+
+public class CodeStringBuilder
 {
     public List<string> lines = new();
     public int maxSpace = 0;

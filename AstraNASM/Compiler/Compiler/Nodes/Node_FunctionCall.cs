@@ -1,4 +1,6 @@
-﻿public class Node_FunctionCall : Node
+﻿namespace Astra.Compilation;
+
+public class Node_FunctionCall : Node
 {
     public Node caller;
     public List<Node> arguments;

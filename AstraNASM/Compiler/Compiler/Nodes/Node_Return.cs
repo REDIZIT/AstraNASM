@@ -1,4 +1,6 @@
-﻿public class Node_Return : Node
+﻿namespace Astra.Compilation;
+
+public class Node_Return : Node
 {
     public Node expr;
     public FunctionInfo function;

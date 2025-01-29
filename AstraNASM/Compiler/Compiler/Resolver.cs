@@ -1,4 +1,6 @@
-﻿public static class Resolver
+﻿namespace Astra.Compilation;
+
+public static class Resolver
 {
     public static ResolvedModule DiscoverModule(List<Node> ast)
     {

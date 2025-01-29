@@ -4,14 +4,16 @@ public static class Compiler
 {
     public static string Compile_Astra_to_NASM(string astraCode)
     {
-        List<Token> tokens = Tokenizer.Tokenize(astraCode);
+        return "123";
 
-        List<Node> ast = AbstractSyntaxTreeBuilder.Parse(tokens);
+        //List<Token> tokens = Tokenizer.Tokenize(astraCode);
 
-        ResolvedModule module = Resolver.DiscoverModule(ast);
+        //List<Node> ast = AbstractSyntaxTreeBuilder.Parse(tokens);
 
-        string llvm = Generator.Generate(ast, module);
+        //ResolvedModule module = Resolver.DiscoverModule(ast);
 
-        return llvm;
+        //string llvm = Generator.Generate(ast, module);
+
+        //return llvm;
     }
 }

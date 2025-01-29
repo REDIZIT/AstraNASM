@@ -1,4 +1,6 @@
-﻿using System.Text.RegularExpressions;
+﻿namespace Astra.Compilation;
+
+using System.Text.RegularExpressions;
 
 public abstract class Token
 {

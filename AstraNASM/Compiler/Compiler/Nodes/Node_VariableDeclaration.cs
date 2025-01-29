@@ -1,4 +1,6 @@
-﻿public class Node_VariableDeclaration : Node
+﻿namespace Astra.Compilation;
+
+public class Node_VariableDeclaration : Node
 {
     public VariableRawData variable;
     public Node initValue;

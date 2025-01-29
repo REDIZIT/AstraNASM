@@ -1,4 +1,6 @@
-﻿public class Node_Grouping : Node
+﻿namespace Astra.Compilation;
+
+public class Node_Grouping : Node
 {
     public Node expression;
 

@@ -1,4 +1,6 @@
-﻿public class PtrGet_EmbeddedFunctionInfo : EmbeddedFunctionInfo
+﻿namespace Astra.Compilation;
+
+public class PtrGet_EmbeddedFunctionInfo : EmbeddedFunctionInfo
 {
     public Variable Generate(Generator.Context ctx, string pointerVariableName)
     {

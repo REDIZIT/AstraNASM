@@ -1,4 +1,6 @@
-﻿public class Node_Class : Node
+﻿namespace Astra.Compilation;
+
+public class Node_Class : Node
 {
     public string name;
     public Node_Block body;

@@ -1,4 +1,6 @@
-﻿public abstract class Node
+﻿namespace Astra.Compilation;
+
+public abstract class Node
 {
     public Variable result;
 

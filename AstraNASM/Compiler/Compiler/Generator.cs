@@ -1,4 +1,5 @@
-﻿
+﻿namespace Astra.Compilation;
+
 public class Variable
 {
     public string name;

@@ -1,4 +1,6 @@
-﻿public class Node_While : Node
+﻿namespace Astra.Compilation;
+
+public class Node_While : Node
 {
     public Node condition, body;
 

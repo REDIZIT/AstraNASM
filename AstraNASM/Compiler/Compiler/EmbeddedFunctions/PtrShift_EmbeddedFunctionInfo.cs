@@ -1,4 +1,6 @@
-﻿public class PtrShift_EmbeddedFunctionInfo : EmbeddedFunctionInfo
+﻿namespace Astra.Compilation;
+
+public class PtrShift_EmbeddedFunctionInfo : EmbeddedFunctionInfo
 {
     public Variable Generate(Generator.Context ctx, string pointerVariableName, Variable shiftVariable)
     {

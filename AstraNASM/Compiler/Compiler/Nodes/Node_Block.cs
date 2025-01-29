@@ -1,4 +1,6 @@
-﻿public class Node_Block : Node
+﻿namespace Astra.Compilation;
+
+public class Node_Block : Node
 {
     public List<Node> children = new();
 

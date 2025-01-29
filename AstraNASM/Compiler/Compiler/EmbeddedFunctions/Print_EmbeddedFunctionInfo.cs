@@ -1,4 +1,6 @@
-﻿public class Print_EmbeddedFunctionInfo : EmbeddedFunctionInfo
+﻿namespace Astra.Compilation;
+
+public class Print_EmbeddedFunctionInfo : EmbeddedFunctionInfo
 {
     public void Generate(Generator.Context ctx, Variable variable)
     {

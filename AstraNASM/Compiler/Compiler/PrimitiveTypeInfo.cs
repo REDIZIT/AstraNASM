@@ -1,4 +1,6 @@
-﻿public class PrimitiveTypeInfo : TypeInfo
+﻿namespace Astra.Compilation;
+
+public class PrimitiveTypeInfo : TypeInfo
 {
     public string asmName;
 

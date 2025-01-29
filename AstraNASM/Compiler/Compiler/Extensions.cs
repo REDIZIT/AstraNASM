@@ -1,4 +1,6 @@
-﻿public static class Extensions
+﻿namespace Astra.Compilation;
+
+public static class Extensions
 {
     public static int IndexOf<T>(this IEnumerable<T> list, Func<T, bool> predicate)
     {

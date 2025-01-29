@@ -1,4 +1,6 @@
-﻿public class ResolvedModule
+﻿namespace Astra.Compilation;
+
+public class ResolvedModule
 {
     public Dictionary<string, FunctionInfo> functionInfoByName = new();
     public Dictionary<string, TypeInfo> typeInfoByName = new();

@@ -1,4 +1,6 @@
-﻿public class Node_Literal : Node
+﻿namespace Astra.Compilation;
+
+public class Node_Literal : Node
 {
     public Token_Constant constant;
 

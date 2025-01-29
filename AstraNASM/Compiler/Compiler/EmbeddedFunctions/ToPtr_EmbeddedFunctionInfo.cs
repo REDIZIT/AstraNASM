@@ -1,4 +1,6 @@
-﻿public class ToPtr_EmbeddedFunctionInfo : EmbeddedFunctionInfo
+﻿namespace Astra.Compilation;
+
+public class ToPtr_EmbeddedFunctionInfo : EmbeddedFunctionInfo
 {
     public Variable Generate(Generator.Context ctx, string valueName)
     {

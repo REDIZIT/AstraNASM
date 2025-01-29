@@ -1,4 +1,6 @@
-﻿public class Node_Unary : Node
+﻿namespace Astra.Compilation;
+
+public class Node_Unary : Node
 {
     public Node right;
     public Token_Operator @operator;

@@ -1,4 +1,6 @@
-﻿public class RawModule
+﻿namespace Astra.Compilation;
+
+public class RawModule
 {
     public Dictionary<string, RawTypeInfo> typeInfoByName = new();
     public Dictionary<string, RawClassTypeInfo> classInfoByName = new();

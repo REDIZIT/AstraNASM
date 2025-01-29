@@ -1,4 +1,6 @@
-﻿public class Node_FieldAccess : Node
+﻿namespace Astra.Compilation;
+
+public class Node_FieldAccess : Node
 {
     public Node target;
     public string targetFieldName;

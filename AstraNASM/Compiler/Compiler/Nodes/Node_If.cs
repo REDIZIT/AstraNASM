@@ -1,4 +1,6 @@
-﻿public class Node_If : Node
+﻿namespace Astra.Compilation;
+
+public class Node_If : Node
 {
     public Node condition, thenBranch, elseBranch;
 

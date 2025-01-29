@@ -1,4 +1,6 @@
-﻿public class UnexpectedTokenException : Exception
+﻿namespace Astra.Compilation;
+
+public class UnexpectedTokenException : Exception
 {
     public Token unexpectedToken;
 

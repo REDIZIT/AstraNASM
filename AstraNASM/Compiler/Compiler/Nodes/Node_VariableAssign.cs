@@ -1,4 +1,6 @@
-﻿
+﻿namespace Astra.Compilation;
+
+
 public class Node_VariableAssign : Node
 {
     public Node target; // variable or field get
