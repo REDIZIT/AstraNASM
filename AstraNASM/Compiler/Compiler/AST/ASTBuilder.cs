@@ -8,6 +8,8 @@ public class ASTBuilder
 
     protected bool Match<T>(out T token) where T : Token
     {
+        ConsumeSpace(false);
+
         if (Check(typeof(T)))
         {
             token = (T)Advance();
@@ -18,6 +20,8 @@ public class ASTBuilder
     }
     protected bool Match(Type tokenType)
     {
+        ConsumeSpace(false);
+
         if (Check(tokenType))
         {
             Advance();
@@ -28,16 +32,22 @@ public class ASTBuilder
 
     protected bool Check<T>() where T : Token
     {
+        ConsumeSpace(false);
+
         return Check(typeof(T));
     }
     protected bool Check(Type tokenType)
     {
+        ConsumeSpace(false);
+
         if (IsAtEnd()) return false;
 
         return Peek().GetType() == tokenType;
     }
     protected Token Advance()
     {
+        ConsumeSpace(false);
+
         if (IsAtEnd() == false) current++;
         return Previous();
     }
@@ -67,6 +77,8 @@ public class ASTBuilder
     }
     protected Token Consume(Type awaitingTokenType, string errorMessage)
     {
+        ConsumeSpace(false);
+
         if (Check(awaitingTokenType)) return Advance();
 
         Token gotToken = Peek();
@@ -83,11 +95,11 @@ public class ASTBuilder
 
             if (token is Token_Space)
             {
-                Advance();
+                current++;
             }
             else if (consumeNewLines && token is Token_Terminator)
             {
-                Advance();
+                current++;
             }
 
             return;

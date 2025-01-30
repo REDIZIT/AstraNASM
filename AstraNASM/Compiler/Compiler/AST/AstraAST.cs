@@ -9,7 +9,7 @@ public class AstraAST : ASTBuilder
 
     public List<Node> Parse(List<Token> tokens, ErrorLogger logger = null)
     {
-        this.tokens = tokens.Where(t => t is Token_Space == false && t is Token_EOF == false).ToList();
+        this.tokens = tokens.Where(t => t is Token_EOF == false).ToList();
         this.logger = logger;
         this.current = 0;
 
@@ -39,7 +39,7 @@ public class AstraAST : ASTBuilder
         Sync();
     }
 
-    private void Log(Exception err)
+    private void Log(Exception err, Token errorToken = null)
     {
         string messageText = err.Message;
 
@@ -48,12 +48,30 @@ public class AstraAST : ASTBuilder
             messageText = tokenErr.message + "\n" + messageText;
         }
 
-        logger.Error(new LogEntry()
+        LogEntry entry;
+
+        if (errorToken == null)
         {
-            tokenBeginIndex = current,
-            tokenEndIndex = current,
-            message = messageText
-        });
+            entry = new LogEntry()
+            {
+                tokenBeginIndex = current,
+                tokenEndIndex = current,
+                message = messageText
+            };
+        }
+        else
+        {
+            int tokenIndex = tokens.IndexOf(errorToken);
+
+            entry = new LogEntry()
+            {
+                tokenBeginIndex = tokenIndex,
+                tokenEndIndex = tokenIndex,
+                message = messageText
+            };
+        }
+
+        logger.Error(entry);
     }
 
     private void Sync()
@@ -291,7 +309,7 @@ public class AstraAST : ASTBuilder
         catch (Exception err)
         {
             isBlockFailed = true;
-            Log(err);
+            Log(err, ident);
         }
 
         var body = (Node_Block)Block();
@@ -354,7 +372,7 @@ public class AstraAST : ASTBuilder
         catch (Exception err)
         {
             isBlockFailed = true;
-            Log(err);
+            Log(err, functionName);
         }
 
         Node body = Block();
