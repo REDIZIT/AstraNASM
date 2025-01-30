@@ -70,7 +70,7 @@ public class Lexer
 
         lexicalState = initialState;
 
-        Console.WriteLine($"Lexer got {chars.Count} chars, {start}:{end} with state {initialState}");
+        //Console.WriteLine($"Lexer got {chars.Count} chars, {start}:{end} with state {initialState}");
     }
 
     public Token Advance()

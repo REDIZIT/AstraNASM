@@ -35,7 +35,6 @@ main:
 	mov rsp, rbp
 	pop rbp
 	ret
-	jmp if_end
 if_false:
 	
 	
@@ -47,7 +46,6 @@ if_false:
 	mov rsp, rbp
 	pop rbp
 	ret
-if_end:
 	
 	
 	sub rsp, 8

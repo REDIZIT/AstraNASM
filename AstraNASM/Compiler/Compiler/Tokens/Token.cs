@@ -124,3 +124,6 @@ public class Token_Bad : Token
 public class Token_Space : Token
 {
 }
+public class Token_TypeName : Token
+{
+}

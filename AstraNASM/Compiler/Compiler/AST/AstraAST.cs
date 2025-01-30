@@ -301,6 +301,7 @@ public class AstraAST : ASTBuilder
         Token_Identifier ident = Consume<Token_Identifier>("Expected class name");
 
 
+
         ConsumeSpace(true);
         try
         {
@@ -531,8 +532,12 @@ public class AstraAST : ASTBuilder
         Node condition = Expression();
         Consume(typeof(Token_BracketClose), "Expected ')' after condition.");
 
+        ConsumeSpace(true);
+
         Node thenBranch = Statement();
         Node elseBranch = null;
+
+        ConsumeSpace(true);
 
         if (Match(typeof(Token_Else)))
         {

@@ -9,7 +9,20 @@ public static class Compiler
     {
         List<Token> tokens = lexer.Tokenize(astraCode, false);
 
-        List<Node> ast = parser.Parse(tokens);
+        ErrorLogger logger = new();
+
+        List<Node> ast = parser.Parse(tokens, logger);
+
+        if (logger.entries.Count > 0)
+        {
+            Console.WriteLine();
+            foreach (LogEntry entry in logger.entries)
+            {
+                Console.WriteLine(entry.message);
+                Console.WriteLine();
+            }
+            throw new Exception($"Compilation failed with {logger.entries.Count} errors. Read the console output to get exceptions details.");
+        }
 
         ResolvedModule module = Resolver.DiscoverModule(ast);
 
