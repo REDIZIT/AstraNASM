@@ -2,20 +2,40 @@
 {
     public static void Main(string[] args)
     {
-        string[] testFiles = Directory.GetFiles("../../../Tests");
+        string nasmFolder = Environment.CurrentDirectory + "/build";
+        Simulator.ramDumpFilepath = Environment.CurrentDirectory + "/dumps/ram.bin";
 
-        RunTest(testFiles[7], false);
+        Console.WriteLine($"Simulating nasm files inside: '{nasmFolder}'");
 
-        //for (int i = 0; i < testFiles.Length; i++)
+
+        foreach (string filepath in Directory.GetFiles(nasmFolder, "*.nasm"))
+        {
+            Console.WriteLine("\n");
+            RunTest(filepath, false);
+        }
+
+        //if (args.Length > 0)
         //{
-        //    if (RunTest(testFiles[i], true) == false)
-        //    {
-        //        throw new Exception($"Test '{Path.GetFileName(testFiles[i])}' failed");
-        //    }
+            
         //}
+        //else
+        //{
+        //    string[] testFiles = Directory.GetFiles("../../../Tests");
 
-        Console.WriteLine("Simulations end");
-        Console.ReadLine();
+        //    RunTest(testFiles[7], false);
+
+        //    //for (int i = 0; i < testFiles.Length; i++)
+        //    //{
+        //    //    if (RunTest(testFiles[i], true) == false)
+        //    //    {
+        //    //        throw new Exception($"Test '{Path.GetFileName(testFiles[i])}' failed");
+        //    //    }
+        //    //}
+
+        //    Console.WriteLine("Simulations end");
+        //    Console.ReadLine();
+        //}
+        
     }
 
     private static bool RunTest(string testFilePath, bool silent)

@@ -110,7 +110,7 @@ public class Lexer
 
         if (startChar == '\r' || startChar == '\n' || startChar == ';')
         {
-            while (chars[currentPos] == '\r' || chars[currentPos] == '\n' || chars[currentPos] == ';')
+            while (currentPos < endRead && (chars[currentPos] == '\r' || chars[currentPos] == '\n' || chars[currentPos] == ';'))
             {
                 currentPos++;
             }
@@ -191,7 +191,7 @@ public class Lexer
                 if (Token_Unary.TryMatch(word, out var un)) return un;
 
 
-                if (char.IsLetterOrDigit(chars[currentPos]) == false && chars[currentPos] != '_')
+                if (currentPos < endRead && (char.IsLetterOrDigit(chars[currentPos]) == false && chars[currentPos] != '_'))
                 {
                     break;
                 }

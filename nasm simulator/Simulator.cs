@@ -9,7 +9,7 @@ public class Simulator
 
     public const bool FILL_ZERO_ON_POP = true;
 
-    private string ramDumpFilepath = "../../../ram.bin";
+    public static string ramDumpFilepath = "ram.bin";
 
     private List<string> instructions;
 
