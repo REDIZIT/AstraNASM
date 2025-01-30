@@ -2,12 +2,16 @@
 
 public class UnexpectedTokenException : Exception
 {
-    public Token unexpectedToken;
+    public Type expectedToken;
+    public Token gotToken;
+    public string message;
 
-    public override string Message => $"Totally unexpected token '{unexpectedToken.GetType()}'";
+    public override string Message => $"Expected '{expectedToken}', but got '{gotToken}'";
 
-    public UnexpectedTokenException(Token unexpectedToken)
+    public UnexpectedTokenException(Type expectedToken, Token gotToken, string message)
     {
-        this.unexpectedToken = unexpectedToken;
+        this.expectedToken = expectedToken;
+        this.gotToken = gotToken;
+        this.message = message;
     }
 }

@@ -2,48 +2,104 @@
 
 using System.Collections.Generic;
 
-
-public static class AbstractSyntaxTreeBuilder
+public class AstraAST : ASTBuilder
 {
-    private static List<Token> tokens;
-    private static int current;
-    private static List<Node> statements;
+    private ErrorLogger logger;
 
-    public static List<Node> Parse(List<Token> tokens)
+    public List<Node> Parse(List<Token> tokens, ErrorLogger logger = null)
     {
-        AbstractSyntaxTreeBuilder.tokens = tokens.Where(t => t is Token_Space == false && t is Token_EOF == false).ToList();
-        current = 0;
+        this.tokens = tokens.Where(t => t is Token_Space == false && t is Token_EOF == false).ToList();
+        this.logger = logger;
+        this.current = 0;
 
         statements = new();
 
         while (IsAtEnd() == false)
         {
-            statements.Add(Declaration());
-            SkipTerminators();
+            try
+            {
+                ConsumeSpace(true);
+                statements.Add(Declaration());
+            }
+            catch (Exception err)
+            {
+                LogAndSync(err);
+            }
+            
         }
 
 
         return statements;
     }
 
+    private void LogAndSync(Exception err)
+    {
+        string messageText = err.Message;
+
+        if (err is UnexpectedTokenException tokenErr)
+        {
+            messageText = tokenErr.message + "\n" + messageText;
+        }
+
+        logger.Error(new LogEntry()
+        {
+            tokenBeginIndex = current,
+            tokenEndIndex = current,
+            message = messageText
+        });
+
+        Sync();
+    }
+
+    private void Sync()
+    {
+        Token failedToken = Previous();
+        Console.WriteLine("Syncing. Failed: " + failedToken);
+
+        if (IsAtEnd())
+        {
+            return;
+        }
+
+        if (failedToken is Token_Terminator)
+        {
+            Advance();
+            Console.WriteLine("Skip failed (previous token) terminator");
+        }
+
+        while (IsAtEnd() == false && Peek() is Token_Terminator == false)
+        {
+            Console.WriteLine("Skipping " + Peek());
+            Advance();
+        }
+
+        if (IsAtEnd())
+        {
+            Console.WriteLine("Synced at end");
+        }
+        else
+        {
+            Console.WriteLine("Synced at " + Peek());
+        }
+    }
 
 
     #region Layers
 
-    private static Node Declaration()
+    private Node Declaration()
     {
         if (Match(typeof(Token_Class))) return ClassDeclaration();
 
         return FunctionsAndFieldsDeclaration();
     }
-    public static Node FunctionsAndFieldsDeclaration()
+    public Node FunctionsAndFieldsDeclaration()
     {
         if (Check<Token_Identifier>()) return Variable();
         if (Match(typeof(Token_Visibility))) return FunctionDeclaration();
 
         return Statement();
     }
-    private static Node Statement()
+    private Node Statement()
     {
         if (Match(typeof(Token_BlockOpen))) return Block();
         if (Match(typeof(Token_If))) return If();
@@ -53,11 +109,11 @@ public static class AbstractSyntaxTreeBuilder
 
         return Expression();
     }
-    private static Node Expression()
+    private Node Expression()
     {
         return Assignment();
     }
-    private static Node Assignment()
+    private Node Assignment()
     {
         // Target
         Node left = Equality();
@@ -84,7 +140,7 @@ public static class AbstractSyntaxTreeBuilder
 
         return left;
     }
-    private static Node Equality()
+    private Node Equality()
     {
         Node left = Comprassion();
 
@@ -100,7 +156,7 @@ public static class AbstractSyntaxTreeBuilder
 
         return left;
     }
-    private static Node Comprassion()
+    private Node Comprassion()
     {
         Node left = AddSub();
 
@@ -116,7 +172,7 @@ public static class AbstractSyntaxTreeBuilder
 
         return left;
     }
-    private static Node AddSub()
+    private Node AddSub()
     {
         Node left = MulDiv();
 
@@ -132,7 +188,7 @@ public static class AbstractSyntaxTreeBuilder
 
         return left;
     }
-    private static Node MulDiv()
+    private Node MulDiv()
     {
         Node left = NotNeg();
 
@@ -149,7 +205,7 @@ public static class AbstractSyntaxTreeBuilder
 
         return left;
     }
-    private static Node NotNeg()
+    private Node NotNeg()
     {
         if (Match(out Token_Unary operatorToken))
         {
@@ -167,11 +223,11 @@ public static class AbstractSyntaxTreeBuilder
             {
                 return Call();
             }
-            catch (UnexpectedTokenException err)
+            catch (TotallyUnexpectedTokenException err)
             {
                 if (err.unexpectedToken == tokenAddSub)
                 {
-                    Consume<Token_AddSub>();
+                    Consume<Token_AddSub>("Expected '+' or '-'");
 
                     return new Node_Unary()
                     {
@@ -188,7 +244,7 @@ public static class AbstractSyntaxTreeBuilder
 
         return Call();
     }
-    private static Node Call()
+    private Node Call()
     {
         if (Match(typeof(Token_New))) return New();
 
@@ -217,10 +273,11 @@ public static class AbstractSyntaxTreeBuilder
     #endregion
 
 
-    private static Node ClassDeclaration()
+    private Node ClassDeclaration()
     {
-        Token_Identifier ident = Consume<Token_Identifier>();
-        Consume<Token_BlockOpen>("Expected '{' after class declaration", skipTerminators: true);
+        Token_Identifier ident = Consume<Token_Identifier>("Expected class name");
+        ConsumeSpace(true);
+        Consume<Token_BlockOpen>("Expected '{' after class declaration");
 
         var body = (Node_Block)Block();
 
@@ -230,12 +287,12 @@ public static class AbstractSyntaxTreeBuilder
             body = body
         };
     }
-    private static Node FunctionDeclaration()
+    private Node FunctionDeclaration()
     {
         //Consume(typeof(Token_Fn), "Expected 'fn' before function declaration.");
         return Function();
     }
-    private static Node Function()
+    private Node Function()
     {
         Token_Identifier functionName = Consume<Token_Identifier>("Expected function name");
         Consume<Token_BracketOpen>("Expected '(' after function name");
@@ -273,7 +330,8 @@ public static class AbstractSyntaxTreeBuilder
             } while (Match(typeof(Token_Comma)));
         }
 
-        Consume<Token_BlockOpen>("Expected '{' before function body", skipTerminators: true);
+        ConsumeSpace(true);
+        Consume<Token_BlockOpen>("Expected '{' before function body");
         Node body = Block();
         return new Node_Function()
         {
@@ -284,7 +342,7 @@ public static class AbstractSyntaxTreeBuilder
         };
 
     }
-    private static VariableRawData ReturnValueDeclaration()
+    private VariableRawData ReturnValueDeclaration()
     {
         if (Match(typeof(Token_Identifier)))
         {
@@ -308,7 +366,7 @@ public static class AbstractSyntaxTreeBuilder
             throw new Exception("Expected type inside argument declaration");
         }
     }
-    private static Node Variable()
+    private Node Variable()
     {
         //var firstName = Consume<Token_Identifier>();
 
@@ -319,19 +377,19 @@ public static class AbstractSyntaxTreeBuilder
         // myVar ...
         return Expression();
     }
-    private static Node VariableDeclaration()
+    private Node VariableDeclaration()
     {
-        var type = Consume<Token_Identifier>();
+        var type = Consume<Token_Identifier>("Expected variable type");
 
         bool isArray = false;
         if (Check(typeof(Token_SquareBracketOpen)))
         {
             isArray = true;
-            Consume<Token_SquareBracketOpen>();
-            Consume<Token_SquareBracketClose>();
+            Consume<Token_SquareBracketOpen>("Expected '[' for array declaration");
+            Consume<Token_SquareBracketClose>("Expected ']' for array declaration");
         }
 
-        var varNameToken = Consume<Token_Identifier>("Expect variable name.");
+        var varNameToken = Consume<Token_Identifier>("Expect variable name");
 
         Node initValue = null;
         if (Match(typeof(Token_Assign)))
@@ -350,19 +408,19 @@ public static class AbstractSyntaxTreeBuilder
         };
     }
 
-    private static Node New()
+    private Node New()
     {
-        Token_Identifier ident = Consume<Token_Identifier>();
+        Token_Identifier ident = Consume<Token_Identifier>("Expected ref type name");
 
-        Consume<Token_BracketOpen>();
-        Consume<Token_BracketClose>();
+        Consume<Token_BracketOpen>("Expected '(' after type name");
+        Consume<Token_BracketClose>("Expected ')' after type name");
 
         return new Node_New()
         {
             className = ident.name,
         };
     }
-    private static Node Return()
+    private Node Return()
     {
         if (Match(typeof(Token_Terminator)))
         {
@@ -378,7 +436,7 @@ public static class AbstractSyntaxTreeBuilder
             };
         }
     }
-    private static Node For()
+    private Node For()
     {
         Consume(typeof(Token_BracketOpen), "Expected '(' after 'for'");
         Node declaration = Declaration();
@@ -410,7 +468,7 @@ public static class AbstractSyntaxTreeBuilder
             }
         };
     }
-    private static Node While()
+    private Node While()
     {
         Consume(typeof(Token_BracketOpen), "Expected '(' before condition.");
         Node condition = Expression();
@@ -424,7 +482,7 @@ public static class AbstractSyntaxTreeBuilder
             body = body
         };
     }
-    private static Node If()
+    private Node If()
     {
         Consume(typeof(Token_BracketOpen), "Expected '(' before condition.");
         Node condition = Expression();
@@ -450,26 +508,42 @@ public static class AbstractSyntaxTreeBuilder
     /// Before entering Block method you make sure that <see cref="Token_BlockOpen"></see> is already consumed.<br/>
     /// After exiting Block method will be guaranteed that <see cref="Token_BlockClose"></see> is already consumed. (You should not consume it manually)
     /// </summary>
-    private static Node Block()
+    private Node Block()
     {
         List<Node> nodes = new();
 
-        while (Check(typeof(Token_BlockClose), skipTerminators: true) == false && IsAtEnd() == false)
+        while (IsAtEnd() == false)
         {
-            nodes.Add(Declaration());
+            ConsumeSpace(true);
+
+            if (Check<Token_BlockClose>() == false)
+            {
+                try
+                {
+                    nodes.Add(Declaration());
+                }
+                catch (Exception e)
+                {
+                    LogAndSync(e);
+                }
+            }
+            else
+            {
+                Consume<Token_BlockClose>("Expected '}' after block");
+                return new Node_Block()
+                {
+                    children = nodes
+                };
+            }
         }
 
-        Consume(typeof(Token_BlockClose), "Expect '}' after block.", skipTerminators: true);
-        return new Node_Block()
-        {
-            children = nodes
-        };
+        throw new Exception("Block is not closed by '}'");
     }
 
 
-    private static Node Property(Node target)
+    private Node Property(Node target)
     {
-        Token_Identifier ident = Consume<Token_Identifier>();
+        Token_Identifier ident = Consume<Token_Identifier>("Expected field name");
 
         return new Node_FieldAccess()
         {
@@ -477,7 +551,7 @@ public static class AbstractSyntaxTreeBuilder
             targetFieldName = ident.name,
         };
     }
-    private static Node FinishCall(Node caller, Token_Identifier ident)
+    private Node FinishCall(Node caller, Token_Identifier ident)
     {
         List<Node> arguments = new();
 
@@ -498,7 +572,7 @@ public static class AbstractSyntaxTreeBuilder
             arguments = arguments,
         };
     }
-    private static Node Primary()
+    private Node Primary()
     {
         if (Match(typeof(Token_Constant)))
         {
@@ -530,102 +604,18 @@ public static class AbstractSyntaxTreeBuilder
 
         if (Check(typeof(Token_Terminator)))
         {
-            bool anyTerminatorSkipped = SkipTerminators();
+            //bool anyTerminatorSkipped = SkipTerminators();
 
-            if (IsAtEnd()) return null;
-            else if (anyTerminatorSkipped) return Declaration();
+            //if (IsAtEnd()) return null;
+            //else if (anyTerminatorSkipped) return Declaration();
+
+            return null;
         }
 
         //throw new Exception($"Totally unexpected token '{Peek()}'");
-        throw new UnexpectedTokenException(Peek());
+        throw new TotallyUnexpectedTokenException(Peek());
     }
 
 
-    private static bool Match<T>(out T token) where T : Token
-    {
-        if (Check(typeof(T), true))
-        {
-            token = (T)Advance();
-            return true;
-        }
-        token = null;
-        return false;
-    }
-    private static bool Match(Type tokenType)
-    {
-        if (Check(tokenType, true))
-        {
-            Advance();
-            return true;
-        }
-        return false;
-    }
-
-    private static bool Check<T>(bool skipTerminators = false) where T : Token
-    {
-        return Check(typeof(T), skipTerminators);
-    }
-    private static bool Check(Type tokenType, bool skipTerminators = false)
-    {
-        if (IsAtEnd()) return false;
-
-        if (tokenType != typeof(Token_Terminator))
-        {
-            if (skipTerminators)
-            {
-                SkipTerminators();
-            }
-        }
-
-        return Peek().GetType() == tokenType;
-    }
-    private static Token Advance()
-    {
-        if (IsAtEnd() == false) current++;
-        return Previous();
-    }
-    private static bool IsAtEnd()
-    {
-        return current >= tokens.Count;
-    }
-    private static Token Peek()
-    {
-        return tokens[current];
-    }
-    private static T Previous<T>() where T : Token
-    {
-        return (T)Previous();
-    }
-    private static Token Previous()
-    {
-        return tokens[current - 1];
-    }
-    private static Token Next()
-    {
-        return tokens[current + 1];
-    }
-    private static T Consume<T>(string errorMessage = "Not mentioned error", bool skipTerminators = false) where T : Token
-    {
-        return (T)Consume(typeof(T), errorMessage, skipTerminators);
-    }
-    private static Token Consume(Type awaitingTokenType, string errorMessage, bool skipTerminators = false)
-    {
-        if (Check(awaitingTokenType, skipTerminators)) return Advance();
-
-        Token gotToken = Peek();
-        throw new Exception(errorMessage);
-    }
-
-    private static bool SkipTerminators()
-    {
-        if (IsAtEnd()) return false;
-
-        while (Peek().GetType() == typeof(Token_Terminator))
-        {
-            Advance();
-            if (IsAtEnd()) return true;
-        }
-
-        return false;
-    }
+    
 }
