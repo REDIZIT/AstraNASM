@@ -2,18 +2,18 @@
 
 public static class Compiler
 {
+    private static Lexer lexer = new();
+
     public static string Compile_Astra_to_NASM(string astraCode)
     {
-        return "123";
+        List<Token> tokens = lexer.Tokenize(astraCode, false);
 
-        //List<Token> tokens = Tokenizer.Tokenize(astraCode);
+        List<Node> ast = AbstractSyntaxTreeBuilder.Parse(tokens);
 
-        //List<Node> ast = AbstractSyntaxTreeBuilder.Parse(tokens);
+        ResolvedModule module = Resolver.DiscoverModule(ast);
 
-        //ResolvedModule module = Resolver.DiscoverModule(ast);
+        string llvm = Generator.Generate(ast, module);
 
-        //string llvm = Generator.Generate(ast, module);
-
-        //return llvm;
+        return llvm;
     }
 }

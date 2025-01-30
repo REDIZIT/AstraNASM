@@ -31,6 +31,16 @@ public class Token_Identifier : Token
 }
 public class Token_Assign : Token
 {
+    public static bool TryMatch(string word, out Token_Assign token)
+    {
+        if (word == "=")
+        {
+            token = new Token_Assign();
+            return true;
+        }
+        token = null;
+        return false;
+    }
 }
 public class Token_BlockOpen : Token
 {
@@ -100,5 +110,17 @@ public class Token_SquareBracketOpen : Token
 {
 }
 public class Token_SquareBracketClose : Token
+{
+}
+public class Token_Comment : Token
+{
+}
+public class Token_EOF : Token
+{
+}
+public class Token_Bad : Token
+{
+}
+public class Token_Space : Token
 {
 }
