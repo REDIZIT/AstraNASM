@@ -5,6 +5,7 @@ using System.Collections.Generic;
 public class AstraAST : ASTBuilder
 {
     private ErrorLogger logger;
+    private bool isBlockFailed;
 
     public List<Node> Parse(List<Token> tokens, ErrorLogger logger = null)
     {
@@ -34,6 +35,12 @@ public class AstraAST : ASTBuilder
 
     private void LogAndSync(Exception err)
     {
+        Log(err);
+        Sync();
+    }
+
+    private void Log(Exception err)
+    {
         string messageText = err.Message;
 
         if (err is UnexpectedTokenException tokenErr)
@@ -47,8 +54,6 @@ public class AstraAST : ASTBuilder
             tokenEndIndex = current,
             message = messageText
         });
-
-        Sync();
     }
 
     private void Sync()
@@ -276,8 +281,18 @@ public class AstraAST : ASTBuilder
     private Node ClassDeclaration()
     {
         Token_Identifier ident = Consume<Token_Identifier>("Expected class name");
+
+
         ConsumeSpace(true);
-        Consume<Token_BlockOpen>("Expected '{' after class declaration");
+        try
+        {
+            Consume<Token_BlockOpen>("Expected '{' after class declaration");
+        }
+        catch (Exception err)
+        {
+            isBlockFailed = true;
+            Log(err);
+        }
 
         var body = (Node_Block)Block();
 
@@ -331,7 +346,17 @@ public class AstraAST : ASTBuilder
         }
 
         ConsumeSpace(true);
-        Consume<Token_BlockOpen>("Expected '{' before function body");
+
+        try
+        {
+            Consume<Token_BlockOpen>("Expected '{' before function body");
+        }
+        catch (Exception err)
+        {
+            isBlockFailed = true;
+            Log(err);
+        }
+
         Node body = Block();
         return new Node_Function()
         {
@@ -529,6 +554,12 @@ public class AstraAST : ASTBuilder
             }
             else
             {
+                if (isBlockFailed)
+                {
+                    isBlockFailed = false;
+                    throw new Exception("This block has '}' but not '{'");
+                }
+
                 Consume<Token_BlockClose>("Expected '}' after block");
                 return new Node_Block()
                 {
