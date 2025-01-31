@@ -1,0 +1,19 @@
+class program
+{
+	public main(): int
+	{
+	    ptr a = new ptr()
+	    ptr b = new ptr()
+	    
+	    a.address = 123
+	    a.set(777)
+	    
+	    b.address = 123
+	    
+	    return b.get()
+	}
+}
+
+---
+
+777

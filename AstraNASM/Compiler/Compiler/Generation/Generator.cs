@@ -114,24 +114,18 @@ public static class Generator
             module = module
         };
 
-        //ctx.b.Line($";");
-        //ctx.b.Line($"; Structs");
-        //ctx.b.Line($";");
-        //foreach (ClassTypeInfo info in module.classInfoByName.Values)
-        //{
-        //    string typesStr = string.Join(", ", info.fields.Select(f => f.type.ToString()));
-        //    ctx.b.Line($"%{info.name} = type {{ {typesStr} }}");
-        //}
-
-        //ctx.b.Space(2);
-
-        //ctx.b.Line(";");
-        //ctx.b.Line("; Methods");
-        //ctx.b.Line(";");
+        ctx.b.Line("mov rax, 0");
+        ctx.b.Line("push rax ; return int");
 
         ctx.b.Line("call main");
+
+        ctx.b.Line("add rsp, 8");
+        ctx.b.Line("pop rax");
+
         ctx.b.Line("mov 0x00, rax");
         ctx.b.Line("exit");
+
+      
 
         ctx.b.Space(2);
 

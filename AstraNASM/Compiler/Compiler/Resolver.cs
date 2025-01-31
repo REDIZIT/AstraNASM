@@ -138,13 +138,7 @@ public static class Resolver
             {
                 ClassTypeInfo targetType = (ClassTypeInfo)CalculateType(call.caller);
 
-                FunctionInfo targetTypeFunction = targetType.functions.FirstOrDefault(i => i.name == call.functionName);
-
-                if (targetTypeFunction == null)
-                {
-                    targetTypeFunction = GetExtensionFunction(targetType, call.functionName, module);
-                }
-
+                FunctionInfo targetTypeFunction = TryFindFunction(targetType, call.functionName, module);
                 if (targetTypeFunction == null) throw new Exception($"Failed to find function '{call.functionName}' inside type '{targetType}'");
 
                 call.function = targetTypeFunction;
@@ -153,6 +147,18 @@ public static class Resolver
             {
                 Scope scope = ret.scope.Find(s => s.functionInfo != null);
                 ret.function = scope.functionInfo;
+            }
+            else if (node is Node_FieldAccess access)
+            {
+                ClassTypeInfo targetType = (ClassTypeInfo)CalculateType(access.target);
+
+                if (TryFindFunction(targetType, access.targetFieldName, module) == null)
+                {
+                    FieldInfo targetTypeField = TryFindField(targetType, access.targetFieldName, module);
+                    if (targetTypeField == null) throw new Exception($"Failed to find field '{access.targetFieldName}' inside type '{targetType}'");
+
+                    access.field = targetTypeField;
+                }                
             }
         }
 
@@ -250,6 +256,26 @@ public static class Resolver
         return null;
     }
 
+    private static FunctionInfo TryFindFunction(ClassTypeInfo targetType, string functionName, ResolvedModule module)
+    {
+        FunctionInfo targetTypeFunction = targetType.functions.FirstOrDefault(i => i.name == functionName);
+
+        if (targetTypeFunction == null)
+        {
+            targetTypeFunction = GetExtensionFunction(targetType, functionName, module);
+        }
+
+        return targetTypeFunction;
+    }
+
+    private static FieldInfo TryFindField(ClassTypeInfo targetType, string fieldName, ResolvedModule module)
+    {
+        FieldInfo targetTypeField = targetType.fields.FirstOrDefault(i => i.name == fieldName);
+
+        return targetTypeField;
+    }
+
+
     private static void RegisterVirtualMembers(Dictionary<string, ClassTypeInfo> classInfoByName)
     {
         RegisterInt(classInfoByName);
@@ -263,6 +289,21 @@ public static class Resolver
             name = "ptr",
             isStruct = true
         };
+
+
+
+        FieldInfo address = new PtrAddress_EmbeddedFieldInfo()
+        {
+            name = "address",
+            type = classInfoByName["int"]
+        };
+
+        ptrInfo.fields = new List<FieldInfo>()
+        {
+            address
+        };
+
+
 
         FunctionInfo toPtr = new ToPtr_EmbeddedFunctionInfo()
         {
@@ -300,6 +341,9 @@ public static class Resolver
             set,
             get
         };
+
+
+
         classInfoByName.Add(ptrInfo.name, ptrInfo);
     }
     private static void RegisterInt(Dictionary<string, ClassTypeInfo> classInfoByName)
