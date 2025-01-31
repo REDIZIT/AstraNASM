@@ -9,10 +9,10 @@ public class PtrShift_EmbeddedFunctionInfo : EmbeddedFunctionInfo
 
         var pointerVariable = ctx.GetVariable(pointerVariableName);
 
-        ctx.b.Line($"mov rax, {pointerVariable.GetRBP()}");
-        ctx.b.Line($"mov rbx, {shiftVariable.GetRBP()}");
-        ctx.b.Line($"add rax, rbx");
-        ctx.b.Line($"mov {pointerVariable.GetRBP()}, rax");
+        ctx.b.Line($"mov rbx, {pointerVariable.GetRBP()}");
+        ctx.b.Line($"mov rdx, {shiftVariable.GetRBP()}");
+        ctx.b.Line($"add rbx, rdx");
+        ctx.b.Line($"mov {pointerVariable.GetRBP()}, rbx");
 
         ctx.b.Space();
 

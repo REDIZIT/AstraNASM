@@ -1,6 +1,4 @@
-﻿
-namespace Astra.Compilation;
-
+﻿namespace Astra.Compilation;
 
 public class Node_VariableAssign : Node
 {
@@ -25,14 +23,14 @@ public class Node_VariableAssign : Node
 
         if (target is Node_FieldAccess)
         {
-            ctx.b.Line($"mov rax, {target.result.GetRBP()}");
-            ctx.b.Line($"mov [rax], {value.result.GetRBP()}");
+            ctx.b.Line($"mov rbx, {target.result.RBP}");
+            ctx.b.Line($"mov rdx, {value.result.RBP}");
+            ctx.b.Line($"mov qword [rbx], rdx");
         }
         else
         {
-            ctx.b.Line($"mov {target.result.GetRBP()}, {value.result.GetRBP()}");
+            ctx.b.Line($"mov qword rbx, {value.result.RBP}");
+            ctx.b.Line($"mov qword {target.result.RBP}, rbx");
         }
-
-        //Utils.MoveValue(value.generatedVariableName, target.generatedVariableName, ctx);
     }
 }

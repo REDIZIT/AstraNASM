@@ -1,9 +1,11 @@
 ﻿public class RAM
 {
-    public byte[] bytes = new byte[512];
+    public byte[] bytes = new byte[0xB8000 + 80 * 25 * 2];
 
     public void Write64(long address, long value)
     {
+        if (address < 0 || address + 7 >= bytes.Length) throw new Exception($"Address 0x{address.ToString("X")} is out of RAM bounds.");
+
         byte[] valueBytes = BitConverter.GetBytes(value);
         if (BitConverter.IsLittleEndian) Array.Reverse(valueBytes);
 
@@ -18,6 +20,8 @@
     }
     public long Read64(long address)
     {
+        if (address < 0 || address + 7 >= bytes.Length) throw new Exception($"Address 0x{address.ToString("X")} is out of RAM bounds.");
+
         byte[] valueBytes = new byte[8];
 
         valueBytes[0] = bytes[address + 0];

@@ -75,8 +75,8 @@ public class Node_FunctionCall : Node
             Variable selfVar = ctx.GetVariable(variableNode.variableName);
             ctx.AllocateStackVariable(selfVar.type);
 
-            ctx.b.Line($"mov rax, {selfVar.RBP} ; self");
-            ctx.b.Line($"push rax");
+            ctx.b.Line($"mov rbx, {selfVar.RBP} ; self");
+            ctx.b.Line($"push rbx");
 
             argumentsResults[0] = selfVar;
         }
@@ -88,15 +88,15 @@ public class Node_FunctionCall : Node
 
             if (arguments[i] is Node_Literal literal)
             {
-                ctx.b.Line($"mov rax, {literal.constant.value} ; arg[{i}] = {argInfo.name}");
+                ctx.b.Line($"mov rbx, {literal.constant.value} ; arg[{i}] = {argInfo.name}");
             }
             else
             {
                 ctx.AllocateStackVariable(result.type, argInfo.name);
-                ctx.b.Line($"mov rax, {result.GetRBP()} ; arg[{i}] = {argInfo.name}");
+                ctx.b.Line($"mov rbx, {result.GetRBP()} ; arg[{i}] = {argInfo.name}");
             }
 
-            ctx.b.Line($"push rax");
+            ctx.b.Line($"push rbx");
         }
 
 

@@ -170,7 +170,13 @@ public class Lexer
 
                 if (currentChar != '_')
                 {
-                    if (char.IsDigit(currentChar) == false)
+                    bool isDigit;
+
+                    if (numberStyle == NumberStyles.HexNumber) isDigit = char.IsAsciiHexDigit(currentChar);
+                    else if (numberStyle == NumberStyles.BinaryNumber) isDigit = currentChar == '0' || currentChar == '1';
+                    else isDigit = char.IsDigit(currentChar);
+
+                    if (isDigit == false)
                     {
                         string word = string.Concat(valueChars);
 

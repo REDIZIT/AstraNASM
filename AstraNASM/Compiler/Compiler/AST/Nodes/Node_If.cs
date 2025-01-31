@@ -33,8 +33,8 @@ public class Node_If : Node
 
         if (elseBranch == null)
         {
-            ctx.b.Line($"mov rax, {condition.result.RBP}");
-            ctx.b.Line($"cmp rax, 0");
+            ctx.b.Line($"mov rbx, {condition.result.RBP}");
+            ctx.b.Line($"cmp rbx, 0");
             ctx.b.Line($"jle if_false");
 
             thenBranch.Generate(ctx);
@@ -43,8 +43,8 @@ public class Node_If : Node
         }
         else
         {
-            ctx.b.Line($"mov rax, {condition.result.RBP}");
-            ctx.b.Line($"cmp rax, 0");
+            ctx.b.Line($"mov rbx, {condition.result.RBP}");
+            ctx.b.Line($"cmp rbx, 0");
             ctx.b.Line($"jle if_false");
 
             thenBranch.Generate(ctx);

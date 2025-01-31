@@ -10,17 +10,16 @@ public class ToPtr_EmbeddedFunctionInfo : EmbeddedFunctionInfo
         if (valueVariable.type is PrimitiveTypeInfo)
         {
             ctx.b.CommentLine($"ToPtr {valueName}");
-            ctx.b.Line($"mov rax, rbp");
-            ctx.b.Line($"add rax, {valueVariable.rbpOffset}");
-            ctx.b.Line($"mov {result.GetRBP()}, rax");
+            ctx.b.Line($"mov rbx, rbp");
+            ctx.b.Line($"add rbx, {valueVariable.rbpOffset}");
+            ctx.b.Line($"mov {result.GetRBP()}, rbx");
         }
         else
         {
             ctx.b.CommentLine($"ToPtr {valueName} (heap data)");
-            ctx.b.Line($"mov rax, rbp");
-            ctx.b.Line($"add rax, {valueVariable.rbpOffset}");
-            ctx.b.Line($"mov {result.GetRBP()}, [rax]");
-            //ctx.b.Line($"mov {result.GetRBP()}, rax"); // make [rax] when object table will be implemented
+            ctx.b.Line($"mov rbx, rbp");
+            ctx.b.Line($"add rbx, {valueVariable.rbpOffset}");
+            ctx.b.Line($"mov {result.GetRBP()}, [rbx]");
         }
 
         return result;

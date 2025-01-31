@@ -9,7 +9,7 @@ public class PtrAddress_EmbeddedFieldInfo : EmbeddedFieldInfo
     {
         ctx.b.Space();
         ctx.b.CommentLine($"print {variable.name}");
-        ctx.b.Line($"mov rax, {variable.GetRBP()}");
-        ctx.b.Line($"print [rax]");
+        ctx.b.Line($"mov qword rbx, {variable.GetRBP()}");
+        ctx.b.Line($"print [rbx]");
     }
 }

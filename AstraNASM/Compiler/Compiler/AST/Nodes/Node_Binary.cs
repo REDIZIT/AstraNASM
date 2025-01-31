@@ -24,20 +24,20 @@ public class Node_Binary : Node
         result = ctx.AllocateStackVariable(resultType);
         ctx.b.Line($"sub rsp, 8");
 
-        ctx.b.Line($"mov rax, {left.result.GetRBP()}");
-        ctx.b.Line($"mov rbx, {right.result.GetRBP()}");
+        ctx.b.Line($"mov rbx, {left.result.GetRBP()}");
+        ctx.b.Line($"mov rdx, {right.result.GetRBP()}");
 
         if (@operator is Token_Comprassion || @operator is Token_Equality)
         {
-            ctx.b.Line($"cmp rax, rbx");
-            ctx.b.Line($"mov rax, 0");
+            ctx.b.Line($"cmp rbx, rdx");
+            ctx.b.Line($"mov rbx, 0");
             ctx.b.Line($"set{@operator.asmOperatorName} al");
-            ctx.b.Line($"mov {result.GetRBP()}, rax");
+            ctx.b.Line($"mov {result.GetRBP()}, rbx");
         }
         else
         {
-            ctx.b.Line($"{@operator.asmOperatorName} rax, rbx");
-            ctx.b.Line($"mov {result.GetRBP()}, rax");
+            ctx.b.Line($"{@operator.asmOperatorName} rbx, rdx");
+            ctx.b.Line($"mov {result.GetRBP()}, rbx");
         }
 
         ctx.b.Space();

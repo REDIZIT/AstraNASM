@@ -28,9 +28,9 @@ public class Node_FieldAccess : Node
                 ctx.b.Space();
                 ctx.b.CommentLine($"{target.result.name}.{targetFieldName}");
                 ctx.b.Line($"sub rsp, 8");
-                ctx.b.Line($"mov rax, rbp");
-                ctx.b.Line($"add rax, {target.result.rbpOffset} ; offset to target ptr data cell");
-                ctx.b.Line($"mov {result.GetRBP()}, rax ; now {result.GetRBP()} is pointer to {target.result.name} (.address)");
+                ctx.b.Line($"mov rbx, rbp");
+                ctx.b.Line($"add rbx, {target.result.rbpOffset} ; offset to target ptr data cell");
+                ctx.b.Line($"mov {result.GetRBP()}, rbx ; now {result.GetRBP()} is pointer to {target.result.name} (.address)");
             }
             else
             {
@@ -52,15 +52,15 @@ public class Node_FieldAccess : Node
 
             if (target is Node_FieldAccess)
             {
-                ctx.b.Line($"mov rax, [rbp{totalOffset}]");
+                ctx.b.Line($"mov rbx, [rbp{totalOffset}]");
             }
             else
             {
-                ctx.b.Line($"mov rax, rbp");
-                ctx.b.Line($"add rax, {totalOffset}");
+                ctx.b.Line($"mov rbx, rbp");
+                ctx.b.Line($"add rbx, {totalOffset}");
             }
 
-            ctx.b.Line($"mov {result.GetRBP()}, rax");
+            ctx.b.Line($"mov {result.GetRBP()}, rbx");
         }
     }
 }

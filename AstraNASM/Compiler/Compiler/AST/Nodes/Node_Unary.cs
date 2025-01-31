@@ -24,19 +24,19 @@ public class Node_Unary : Node
         {
             result = ctx.AllocateStackVariable(PrimitiveTypeInfo.BOOL);
 
-            ctx.b.Line($"mov rax, {rightResult.GetRBP()}");
-            ctx.b.Line($"test rax, rax");
-            ctx.b.Line($"xor rax, rax"); // reset rax to zero
-            ctx.b.Line($"sete al"); // set last byte of reg to 1 or 0
-            ctx.b.Line($"mov {result.GetRBP()}, rax");
+            ctx.b.Line($"mov rbx, {rightResult.GetRBP()}");
+            ctx.b.Line($"test rbx, rbx");
+            ctx.b.Line($"xor rbx, rbx"); // reset rbx to zero
+            ctx.b.Line($"sete bl"); // set last byte of reg to 1 or 0
+            ctx.b.Line($"mov {result.GetRBP()}, rbx");
         }
         else if (@operator.asmOperatorName == "sub")
         {
             result = ctx.AllocateStackVariable(rightResult.type);
 
-            ctx.b.Line($"mov rax, {rightResult.GetRBP()}");
-            ctx.b.Line($"neg rax");
-            ctx.b.Line($"mov {result.GetRBP()}, rax");
+            ctx.b.Line($"mov rbx, {rightResult.GetRBP()}");
+            ctx.b.Line($"neg rbx");
+            ctx.b.Line($"mov {result.GetRBP()}, rbx");
         }
 
         ctx.b.Space();
