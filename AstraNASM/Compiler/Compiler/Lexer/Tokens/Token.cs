@@ -9,6 +9,11 @@ public class Token_Constant : Token
 {
     public string value;
 
+    public Token_Constant(string value)
+    {
+        this.value = value;
+    }
+
     public override string ToString()
     {
         return base.ToString() + ": " + value;

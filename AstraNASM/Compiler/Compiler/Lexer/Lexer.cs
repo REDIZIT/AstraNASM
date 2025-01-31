@@ -1,4 +1,6 @@
-﻿namespace Astra.Compilation;
+﻿using System.Globalization;
+
+namespace Astra.Compilation;
 
 public class Lexer
 {
@@ -127,21 +129,95 @@ public class Lexer
             //
             // Iterate digits for numbers
             //
+
+            NumberStyles numberStyle = NumberStyles.Integer;
+
+            List<char> valueChars = new();
+
+            if (currentPos < endRead)
+            {
+                char secondChar = chars[currentPos];
+
+                if (secondChar == 'x')
+                {
+                    numberStyle = NumberStyles.HexNumber;
+                    currentPos++;
+
+                    valueChars.Add('0');
+                    valueChars.Add('x');
+                }
+                else if (secondChar == 'b')
+                {
+                    numberStyle = NumberStyles.BinaryNumber;
+                    currentPos++;
+
+                    valueChars.Add('0');
+                    valueChars.Add('b');
+                }
+                else if (char.IsDigit(secondChar) == false && currentPos + 1 < endRead && char.IsDigit(chars[currentPos + 1]))
+                {
+                    throw new Exception($"Unknown number format '{secondChar}'");
+                }
+                else
+                {
+                    valueChars.Add(chars[currentPos - 1]);
+                }
+            }
+            
             while (currentPos < endRead)
             {
-                if (char.IsDigit(chars[currentPos]) == false)
+                char currentChar = chars[currentPos];
+
+                if (currentChar != '_')
                 {
-                    string word = string.Concat(chars[startRead..currentPos]);
-
-                    if (int.TryParse(word, out int value))
+                    if (char.IsDigit(currentChar) == false)
                     {
-                        return new Token_Constant()
-                        {
-                            value = word
-                        };
-                    }
+                        string word = string.Concat(valueChars);
 
-                    break;
+                        if (numberStyle == NumberStyles.Integer)
+                        {
+                            if (int.TryParse(word, out _))
+                            {
+                                return new Token_Constant(word);
+                            }
+                            else
+                            {
+                                throw new Exception($"Failed to parse Integer number '{word}'");
+                            }
+                        }
+                        else if (numberStyle == NumberStyles.HexNumber)
+                        {
+                            string valueWord = word.Substring(2, word.Length - 2);
+
+                            if (int.TryParse(valueWord, numberStyle, null, out _))
+                            {
+                                return new Token_Constant(word);
+                            }
+                            else
+                            {
+                                throw new Exception($"Failed to parse Hex number '{word}'");
+                            }
+                        }
+                        else if (numberStyle == NumberStyles.BinaryNumber)
+                        {
+                            string valueWord = word.Substring(2, word.Length - 2);
+
+                            if (int.TryParse(valueWord, numberStyle, null, out _))
+                            {
+                                return new Token_Constant(word);
+                            }
+                            else
+                            {
+                                throw new Exception($"Failed to parse Binary number '{word}'");
+                            }
+                        }
+
+                        break;
+                    }
+                    else
+                    {
+                        valueChars.Add(currentChar);
+                    }
                 }
 
                 currentPos++;
