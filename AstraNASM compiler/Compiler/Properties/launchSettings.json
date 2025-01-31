@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "AstraLLVM": {
-      "commandName": "Project",
-      "hotReloadEnabled": false
-    }
-  }
-}
