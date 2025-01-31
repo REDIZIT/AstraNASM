@@ -13,15 +13,6 @@ public class Node_VariableAssign : Node
         yield return value;
     }
 
-    public override void RegisterRefs(RawModule module)
-    {
-        value.RegisterRefs(module);
-    }
-    public override void ResolveRefs(ResolvedModule module)
-    {
-        value.ResolveRefs(module);
-    }
-
     public override void Generate(Generator.Context ctx)
     {
         base.Generate(ctx);

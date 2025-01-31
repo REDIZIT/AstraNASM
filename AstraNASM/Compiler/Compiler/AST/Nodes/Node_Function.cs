@@ -15,69 +15,6 @@ public class Node_Function : Node
         yield return body;
     }
 
-    public override void RegisterRefs(RawModule raw)
-    {
-        RawFunctionInfo rawInfo = new()
-        {
-            name = name
-        };
-
-        foreach (VariableRawData data in parameters)
-        {
-            rawInfo.arguments.Add(new RawFieldInfo()
-            {
-                name = data.name,
-                typeName = data.rawType,
-            });
-        }
-
-        foreach (VariableRawData data in returnValues)
-        {
-            rawInfo.returns.Add(new RawTypeInfo()
-            {
-                name = data.rawType
-            });
-        }
-
-        raw.RegisterFunction(rawInfo);
-
-        body.RegisterRefs(raw);
-    }
-    public override void ResolveRefs(ResolvedModule module)
-    {
-        body.ResolveRefs(module);
-        foreach (VariableRawData rawData in parameters)
-        {
-            rawData.Resolve(module);
-        }
-        foreach (VariableRawData rawData in returnValues)
-        {
-            rawData.Resolve(module);
-        }
-
-        ResolveReturnNodesRecursive((Node_Block)body);
-    }
-
-    private void ResolveReturnNodesRecursive(Node_Block block)
-    {
-        foreach (Node childNode in block.children)
-        {
-            if (childNode is Node_Return returnNode)
-            {
-                returnNode.function = functionInfo;
-            }
-            else if (childNode is Node_Block anotherBlock)
-            {
-                ResolveReturnNodesRecursive(anotherBlock);
-            }
-            else if (childNode is Node_If ifNode)
-            {
-                if (ifNode.thenBranch is Node_Block thenBlock) ResolveReturnNodesRecursive(thenBlock);
-                if (ifNode.elseBranch is Node_Block elseBlock) ResolveReturnNodesRecursive(elseBlock);
-            }
-        }
-    }
-
     public override void Generate(Generator.Context ctx)
     {
         base.Generate(ctx);

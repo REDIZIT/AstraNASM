@@ -11,17 +11,6 @@ public class Node_While : Node
         yield return body;
     }
 
-    public override void RegisterRefs(RawModule module)
-    {
-        condition.RegisterRefs(module);
-        body.RegisterRefs(module);
-    }
-    public override void ResolveRefs(ResolvedModule resolved)
-    {
-        condition.ResolveRefs(resolved);
-        body.ResolveRefs(resolved);
-    }
-
     public override void Generate(Generator.Context ctx)
     {
         base.Generate(ctx);

@@ -13,18 +13,6 @@ public class Node_If : Node
         if (elseBranch != null) yield return elseBranch;
     }
 
-    public override void RegisterRefs(RawModule module)
-    {
-        condition.RegisterRefs(module);
-        thenBranch.RegisterRefs(module);
-        elseBranch?.RegisterRefs(module);
-    }
-    public override void ResolveRefs(ResolvedModule module)
-    {
-        condition.ResolveRefs(module);
-        thenBranch.ResolveRefs(module);
-        elseBranch?.ResolveRefs(module);
-    }
     public override void Generate(Generator.Context ctx)
     {
         base.Generate(ctx);

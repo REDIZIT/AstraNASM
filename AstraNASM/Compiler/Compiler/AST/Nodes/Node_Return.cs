@@ -11,14 +11,6 @@ public class Node_Return : Node
         if (expr != null) yield return expr;
     }
 
-    public override void RegisterRefs(RawModule module)
-    {
-        expr?.RegisterRefs(module);
-    }
-    public override void ResolveRefs(ResolvedModule module)
-    {
-        expr?.ResolveRefs(module);
-    }
     public override void Generate(Generator.Context ctx)
     {
         base.Generate(ctx);

@@ -12,16 +12,6 @@ public class Node_Binary : Node
         yield return right;
     }
 
-    public override void RegisterRefs(RawModule module)
-    {
-        left.RegisterRefs(module);
-        right.RegisterRefs(module);
-    }
-    public override void ResolveRefs(ResolvedModule module)
-    {
-        left.ResolveRefs(module);
-        right.ResolveRefs(module);
-    }
     public override void Generate(Generator.Context ctx)
     {
         base.Generate(ctx);

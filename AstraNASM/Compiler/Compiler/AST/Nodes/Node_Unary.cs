@@ -11,14 +11,6 @@ public class Node_Unary : Node
         yield return right;
     }
 
-    public override void RegisterRefs(RawModule module)
-    {
-        right.RegisterRefs(module);
-    }
-    public override void ResolveRefs(ResolvedModule module)
-    {
-        right.ResolveRefs(module);
-    }
     public override void Generate(Generator.Context ctx)
     {
         base.Generate(ctx);

@@ -14,17 +14,6 @@ public class Node_VariableDeclaration : Node
         if (initValue != null) yield return initValue;
     }
 
-    public override void RegisterRefs(RawModule module)
-    {
-        initValue?.RegisterRefs(module);
-    }
-
-    public override void ResolveRefs(ResolvedModule module)
-    {
-        initValue?.ResolveRefs(module);
-        variable.Resolve(module);
-    }
-
     public override void Generate(Generator.Context ctx)
     {
         base.Generate(ctx);
@@ -53,12 +42,16 @@ public class Node_VariableDeclaration : Node
 
     private void Generate_WithDefaultValue(Generator.Context ctx)
     {
-        result = ctx.AllocateStackVariable(variable.type, variable.name);
+        TypeInfo type = ctx.module.GetType(variable.rawType);
+
+        result = ctx.AllocateStackVariable(type, variable.name);
         ctx.b.Line($"mov {result.GetRBP()}, 0");
     }
     private void Generate_WithInit_Literal(Generator.Context ctx, Node_Literal literal)
     {
-        result = ctx.AllocateStackVariable(variable.type, variable.name);
+        TypeInfo type = ctx.module.GetType(variable.rawType);
+
+        result = ctx.AllocateStackVariable(type, variable.name);
         ctx.b.Line($"mov {result.GetRBP()}, {literal.constant.value}");
     }
     private void Generate_WithInit_AnyExpression(Generator.Context ctx)
@@ -74,30 +67,5 @@ public class Node_VariableDeclaration : Node
 
         result = tokenNew.result;
         result.name = variable.name;
-    }
-}
-
-public class Node_VariableUse : Node
-{
-    public string variableName;
-
-    public override IEnumerable<Node> EnumerateChildren()
-    {
-        yield break;
-    }
-
-    public override void RegisterRefs(RawModule module)
-    {
-    }
-    public override void ResolveRefs(ResolvedModule module)
-    {
-    }
-
-    public override void Generate(Generator.Context ctx)
-    {
-        base.Generate(ctx);
-
-        result = ctx.GetVariable(variableName);
-        //generatedVariableName = "%" + variableName;
     }
 }

@@ -19,13 +19,6 @@ public class Node_FunctionCall : Node
         }
     }
 
-    public override void RegisterRefs(RawModule module)
-    {
-    }
-    public override void ResolveRefs(ResolvedModule module)
-    {
-    }
-
     public override void Generate(Generator.Context ctx)
     {
         base.Generate(ctx);

@@ -1,6 +1,4 @@
-﻿using System.Reflection.Metadata;
-
-namespace Astra.Compilation;
+﻿namespace Astra.Compilation;
 
 public class Lexer
 {

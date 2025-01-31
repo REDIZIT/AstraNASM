@@ -12,15 +12,6 @@ public class Node_New : Node
         yield break;
     }
 
-
-    public override void RegisterRefs(RawModule module)
-    {
-        
-    }
-    public override void ResolveRefs(ResolvedModule resolved)
-    {
-        classInfo = resolved.classInfoByName[className];
-    }
     public override void Generate(Generator.Context ctx)
     {
         result = ctx.AllocateStackVariable(PrimitiveTypeInfo.LONG, "address");
