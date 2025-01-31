@@ -10,7 +10,7 @@ public class PtrGet_EmbeddedFunctionInfo : EmbeddedFunctionInfo
 
         var pointerVar = ctx.GetVariable(pointerVariableName);
 
-        TypeInfo pointedType = PrimitiveTypeInfo.LONG; // TODO
+        TypeInfo pointedType = PrimitiveTypes.LONG; // TODO
 
         var result = ctx.AllocateStackVariable(pointedType);
 

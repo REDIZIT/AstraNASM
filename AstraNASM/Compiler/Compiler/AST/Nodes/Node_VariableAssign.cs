@@ -19,7 +19,8 @@ public class Node_VariableAssign : Node
         value.Generate(ctx);
 
         ctx.b.Space();
-        ctx.b.CommentLine($"{target.result.name} = {value.result.name}");
+        ctx.b.CommentLine($"Assign {target.result.name} = {value.result.name}");
+
 
         if (target is Node_FieldAccess)
         {

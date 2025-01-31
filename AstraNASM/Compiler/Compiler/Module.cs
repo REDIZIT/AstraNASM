@@ -2,9 +2,9 @@
 
 public class ResolvedModule
 {
-    public Dictionary<string, ClassTypeInfo> classInfoByName = new();
+    public Dictionary<string, TypeInfo> classInfoByName = new();
 
-    public ClassTypeInfo GetType(string name)
+    public TypeInfo GetType(string name)
     {
         return classInfoByName[name];
     }

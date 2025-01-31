@@ -23,7 +23,7 @@ public class Node_FieldAccess : Node
         {
             if (field is PtrAddress_EmbeddedFieldInfo ptrAddress)
             {
-                result = ctx.AllocateStackVariable(PrimitiveTypeInfo.PTR);
+                result = ctx.AllocateStackVariable(PrimitiveTypes.PTR);
 
                 ctx.b.Space();
                 ctx.b.CommentLine($"{target.result.name}.{targetFieldName}");
@@ -41,7 +41,7 @@ public class Node_FieldAccess : Node
         {
             int fieldOffsetInBytes = 0;
 
-            result = ctx.AllocateStackVariable(PrimitiveTypeInfo.PTR);
+            result = ctx.AllocateStackVariable(PrimitiveTypes.PTR);
 
             int totalOffset = target.result.rbpOffset + fieldOffsetInBytes;
 

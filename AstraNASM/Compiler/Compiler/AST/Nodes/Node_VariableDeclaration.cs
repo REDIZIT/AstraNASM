@@ -52,7 +52,7 @@ public class Node_VariableDeclaration : Node
         TypeInfo type = ctx.module.GetType(variable.rawType);
 
         result = ctx.AllocateStackVariable(type, variable.name);
-        ctx.b.Line($"mov {result.GetRBP()}, {literal.constant.value}");
+        ctx.b.Line($"mov qword {result.GetRBP()}, {literal.constant.value}");
     }
     private void Generate_WithInit_AnyExpression(Generator.Context ctx)
     {

@@ -9,9 +9,11 @@ public class PtrSet_EmbeddedFunctionInfo : EmbeddedFunctionInfo
 
         var pointerVar = ctx.GetVariable(pointerVariableName);
 
+        string nasmType = Utils.GetNASMType(targetVar.type);
+
         ctx.b.Line($"mov rbx, {pointerVar.GetRBP()}");
         ctx.b.Line($"mov rdx, {targetVar.GetRBP()}");
-        ctx.b.Line($"mov qword [rbx], rdx");
+        ctx.b.Line($"mov {nasmType} [rbx], {Utils.ClampRegister(nasmType)}");
 
         ctx.b.Space();
 

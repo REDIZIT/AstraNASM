@@ -14,7 +14,7 @@ public class Node_Literal : Node
     {
         base.Generate(ctx);
 
-        PrimitiveTypeInfo literalType = PrimitiveTypeInfo.INT;
+        TypeInfo literalType = PrimitiveTypes.INT;
 
         result = ctx.AllocateStackVariable(literalType);
 

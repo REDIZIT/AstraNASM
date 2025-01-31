@@ -19,7 +19,7 @@ public static class Resolver
 
 
         Dictionary<Node_Class, ClassTypeInfo> classInfos = new();
-        Dictionary<string, ClassTypeInfo> classInfoByName = new();
+        Dictionary<string, TypeInfo> classInfoByName = new();
 
 
         //
@@ -97,7 +97,7 @@ public static class Resolver
 
                     foreach (VariableRawData arg in funcDec.parameters)
                     {
-                        ClassTypeInfo type = classInfoByName[arg.rawType];
+                        TypeInfo type = classInfoByName[arg.rawType];
                         funcInfo.arguments.Add(new FieldInfo()
                         {
                             name = arg.name,
@@ -107,7 +107,7 @@ public static class Resolver
 
                     foreach (VariableRawData ret in funcDec.returnValues)
                     {
-                        ClassTypeInfo type = classInfoByName[ret.rawType];
+                        TypeInfo type = classInfoByName[ret.rawType];
                         funcInfo.returns.Add(type);
                     }
 
@@ -132,11 +132,11 @@ public static class Resolver
         {
             if (node is Node_New nodeNew)
             {
-                nodeNew.classInfo = classInfoByName[nodeNew.className];
+                nodeNew.classInfo = (ClassTypeInfo)classInfoByName[nodeNew.className];
             }
             else if (node is Node_FunctionCall call)
             {
-                ClassTypeInfo targetType = (ClassTypeInfo)CalculateType(call.caller);
+                TypeInfo targetType = CalculateType(call.caller);
 
                 FunctionInfo targetTypeFunction = TryFindFunction(targetType, call.functionName, module);
                 if (targetTypeFunction == null) throw new Exception($"Failed to find function '{call.functionName}' inside type '{targetType}'");
@@ -150,11 +150,11 @@ public static class Resolver
             }
             else if (node is Node_FieldAccess access)
             {
-                ClassTypeInfo targetType = (ClassTypeInfo)CalculateType(access.target);
+                TypeInfo targetType = CalculateType(access.target);
 
-                if (TryFindFunction(targetType, access.targetFieldName, module) == null)
+                if (TryFindFunction(targetType, access.targetFieldName, module) == null && targetType is ClassTypeInfo classInfo)
                 {
-                    FieldInfo targetTypeField = TryFindField(targetType, access.targetFieldName, module);
+                    FieldInfo targetTypeField = TryFindField(classInfo, access.targetFieldName, module);
                     if (targetTypeField == null) throw new Exception($"Failed to find field '{access.targetFieldName}' inside type '{targetType}'");
 
                     access.field = targetTypeField;
@@ -256,9 +256,14 @@ public static class Resolver
         return null;
     }
 
-    private static FunctionInfo TryFindFunction(ClassTypeInfo targetType, string functionName, ResolvedModule module)
+    private static FunctionInfo TryFindFunction(TypeInfo targetType, string functionName, ResolvedModule module)
     {
-        FunctionInfo targetTypeFunction = targetType.functions.FirstOrDefault(i => i.name == functionName);
+        FunctionInfo targetTypeFunction = null;
+
+        if (targetType is ClassTypeInfo classType)
+        {
+            targetTypeFunction = classType.functions.FirstOrDefault(i => i.name == functionName);
+        }
 
         if (targetTypeFunction == null)
         {
@@ -276,13 +281,18 @@ public static class Resolver
     }
 
 
-    private static void RegisterVirtualMembers(Dictionary<string, ClassTypeInfo> classInfoByName)
+    private static void RegisterVirtualMembers(Dictionary<string, TypeInfo> classInfoByName)
     {
+        RegisterLong(classInfoByName);
         RegisterInt(classInfoByName);
+        RegisterShort(classInfoByName);
+        RegisterByte(classInfoByName);
+
         RegisterBool(classInfoByName);
+
         RegisterPtr(classInfoByName);
     }
-    private static void RegisterPtr(Dictionary<string, ClassTypeInfo> classInfoByName)
+    private static void RegisterPtr(Dictionary<string, TypeInfo> classInfoByName)
     {
         ClassTypeInfo ptrInfo = new ClassTypeInfo()
         {
@@ -346,30 +356,63 @@ public static class Resolver
 
         classInfoByName.Add(ptrInfo.name, ptrInfo);
     }
-    private static void RegisterInt(Dictionary<string, ClassTypeInfo> classInfoByName)
+
+    private static void RegisterLong(Dictionary<string, TypeInfo> classInfoByName)
     {
-        ClassTypeInfo info = new ClassTypeInfo()
+        TypeInfo info = new()
         {
-            name = "int",
-            isStruct = true
+            name = "long"
         };
         classInfoByName.Add(info.name, info);
+
+        PrimitiveTypes.LONG = info;
     }
-    private static void RegisterBool(Dictionary<string, ClassTypeInfo> classInfoByName)
+    private static void RegisterInt(Dictionary<string, TypeInfo> classInfoByName)
     {
-        ClassTypeInfo info = new ClassTypeInfo()
+        TypeInfo info = new()
         {
-            name = "bool",
-            isStruct = true
+            name = "int"
         };
         classInfoByName.Add(info.name, info);
+
+        PrimitiveTypes.INT = info;
+    }
+    private static void RegisterShort(Dictionary<string, TypeInfo> classInfoByName)
+    {
+        TypeInfo info = new()
+        {
+            name = "short"
+        };
+        classInfoByName.Add(info.name, info);
+
+        PrimitiveTypes.SHORT = info;
+    }
+    private static void RegisterByte(Dictionary<string, TypeInfo> classInfoByName)
+    {
+        TypeInfo info = new()
+        {
+            name = "byte"
+        };
+        classInfoByName.Add(info.name, info);
+
+        PrimitiveTypes.BYTE = info;
+    }
+    private static void RegisterBool(Dictionary<string, TypeInfo> classInfoByName)
+    {
+        TypeInfo info = new()
+        {
+            name = "bool"
+        };
+        classInfoByName.Add(info.name, info);
+
+        PrimitiveTypes.BOOL = info;
     }
 
-    private static FunctionInfo GetExtensionFunction(ClassTypeInfo type, string functionName, ResolvedModule module)
+    private static FunctionInfo GetExtensionFunction(TypeInfo type, string functionName, ResolvedModule module)
     {
         if (functionName == "to_ptr")
         {
-            return module.GetType("ptr").functions.First(f => f.name == "to_ptr");
+            return ((ClassTypeInfo)module.GetType("ptr")).functions.First(f => f.name == "to_ptr");
         }
 
         return null;

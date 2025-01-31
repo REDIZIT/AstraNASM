@@ -22,7 +22,7 @@ public class Node_Unary : Node
         // Logical not
         if (@operator.asmOperatorName == "not")
         {
-            result = ctx.AllocateStackVariable(PrimitiveTypeInfo.BOOL);
+            result = ctx.AllocateStackVariable(PrimitiveTypes.BOOL);
 
             ctx.b.Line($"mov rbx, {rightResult.GetRBP()}");
             ctx.b.Line($"test rbx, rbx");

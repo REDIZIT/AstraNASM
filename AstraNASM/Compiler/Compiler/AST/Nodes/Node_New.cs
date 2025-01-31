@@ -14,7 +14,7 @@ public class Node_New : Node
 
     public override void Generate(Generator.Context ctx)
     {
-        result = ctx.AllocateStackVariable(PrimitiveTypeInfo.LONG, "address");
+        result = ctx.AllocateStackVariable(PrimitiveTypes.LONG, "address");
         int typeSizeInBytes = 8;
 
         ctx.b.Space();
