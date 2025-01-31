@@ -2,12 +2,15 @@
 {
     public byte[] bytes = new byte[0xB8000 + 80 * 25 * 2];
 
+    public Endianness endianness = Endianness.BigEndian;
+
     public void WriteAs(long address, long value, int bytesToWrite)
     {
         if (address < 0 || address + bytesToWrite >= bytes.Length) throw new Exception($"Address 0x{address.ToString("X")} is out of RAM bounds.");
 
         byte[] valueBytes = BitConverter.GetBytes(value);
-        if (BitConverter.IsLittleEndian) Array.Reverse(valueBytes);
+
+        Endianyze(valueBytes);
 
         if (bytesToWrite > valueBytes.Length) throw new Exception($"Failed to WriteAs to RAM due to bytesToWrite ({bytesToWrite}) is larger than value bytes ({valueBytes.Length})");
 
@@ -24,7 +27,7 @@
         if (address < 0 || address + 7 >= bytes.Length) throw new Exception($"Address 0x{address.ToString("X")} is out of RAM bounds.");
 
         byte[] valueBytes = BitConverter.GetBytes(value);
-        if (BitConverter.IsLittleEndian) Array.Reverse(valueBytes);
+        Endianyze(valueBytes);
 
         bytes[address + 0] = valueBytes[0];
         bytes[address + 1] = valueBytes[1];
@@ -47,7 +50,7 @@
             valueBytes[i] = bytes[address + i];
         }
 
-        if (BitConverter.IsLittleEndian) Array.Reverse(valueBytes);
+        Endianyze(valueBytes);
         return BitConverter.ToInt64(valueBytes);
     }
     public long Read64(long address)
@@ -65,7 +68,7 @@
         valueBytes[6] = bytes[address + 6];
         valueBytes[7] = bytes[address + 7];
 
-        if (BitConverter.IsLittleEndian) Array.Reverse(valueBytes);
+        Endianyze(valueBytes);
         return BitConverter.ToInt64(valueBytes);
     }
 
@@ -83,4 +86,31 @@
     {
         File.WriteAllBytes(filepath, bytes);
     }
+
+    private void Endianyze(byte[] bytes)
+    {
+        if (endianness == Endianness.CurrentMachineEndiannes)
+        {
+            // Do nothing (do not reverse bytes via BitConverter)
+            return;
+        }
+
+        // Current machine is Little-Endian, but simulation forced to Big-Endian
+        if (BitConverter.IsLittleEndian && endianness == Endianness.BigEndian)
+        {
+            Array.Reverse(bytes);
+        }
+
+        // Current machine is Big-Endian, but simulation forced to Little-Endian
+        if (BitConverter.IsLittleEndian == false && endianness == Endianness.LittleEndian)
+        {
+            Array.Reverse(bytes);
+        }
+    }
+}
+public enum Endianness
+{
+    BigEndian,
+    LittleEndian,
+    CurrentMachineEndiannes
 }
