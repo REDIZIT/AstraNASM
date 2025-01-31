@@ -101,8 +101,10 @@ public class ASTBuilder
             {
                 current++;
             }
-
-            return;
+            else
+            {
+                return;
+            }
         }
     }
 }

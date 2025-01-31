@@ -1,9 +1,15 @@
-﻿namespace Astra.Compilation;
+﻿
+namespace Astra.Compilation;
 
 public class Node_Unary : Node
 {
     public Node right;
     public Token_Operator @operator;
+
+    public override IEnumerable<Node> EnumerateChildren()
+    {
+        yield return right;
+    }
 
     public override void RegisterRefs(RawModule module)
     {

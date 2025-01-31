@@ -1,8 +1,15 @@
-﻿namespace Astra.Compilation;
+﻿
+namespace Astra.Compilation;
 
 public class Node_While : Node
 {
     public Node condition, body;
+
+    public override IEnumerable<Node> EnumerateChildren()
+    {
+        yield return condition;
+        yield return body;
+    }
 
     public override void RegisterRefs(RawModule module)
     {

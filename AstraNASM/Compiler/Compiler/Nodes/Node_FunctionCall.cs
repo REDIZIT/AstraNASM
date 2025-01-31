@@ -1,4 +1,5 @@
-﻿namespace Astra.Compilation;
+﻿
+namespace Astra.Compilation;
 
 public class Node_FunctionCall : Node
 {
@@ -8,12 +9,21 @@ public class Node_FunctionCall : Node
 
     public FunctionInfo function;
 
+    public override IEnumerable<Node> EnumerateChildren()
+    {
+        yield return caller;
+
+        foreach (Node arg in arguments)
+        {
+            yield return arg;
+        }
+    }
+
     public override void RegisterRefs(RawModule module)
     {
     }
     public override void ResolveRefs(ResolvedModule module)
     {
-        function = module.functionInfoByName[functionName];
     }
 
     public override void Generate(Generator.Context ctx)

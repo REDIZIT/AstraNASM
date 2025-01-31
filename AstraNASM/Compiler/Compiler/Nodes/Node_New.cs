@@ -1,10 +1,16 @@
-﻿namespace Astra.Compilation;
+﻿
+namespace Astra.Compilation;
 
 public class Node_New : Node
 {
     public string className;
 
     public ClassTypeInfo classInfo;
+
+    public override IEnumerable<Node> EnumerateChildren()
+    {
+        yield break;
+    }
 
 
     public override void RegisterRefs(RawModule module)
@@ -25,16 +31,14 @@ public class Node_New : Node
         ctx.b.Line($"sub rsp, {typeSizeInBytes}");
 
 
-        //Node_FunctionCall heapCall = new Node_FunctionCall()
-        //{
-        //    functionName = "heapAlloc",
-
-        //};
-
-        ctx.b.CommentLine($"heap alloc");
-        ctx.b.Line($"mov {result.RBP}, 0x110"); // result.RBP - pointer to object table, 0x110 - pointer to real data
-        ctx.b.Line($"mov rax, [0x100]");
-        ctx.b.Line($"add rax, 1");
-        ctx.b.Line($"mov [0x100], rax");
+        // If ref type
+        if (classInfo.isStruct == false)
+        {
+            ctx.b.CommentLine($"heap alloc");
+            ctx.b.Line($"mov {result.RBP}, 0x110"); // result.RBP - pointer to object table, 0x110 - pointer to real data
+            ctx.b.Line($"mov rax, [0x100]");
+            ctx.b.Line($"add rax, 1");
+            ctx.b.Line($"mov [0x100], rax");
+        }
     }
 }

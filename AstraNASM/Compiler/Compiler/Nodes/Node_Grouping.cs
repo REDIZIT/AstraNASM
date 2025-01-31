@@ -1,8 +1,14 @@
-﻿namespace Astra.Compilation;
+﻿
+namespace Astra.Compilation;
 
 public class Node_Grouping : Node
 {
     public Node expression;
+
+    public override IEnumerable<Node> EnumerateChildren()
+    {
+        yield return expression;
+    }
 
     public override void RegisterRefs(RawModule module)
     {

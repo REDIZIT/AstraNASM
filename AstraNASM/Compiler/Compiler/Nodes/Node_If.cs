@@ -1,8 +1,17 @@
-﻿namespace Astra.Compilation;
+﻿
+namespace Astra.Compilation;
 
 public class Node_If : Node
 {
     public Node condition, thenBranch, elseBranch;
+
+    public override IEnumerable<Node> EnumerateChildren()
+    {
+        yield return condition;
+        yield return thenBranch;
+
+        if (elseBranch != null) yield return elseBranch;
+    }
 
     public override void RegisterRefs(RawModule module)
     {

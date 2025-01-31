@@ -1,4 +1,5 @@
-﻿namespace Astra.Compilation;
+﻿
+namespace Astra.Compilation;
 
 public class Node_Function : Node
 {
@@ -7,7 +8,12 @@ public class Node_Function : Node
     public List<VariableRawData> parameters = new();
     public List<VariableRawData> returnValues = new();
 
-    private FunctionInfo functionInfo;
+    public FunctionInfo functionInfo;
+
+    public override IEnumerable<Node> EnumerateChildren()
+    {
+        yield return body;
+    }
 
     public override void RegisterRefs(RawModule raw)
     {
@@ -48,8 +54,6 @@ public class Node_Function : Node
         {
             rawData.Resolve(module);
         }
-
-        functionInfo = module.functionInfoByName[name];
 
         ResolveReturnNodesRecursive((Node_Block)body);
     }

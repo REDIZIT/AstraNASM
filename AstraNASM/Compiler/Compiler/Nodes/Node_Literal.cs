@@ -1,8 +1,14 @@
-﻿namespace Astra.Compilation;
+﻿
+namespace Astra.Compilation;
 
 public class Node_Literal : Node
 {
     public Token_Constant constant;
+
+    public override IEnumerable<Node> EnumerateChildren()
+    {
+        yield break;
+    }
 
     public override void RegisterRefs(RawModule module)
     {

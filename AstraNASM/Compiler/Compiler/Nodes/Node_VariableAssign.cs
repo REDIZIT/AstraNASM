@@ -1,10 +1,17 @@
-﻿namespace Astra.Compilation;
+﻿
+namespace Astra.Compilation;
 
 
 public class Node_VariableAssign : Node
 {
     public Node target; // variable or field get
     public Node value;
+
+    public override IEnumerable<Node> EnumerateChildren()
+    {
+        yield return target;
+        yield return value;
+    }
 
     public override void RegisterRefs(RawModule module)
     {

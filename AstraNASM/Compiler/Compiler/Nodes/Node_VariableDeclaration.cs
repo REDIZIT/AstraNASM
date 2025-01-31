@@ -1,9 +1,18 @@
-﻿namespace Astra.Compilation;
+﻿
+namespace Astra.Compilation;
 
 public class Node_VariableDeclaration : Node
 {
     public VariableRawData variable;
     public Node initValue;
+
+    public ClassTypeInfo ownerInfo;
+    public FieldInfo fieldInfo;
+
+    public override IEnumerable<Node> EnumerateChildren()
+    {
+        if (initValue != null) yield return initValue;
+    }
 
     public override void RegisterRefs(RawModule module)
     {
@@ -71,6 +80,11 @@ public class Node_VariableDeclaration : Node
 public class Node_VariableUse : Node
 {
     public string variableName;
+
+    public override IEnumerable<Node> EnumerateChildren()
+    {
+        yield break;
+    }
 
     public override void RegisterRefs(RawModule module)
     {

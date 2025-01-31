@@ -1,4 +1,5 @@
-﻿namespace Astra.Compilation;
+﻿
+namespace Astra.Compilation;
 
 public class Node_FieldAccess : Node
 {
@@ -7,6 +8,11 @@ public class Node_FieldAccess : Node
 
     // Valid after Generate
     protected FieldInfo fieldInfo;
+
+    public override IEnumerable<Node> EnumerateChildren()
+    {
+        yield return target;
+    }
 
     public override void RegisterRefs(RawModule module)
     {

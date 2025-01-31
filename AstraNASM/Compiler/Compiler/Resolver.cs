@@ -1,243 +1,359 @@
 ﻿namespace Astra.Compilation;
 
+public class Scope
+{
+    public List<FieldInfo> variables = new();
+    public ClassTypeInfo typeInfo;
+    public FunctionInfo functionInfo;
+
+    public Scope parent;
+    public List<Scope> children = new();
+
+    public Scope CreateSubScope()
+    {
+        Scope child = new();
+        child.parent = this;
+        children.Add(child);
+
+        return child;
+    }
+
+    public Scope Find(Func<Scope, bool> predicate)
+    {
+        if (predicate(this)) return this;
+        if (parent == null) throw new Exception("Failed to find scope");
+        return parent.Find(predicate);
+    }
+}
+
 public static class Resolver
 {
     public static ResolvedModule DiscoverModule(List<Node> ast)
     {
-        //Access.Set(Stage.DisoverModule_Begin);
+        ResolvedModule module = new ResolvedModule();
 
 
-
-        RawModule raw = new();
-
-        AppendRawLLVMTypes(raw);
-        //Access.Set(Stage.DisoverModule_Done_LLVMTypes);
-
-
+        List<Node> flatTree = new();
         foreach (Node node in ast)
         {
-            node.RegisterRefs(raw);
+            foreach (Node child in EnumerateAllNodes(node))
+            {
+                flatTree.Add(child);
+            }
         }
-        //Access.Set(Stage.DisoverModule_Done_RegisterRefs);
 
 
 
+        Dictionary<Node_Class, ClassTypeInfo> classInfos = new();
+        Dictionary<string, ClassTypeInfo> classInfoByName = new();
 
 
-        ResolvedModule resolved = ResolveRawModule(raw);
-        RegisterEmbeddedFunctions(resolved);
+        //
+        // Pass 4: Register virtual members
+        //
+        RegisterVirtualMembers(classInfoByName);
 
-        foreach (Node node in ast)
+
+        //
+        // Pass 1: Register types
+        //
+        foreach (Node node in flatTree)
         {
-            node.ResolveRefs(resolved);
+            if (node is Node_Class cls)
+            {
+                ClassTypeInfo info = new()
+                {
+                    name = cls.name,
+                    fields = new(),
+                    functions = new(),
+                };
+
+                classInfos.Add(cls, info);
+                classInfoByName.Add(info.name, info);
+
+                cls.classInfo = info;
+            }
         }
-        //Access.Set(Stage.DisoverModule_Done_ResolveRefs);
 
 
+        //
+        // Pass 2: Register type fields
+        //
+        foreach (KeyValuePair<Node_Class, ClassTypeInfo> kv in classInfos)
+        {
+            Node_Class node = kv.Key;
+            ClassTypeInfo clsInfo = kv.Value;
 
+            foreach (Node child in node.body.EnumerateChildren())
+            {
+                if (child is Node_VariableDeclaration varDec)
+                {
+                    FieldInfo fieldInfo = new()
+                    {
+                        name = varDec.variable.name,
+                        type = classInfoByName[varDec.variable.rawType],
+                    };
+                    clsInfo.fields.Add(fieldInfo);
 
-        return resolved;
+                    varDec.ownerInfo = clsInfo;
+                    varDec.fieldInfo = fieldInfo;
+                }
+            }
+        }
+
+        //
+        // Pass 3: Register type functions
+        //
+        foreach (KeyValuePair<Node_Class, ClassTypeInfo> kv in classInfos)
+        {
+            Node_Class node = kv.Key;
+            ClassTypeInfo clsInfo = kv.Value;
+
+            foreach (Node child in node.body.EnumerateChildren())
+            {
+                if (child is Node_Function funcDec)
+                {
+                    FunctionInfo funcInfo = new()
+                    {
+                        name = funcDec.name,
+                        owner = clsInfo,
+                        arguments = new(),
+                        returns = new()
+                    };
+
+                    foreach (VariableRawData arg in funcDec.parameters)
+                    {
+                        ClassTypeInfo type = classInfoByName[arg.rawType];
+                        funcInfo.arguments.Add(new FieldInfo()
+                        {
+                            name = arg.name,
+                            type = type
+                        });
+                    }
+
+                    foreach (VariableRawData ret in funcDec.returnValues)
+                    {
+                        ClassTypeInfo type = classInfoByName[ret.rawType];
+                        funcInfo.returns.Add(type);
+                    }
+
+                    clsInfo.functions.Add(funcInfo);
+                    funcDec.functionInfo = funcInfo;
+                }
+            }
+        }
+
+        module.classInfoByName = classInfoByName;
+
+        //
+        // Pass 5: Generate Scopes
+        //
+        Scope globalScope = new();
+        GenerateScope(globalScope, new Node_Block() { children = ast}, module);
+
+        //
+        // Pass 6: Resolve Nodes
+        //
+        foreach (Node node in flatTree)
+        {
+            if (node is Node_New nodeNew)
+            {
+                nodeNew.classInfo = classInfoByName[nodeNew.className];
+            }
+            else if (node is Node_FunctionCall call)
+            {
+                ClassTypeInfo targetType = (ClassTypeInfo)CalculateType(call.caller);
+
+                FunctionInfo targetTypeFunction = targetType.functions.FirstOrDefault(i => i.name == call.functionName);
+
+                if (targetTypeFunction == null)
+                {
+                    targetTypeFunction = GetExtensionFunction(targetType, call.functionName, module);
+                }
+
+                if (targetTypeFunction == null) throw new Exception($"Failed to find function '{call.functionName}' inside type '{targetType}'");
+
+                call.function = targetTypeFunction;
+            }
+            else if (node is Node_Return ret)
+            {
+                Scope scope = ret.scope.Find(s => s.functionInfo != null);
+                ret.function = scope.functionInfo;
+            }
+        }
+
+        return module;
     }
 
-
-    private static ResolvedModule ResolveRawModule(RawModule raw)
+    private static IEnumerable<Node> EnumerateAllNodes(List<Node> nodes)
     {
-        ResolvedModule resolved = new();
-        AppendResolvedLLVMTypes(resolved);
-
-        //
-        // Resolve Types (include custom Classes/Structs)
-        //
-        foreach (RawTypeInfo rawInfo in raw.typeInfoByName.Values)
+        foreach (Node node in nodes)
         {
-            // Primities already resolved in AppendResolvedLLVMTypes
-            if (rawInfo is RawPrimitiveTypeInfo) continue;
-
-
-            TypeInfo typeInfo;
-            if (rawInfo is RawClassTypeInfo)
+            foreach (Node child in EnumerateAllNodes(node))
             {
-                typeInfo = new ClassTypeInfo()
+                yield return child;
+            }
+        }
+    }
+    private static IEnumerable<Node> EnumerateAllNodes(Node node)
+    {
+        yield return node;
+
+        foreach (Node child in node.EnumerateChildren())
+        {
+            foreach (Node item in EnumerateAllNodes(child))
+            {
+                yield return item;
+            }
+        }
+    }
+
+    private static void GenerateScope(Scope parentScope, Node node, ResolvedModule module)
+    {
+        Scope scope = parentScope.CreateSubScope();
+        node.scope = scope;
+
+        if (node is Node_Class cls)
+        {
+            scope.typeInfo = cls.classInfo;
+        }
+        else if (node is Node_Function func)
+        {
+            scope.functionInfo = func.functionInfo;
+            
+            if (func.functionInfo.owner != null)
+            {
+                scope.variables.Add(new FieldInfo()
                 {
-                    name = rawInfo.name
-                };
+                    name = "self",
+                    type = func.functionInfo.owner
+                });
             }
             else
             {
-                typeInfo = new()
-                {
-                    name = rawInfo.name
-                };
+                throw new Exception("Static functions are not supported");
             }
-
-            resolved.RegisterType(typeInfo);
         }
 
-
-        //
-        // Resolve Functions
-        //
-        foreach (RawFunctionInfo rawInfo in raw.functionInfoByName.Values)
+        foreach (Node childNode in node.EnumerateChildren())
         {
-            FunctionInfo functionInfo = new()
+            if (childNode is Node_VariableDeclaration varDec)
             {
-                name = rawInfo.name
-            };
+                ClassTypeInfo clsInfo = scope.Find(s => s.typeInfo != null).typeInfo;
 
-            foreach (RawFieldInfo rawArgInfo in rawInfo.arguments)
-            {
-                functionInfo.arguments.Add(new FieldInfo()
+                FieldInfo fieldInfo = new()
                 {
-                    name = rawArgInfo.name,
-                    type = resolved.GetType(rawArgInfo.typeName),
-                });
-            }
-            foreach (RawTypeInfo rawTypeInfo in rawInfo.returns)
-            {
-                functionInfo.returns.Add(resolved.GetType(rawTypeInfo));
-            }
-            resolved.RegisterFunction(functionInfo);
-        }
-
-        //
-        // Resolve Classes
-        //
-        foreach (RawClassTypeInfo rawInfo in raw.classInfoByName.Values)
-        {
-            ClassTypeInfo classInfo = (ClassTypeInfo)resolved.GetType(rawInfo.name);
-
-            foreach (RawFieldInfo rawField in rawInfo.fields)
-            {
-                FieldInfo fieldInfo = new FieldInfo()
-                {
-                    name = rawField.name,
-                    type = resolved.GetType(rawField.typeName)
+                    name = varDec.variable.name,
+                    type = module.classInfoByName[varDec.variable.rawType],
                 };
+                clsInfo.fields.Add(fieldInfo);
 
-                classInfo.fields.Add(fieldInfo);
+                varDec.ownerInfo = clsInfo;
+                varDec.fieldInfo = fieldInfo;
+
+                scope.variables.Add(varDec.fieldInfo);
             }
 
-            foreach (RawFunctionInfo rawFunc in rawInfo.functions)
-            {
-                FunctionInfo funcInfo = resolved.functionInfoByName[rawFunc.name];
-                funcInfo.owner = classInfo;
-
-                classInfo.functions.Add(funcInfo);
-            }
-
-            resolved.RegisterClass(classInfo);
-
+            GenerateScope(scope, childNode, module);
         }
-
-        return resolved;
     }
 
-    private static void RegisterEmbeddedFunctions(ResolvedModule module)
+    private static TypeInfo CalculateType(Node targetNode)
     {
-        ToPtr_EmbeddedFunctionInfo to_ptr = new()
+        if (targetNode is Node_FieldAccess acces)
+        {
+            return CalculateType(acces.target);
+        }
+        if (targetNode is Node_VariableUse use)
+        {
+            string variableName = use.variableName;
+            Scope scope = targetNode.scope.Find(s => s.variables.Any(f => f.name == variableName));
+
+            FieldInfo variable = scope.variables.First(f => f.name == variableName);
+            return variable.type;
+        }
+
+        return null;
+    }
+
+    private static void RegisterVirtualMembers(Dictionary<string, ClassTypeInfo> classInfoByName)
+    {
+        RegisterInt(classInfoByName);
+        RegisterBool(classInfoByName);
+        RegisterPtr(classInfoByName);
+    }
+    private static void RegisterPtr(Dictionary<string, ClassTypeInfo> classInfoByName)
+    {
+        ClassTypeInfo ptrInfo = new ClassTypeInfo()
+        {
+            name = "ptr",
+            isStruct = true
+        };
+
+        FunctionInfo toPtr = new ToPtr_EmbeddedFunctionInfo()
         {
             name = "to_ptr",
-            returns = new List<TypeInfo>() { PrimitiveTypeInfo.PTR },
+            arguments = new(),
+            returns = new() { ptrInfo },
+            owner = ptrInfo
         };
-        module.RegisterFunction(to_ptr);
-
-        PtrSet_EmbeddedFunctionInfo set = new()
-        {
-            name = "set",
-            arguments = new List<FieldInfo>() { new(PrimitiveTypeInfo.INT, "newValue") }
-        };
-        module.RegisterFunction(set);
-
-        PtrGet_EmbeddedFunctionInfo get = new()
-        {
-            name = "get",
-            returns = new List<TypeInfo>() { PrimitiveTypeInfo.INT },
-        };
-        module.RegisterFunction(get);
-
-        PtrShift_EmbeddedFunctionInfo shift = new()
+        FunctionInfo shift = new PtrShift_EmbeddedFunctionInfo()
         {
             name = "shift",
-            arguments = new List<FieldInfo>() { new(PrimitiveTypeInfo.INT, "offseInBytes") }
+            arguments = new() { new FieldInfo(classInfoByName["int"], "shiftInBytes") },
+            returns = new(),
+            owner = ptrInfo
         };
-        module.RegisterFunction(shift);
-
-        Print_EmbeddedFunctionInfo print = new()
+        FunctionInfo set = new PtrSet_EmbeddedFunctionInfo()
         {
-            name = "print",
-            arguments = new List<FieldInfo>() { new(PrimitiveTypeInfo.PTR, "pointer") }
+            name = "set",
+            arguments = new() { new FieldInfo(classInfoByName["int"], "value") },
+            returns = new(),
+            owner = ptrInfo
         };
-        module.RegisterFunction(print);
+        FunctionInfo get = new PtrGet_EmbeddedFunctionInfo()
+        {
+            name = "get",
+            arguments = new(),
+            returns = new() { classInfoByName["int"] },
+            owner = ptrInfo
+        };
+
+        ptrInfo.functions = new() 
+        {
+            toPtr,
+            shift,
+            set,
+            get
+        };
+        classInfoByName.Add(ptrInfo.name, ptrInfo);
+    }
+    private static void RegisterInt(Dictionary<string, ClassTypeInfo> classInfoByName)
+    {
+        ClassTypeInfo info = new ClassTypeInfo()
+        {
+            name = "int",
+            isStruct = true
+        };
+        classInfoByName.Add(info.name, info);
+    }
+    private static void RegisterBool(Dictionary<string, ClassTypeInfo> classInfoByName)
+    {
+        ClassTypeInfo info = new ClassTypeInfo()
+        {
+            name = "bool",
+            isStruct = true
+        };
+        classInfoByName.Add(info.name, info);
     }
 
-    private static void AppendRawLLVMTypes(RawModule module)
+    private static FunctionInfo GetExtensionFunction(ClassTypeInfo type, string functionName, ResolvedModule module)
     {
-        CreateType(module, "bool", "i1");
-        CreateType(module, "byte", "i8");
-        CreateType(module, "short", "i16");
-        CreateType(module, "int", "i32");
-        CreateType(module, "long", "i64");
-
-
-        RawPrimitiveTypeInfo ptrType = new()
+        if (functionName == "to_ptr")
         {
-            name = "ptr",
-            asmName = "ptr"
-        };
-        module.typeInfoByName[ptrType.name] = ptrType;
+            return module.GetType("ptr").functions.First(f => f.name == "to_ptr");
+        }
 
-        RawPrimitiveTypeInfo arrayType = new()
-        {
-            name = "array",
-            asmName = "array"
-        };
-        module.typeInfoByName[arrayType.name] = arrayType;
-    }
-    private static void AppendResolvedLLVMTypes(ResolvedModule module)
-    {
-        PrimitiveTypeInfo.BOOL = CreateType(module, "bool", "i1");
-        PrimitiveTypeInfo.BYTE = CreateType(module, "byte", "i8");
-        PrimitiveTypeInfo.SHORT = CreateType(module, "short", "i16");
-        PrimitiveTypeInfo.INT = CreateType(module, "int", "i32");
-        PrimitiveTypeInfo.LONG = CreateType(module, "long", "i64");
-
-        PrimitiveTypeInfo ptrType = new()
-        {
-            name = "ptr",
-            asmName = "ptr",
-        };
-        module.typeInfoByName[ptrType.name] = ptrType;
-        PrimitiveTypeInfo.PTR = ptrType;
-
-
-
-        PrimitiveTypeInfo arrayType = new()
-        {
-            name = "array",
-            asmName = "array",
-        };
-        module.typeInfoByName[arrayType.name] = arrayType;
-        PrimitiveTypeInfo.ARRAY = arrayType;
-    }
-
-    private static PrimitiveTypeInfo CreateType(ResolvedModule module, string astraName, string llvmName)
-    {
-        PrimitiveTypeInfo type = new PrimitiveTypeInfo()
-        {
-            name = astraName,
-            asmName = llvmName
-        };
-        module.typeInfoByName[type.name] = type;
-        return type;
-    }
-    private static RawPrimitiveTypeInfo CreateType(RawModule module, string astraName, string llvmName)
-    {
-        RawPrimitiveTypeInfo type = new RawPrimitiveTypeInfo()
-        {
-            name = astraName,
-            asmName = llvmName
-        };
-        module.typeInfoByName[type.name] = type;
-        return type;
+        return null;
     }
 }

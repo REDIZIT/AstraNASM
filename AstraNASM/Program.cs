@@ -33,9 +33,9 @@ public static class Program
 
             if (doRecompile)
             {
-                string fileContent = File.ReadAllText("../../../Compiler/source.ac");
+                string fileContent = File.ReadAllText("C:\\Users\\REDIZIT\\Documents\\GitHub\\Astra-Rider-extension\\try2\\test\\example.ac");
                 string nasmCode = Compiler.Compile_Astra_to_NASM(fileContent);
-                File.WriteAllText("../../../Compiler/output.asm", nasmCode);
+                //File.WriteAllText("../../../Compiler/output.asm", nasmCode);
             }
 
             //CmdExecutor.CompileRunAndCheck("../../../Compiler", "output.ll", 123);

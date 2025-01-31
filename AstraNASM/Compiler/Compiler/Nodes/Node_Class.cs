@@ -1,9 +1,17 @@
-﻿namespace Astra.Compilation;
+﻿
+namespace Astra.Compilation;
 
 public class Node_Class : Node
 {
     public string name;
     public Node_Block body;
+
+    public ClassTypeInfo classInfo;
+
+    public override IEnumerable<Node> EnumerateChildren()
+    {
+        yield return body;
+    }
 
     public override void RegisterRefs(RawModule raw)
     {

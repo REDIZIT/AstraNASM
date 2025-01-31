@@ -1,9 +1,15 @@
-﻿namespace Astra.Compilation;
+﻿
+namespace Astra.Compilation;
 
 public class Node_Return : Node
 {
     public Node expr;
     public FunctionInfo function;
+
+    public override IEnumerable<Node> EnumerateChildren()
+    {
+        if (expr != null) yield return expr;
+    }
 
     public override void RegisterRefs(RawModule module)
     {

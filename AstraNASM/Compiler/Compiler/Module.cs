@@ -2,30 +2,11 @@
 
 public class ResolvedModule
 {
-    public Dictionary<string, FunctionInfo> functionInfoByName = new();
-    public Dictionary<string, TypeInfo> typeInfoByName = new();
     public Dictionary<string, ClassTypeInfo> classInfoByName = new();
 
-    public void RegisterClass(ClassTypeInfo classInfo)
+    public ClassTypeInfo GetType(string name)
     {
-        classInfoByName.Add(classInfo.name, classInfo);
-    }
-    public void RegisterFunction(FunctionInfo functionInfo)
-    {
-        functionInfoByName.Add(functionInfo.name, functionInfo);
-    }
-    public void RegisterType(TypeInfo typeInfo)
-    {
-        typeInfoByName.Add(typeInfo.name, typeInfo);
-    }
-
-    public TypeInfo GetType(string name)
-    {
-        return typeInfoByName[name];
-    }
-    public TypeInfo GetType(RawTypeInfo rawTypeInfo)
-    {
-        return GetType(rawTypeInfo.name);
+        return classInfoByName[name];
     }
 }
 
@@ -56,6 +37,7 @@ public class ClassTypeInfo : TypeInfo
 {
     public List<FieldInfo> fields = new();
     public List<FunctionInfo> functions = new();
+    public bool isStruct;
 
     public override string ToString()
     {
