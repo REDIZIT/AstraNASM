@@ -120,9 +120,9 @@ public static class Generator
         ctx.b.Line("call main");
 
         ctx.b.Line("add rsp, 8");
-        ctx.b.Line("pop rbx");
+        ctx.b.Line("pop rax");
 
-        ctx.b.Line("mov 0x00, rbx");
+        ctx.b.Line("mov 0x00, rax");
         ctx.b.Line("exit");
 
       

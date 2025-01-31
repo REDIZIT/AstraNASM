@@ -36,8 +36,16 @@ public class Simulator
 
         if (cmd == "mov")
         {
-            string destStr = args[1];
-            string valueStr = args[2];
+            string typeStr = args[1];
+            int bytes = 8;
+
+            if (typeStr == "byte") bytes = 1;
+            else if (typeStr == "word") bytes = 2;
+            else if (typeStr == "dword") bytes = 4;
+            else if (typeStr == "qword") bytes = 8;
+
+            string destStr = args[args.Length - 2];
+            string valueStr = args[args.Length - 1];
 
             if (regs.TryGetReg(destStr, out Reg64 destReg))
             {
@@ -45,7 +53,7 @@ public class Simulator
 
                 if (valueStr.StartsWith('['))
                 {
-                    value = ram.Read64(value);
+                    value = ram.ReadAs(value, bytes);
                 }
 
                 regs.Set(destStr, value);
@@ -57,11 +65,11 @@ public class Simulator
                 long value = Utils.ParseDec(valueStr, regs);
                 if (valueStr.StartsWith('['))
                 {
-                    value = ram.Read64(value);
+                    value = ram.ReadAs(value, bytes);
                 }
 
 
-                ram.Write64(toAddress, value);
+                ram.WriteAs(toAddress, value, bytes);
             }
         }
         else if (cmd == "add" || cmd == "sub" || cmd == "mul" || cmd == "div")

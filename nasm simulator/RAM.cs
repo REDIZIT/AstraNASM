@@ -2,6 +2,23 @@
 {
     public byte[] bytes = new byte[0xB8000 + 80 * 25 * 2];
 
+    public void WriteAs(long address, long value, int bytesToWrite)
+    {
+        if (address < 0 || address + bytesToWrite >= bytes.Length) throw new Exception($"Address 0x{address.ToString("X")} is out of RAM bounds.");
+
+        byte[] valueBytes = BitConverter.GetBytes(value);
+        if (BitConverter.IsLittleEndian) Array.Reverse(valueBytes);
+
+        if (bytesToWrite > valueBytes.Length) throw new Exception($"Failed to WriteAs to RAM due to bytesToWrite ({bytesToWrite}) is larger than value bytes ({valueBytes.Length})");
+
+        //int startByte = valueBytes.Length - bytesToWrite;
+
+        for (int i = 0; i < valueBytes.Length; i++)
+        {
+            bytes[address + i] = valueBytes[i];
+        }
+    }
+
     public void Write64(long address, long value)
     {
         if (address < 0 || address + 7 >= bytes.Length) throw new Exception($"Address 0x{address.ToString("X")} is out of RAM bounds.");
@@ -17,6 +34,21 @@
         bytes[address + 5] = valueBytes[5];
         bytes[address + 6] = valueBytes[6];
         bytes[address + 7] = valueBytes[7];
+    }
+
+    public long ReadAs(long address, int bytesToRead)
+    {
+        if (address < 0 || address + bytesToRead >= bytes.Length) throw new Exception($"Address 0x{address.ToString("X")} is out of RAM bounds.");
+
+        byte[] valueBytes = new byte[bytesToRead];
+
+        for (int i = 0; i < bytesToRead; i++)
+        {
+            valueBytes[i] = bytes[address + i];
+        }
+
+        if (BitConverter.IsLittleEndian) Array.Reverse(valueBytes);
+        return BitConverter.ToInt64(valueBytes);
     }
     public long Read64(long address)
     {

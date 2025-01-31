@@ -2,7 +2,7 @@
 {
     public static string[] Split(string line)
     {
-        return line.Split(';')[0].Replace(",", " ").Replace("  ", " ").Split(" ");
+        return line.Split(';')[0].Replace(",", " ").Replace("  ", " ").Trim().Split(" ");
     }
     public static long ParseDec(string expression, Regs regs)
     {

@@ -31,7 +31,7 @@ public class Node_Binary : Node
         {
             ctx.b.Line($"cmp rbx, rdx");
             ctx.b.Line($"mov rbx, 0");
-            ctx.b.Line($"set{@operator.asmOperatorName} al");
+            ctx.b.Line($"set{@operator.asmOperatorName} bl");
             ctx.b.Line($"mov {result.GetRBP()}, rbx");
         }
         else
