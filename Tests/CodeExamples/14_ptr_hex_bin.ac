@@ -1,0 +1,19 @@
+class program
+{
+	public main(): int
+	{
+	    ptr a = new ptr()
+	    ptr b = new ptr()
+	    
+	    a.address = 0x60
+	    a.set(0b1100_0001)
+	    
+	    b.address = 0x60
+	    
+	    return b.get()
+	}
+}
+
+---
+
+285212673
