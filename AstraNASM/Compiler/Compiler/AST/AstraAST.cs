@@ -9,7 +9,7 @@ public class AstraAST : ASTBuilder
 
     public List<Node> Parse(List<Token> tokens, ErrorLogger logger = null)
     {
-        this.tokens = tokens.Where(t => t is Token_EOF == false).ToList();
+        this.tokens = tokens.Where(t => t is Token_EOF == false && t is Token_Comment == false).ToList();
         this.logger = logger;
         this.current = 0;
 

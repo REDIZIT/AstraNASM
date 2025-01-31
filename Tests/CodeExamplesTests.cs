@@ -20,10 +20,10 @@ public class CodeExamplesTests
             {
                 string testContent = File.ReadAllText(filepath);
 
-                string[] split = testContent.Split("---");
+                int testIndex = testContent.LastIndexOf("---");
 
-                string code = split[0].Trim();
-                string returnResult = split[1].Trim();
+                string code = testContent.Substring(0, testIndex).Trim();
+                string returnResult = testContent.Substring(testIndex + 3, testContent.Length - testIndex - 3).Trim();
 
                 string[] nasm;
 

@@ -124,6 +124,76 @@ public class Lexer
         }
 
 
+
+        if (startChar == '-' && currentPos < endRead && chars[currentPos] == '-')
+        {
+            // Read comment openning
+            int openningLength = 1;
+            while (currentPos < endRead)
+            {
+                char currentChar = chars[currentPos];
+
+                if (currentChar == '-')
+                {
+                    openningLength++;
+                }
+                else
+                {
+                    break;
+                }
+
+                currentPos++;
+            }
+
+            bool isBlock = openningLength > 2;
+
+            // Skip text section
+            while (currentPos < endRead)
+            {
+                char currentChar = chars[currentPos];
+
+                // For single-line comment new line is end
+                if (isBlock == false && (currentChar == '\r' || currentChar == '\n'))
+                {
+                    break;
+                }
+
+                // For block comment wait for same length ending
+                if (currentChar == '-')
+                {
+                    // Read comment ending
+                    int endingLength = 0;
+                    while (currentPos < endRead)
+                    {
+                        char commentChar = chars[currentPos];
+
+                        if (commentChar == '-')
+                        {
+                            endingLength++;
+                        }
+                        else
+                        {
+                            break;
+                        }
+
+                        currentPos++;
+                    }
+
+                    if (endingLength == openningLength)
+                    {
+                        break;
+                    }
+                }
+
+                currentPos++;
+            }
+
+            return new Token_Comment();
+        }
+
+
+
+
         if (char.IsDigit(startChar))
         {
             //
@@ -156,74 +226,61 @@ public class Lexer
                 }
                 else if (char.IsDigit(secondChar) == false && currentPos + 1 < endRead && char.IsDigit(chars[currentPos + 1]))
                 {
-                    throw new Exception($"Unknown number format '{secondChar}'");
+                    return new Token_Bad();
+                    //throw new Exception($"Unknown number format '{secondChar}'");
                 }
                 else
                 {
                     valueChars.Add(chars[currentPos - 1]);
                 }
             }
-            
+
+            Token parsedNumberToken = null;
+            bool isCollectingBadTrail = false;
+
             while (currentPos < endRead)
             {
                 char currentChar = chars[currentPos];
 
                 if (currentChar != '_')
                 {
-                    bool isDigit;
+                    bool isFormatDigit;
 
-                    if (numberStyle == NumberStyles.HexNumber) isDigit = char.IsAsciiHexDigit(currentChar);
-                    else if (numberStyle == NumberStyles.BinaryNumber) isDigit = currentChar == '0' || currentChar == '1';
-                    else isDigit = char.IsDigit(currentChar);
+                    if (numberStyle == NumberStyles.HexNumber) isFormatDigit = char.IsAsciiHexDigit(currentChar);
+                    else if (numberStyle == NumberStyles.BinaryNumber) isFormatDigit = currentChar == '0' || currentChar == '1';
+                    else isFormatDigit = char.IsDigit(currentChar);
 
-                    if (isDigit == false)
+                    bool isAnyLetter = char.IsLetterOrDigit(currentChar);
+
+                    if (isCollectingBadTrail == false)
                     {
-                        string word = string.Concat(valueChars);
-
-                        if (numberStyle == NumberStyles.Integer)
+                        //if (isFormatDigit == false)
+                        if (isAnyLetter == false)
                         {
-                            if (int.TryParse(word, out _))
+                            // Reached end of formatted number -> parse it
+                            parsedNumberToken = ParseNumber(string.Concat(valueChars), numberStyle);
+
+                            if (parsedNumberToken is Token_Bad)
                             {
-                                return new Token_Constant(word);
+                                isCollectingBadTrail = true;
                             }
                             else
                             {
-                                throw new Exception($"Failed to parse Integer number '{word}'");
+                                return parsedNumberToken;
                             }
                         }
-                        else if (numberStyle == NumberStyles.HexNumber)
-                        {
-                            string valueWord = word.Substring(2, word.Length - 2);
-
-                            if (int.TryParse(valueWord, numberStyle, null, out _))
-                            {
-                                return new Token_Constant(word);
-                            }
-                            else
-                            {
-                                throw new Exception($"Failed to parse Hex number '{word}'");
-                            }
-                        }
-                        else if (numberStyle == NumberStyles.BinaryNumber)
-                        {
-                            string valueWord = word.Substring(2, word.Length - 2);
-
-                            if (int.TryParse(valueWord, numberStyle, null, out _))
-                            {
-                                return new Token_Constant(word);
-                            }
-                            else
-                            {
-                                throw new Exception($"Failed to parse Binary number '{word}'");
-                            }
-                        }
-
-                        break;
                     }
                     else
                     {
-                        valueChars.Add(currentChar);
+                        // Reached end of any text (like dot, bracket or new line)
+                        if (char.IsLetterOrDigit(currentChar) == false)
+                        {
+                            if (parsedNumberToken == null) throw new Exception($"Failed to parse number '{string.Concat(valueChars)}'");
+                            return parsedNumberToken;
+                        }
                     }
+
+                    valueChars.Add(currentChar);
                 }
 
                 currentPos++;
@@ -290,5 +347,53 @@ public class Lexer
         }
 
         return null;
+    }
+
+    private Token ParseNumber(string word, NumberStyles numberStyle)
+    {
+        if (numberStyle == NumberStyles.Integer)
+        {
+            if (long.TryParse(word, out _))
+            {
+                return new Token_Constant(word);
+            }
+            else
+            {
+                return new Token_Bad();
+                //throw new Exception($"Failed to parse Integer number '{word}'");
+            }
+        }
+        else if (numberStyle == NumberStyles.HexNumber)
+        {
+            string valueWord = word.Substring(2, word.Length - 2);
+
+            if (long.TryParse(valueWord, numberStyle, null, out _))
+            {
+                return new Token_Constant(word);
+            }
+            else
+            {
+                return new Token_Bad();
+                //throw new Exception($"Failed to parse Hex number '{word}'");
+            }
+        }
+        else if (numberStyle == NumberStyles.BinaryNumber)
+        {
+            string valueWord = word.Substring(2, word.Length - 2);
+
+            if (long.TryParse(valueWord, numberStyle, null, out _))
+            {
+                return new Token_Constant(word);
+            }
+            else
+            {
+                return new Token_Bad();
+                //throw new Exception($"Failed to parse Binary number '{word}'");
+            }
+        }
+        else
+        {
+            throw new Exception($"Failed to parse number due to unknown format '{numberStyle}'");
+        }
     }
 }
