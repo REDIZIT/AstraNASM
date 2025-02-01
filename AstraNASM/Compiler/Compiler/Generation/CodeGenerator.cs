@@ -6,6 +6,7 @@ public class CodeGenerator
     private int rbpOffset;
 
     private Dictionary<string, Variable> variableByName = new();
+    private Dictionary<int, Variable> variableByRBPOffset = new();
     private Stack<Variable> variableStack = new();
     private int anonVariableNameIndex;
 
@@ -55,7 +56,15 @@ public class CodeGenerator
         b.Line($"mov rbx, {variable.RBP}");
         b.Line($"mov [rbp+{rbpOffset}], rbx");
     }
+    public void Return_Field(FunctionInfo function, Variable variable)
+    {
+        int rbpOffset = 16 + function.arguments.Count * 8;
+        if (function.owner != null) rbpOffset += 8;
 
+        b.Line($"mov rbx, {variable.RBP} ; rbx - address of address to primitive");
+        // b.Line($"mov rbx, [rbx] ; rbx - address to primitive");
+        b.Line($"mov [rbp+{rbpOffset}], [rbx] ; [rbx] - value of primitive");
+    }
 
     public Variable Allocate(TypeInfo type)
     {
@@ -65,6 +74,11 @@ public class CodeGenerator
 
     public Variable Allocate(TypeInfo type, string name)
     {
+        if (type == null)
+        {
+            throw new Exception("Failed to allocated variable with null type.");
+        }
+        
         int sizeInBytes = 8;
 
         rbpOffset -= sizeInBytes;
@@ -76,9 +90,10 @@ public class CodeGenerator
             rbpOffset = rbpOffset,
         };
         variableByName.Add(variable.name, variable);
+        variableByRBPOffset.Add(variable.rbpOffset, variable);
         variableStack.Push(variable);
         
-        b.Line($"sub rsp, {sizeInBytes} ; allocate '{variable.name}' at {variable.RBP}");
+        b.Line($"sub rsp, {sizeInBytes} ; allocate {variable.type} '{variable.name}' at {variable.RBP}");
 
         return variable;
     }
@@ -99,6 +114,7 @@ public class CodeGenerator
         }
         
         variableByName.Remove(variable.name);
+        variableByRBPOffset.Remove(variable.rbpOffset);
         variableStack.Pop();
 
         int sizeInBytes = 8;
@@ -130,11 +146,13 @@ public class CodeGenerator
         };
         
         variableByName.Add(variable.name, variable);
+        variableByRBPOffset.Add(variable.rbpOffset, variable);
     }
 
     public void Unregister_FunctionArgumentVariable(Variable variable)
     {
         variableByName.Remove(variable.name);
+        variableByRBPOffset.Remove(variable.rbpOffset);
     }
 
     public void SetValue(Variable variable, string value)
@@ -158,6 +176,20 @@ public class CodeGenerator
     public void SetValueFromReg(Variable destination, string sourceReg)
     {
         b.Line($"mov {destination.RBP}, {sourceReg}");
+    }
+
+
+    public void FieldAccess(int totalOffset, Variable result, Node target, bool isSetter)
+    {
+        RBP_Shift_And_LoadFromRAM(totalOffset, result, isSetter);
+        // if (target is Node_FieldAccess)
+        // {
+        //     RBP_Shift_And_LoadFromRAM(totalOffset, result, isSetter);
+        // }
+        // else
+        // {
+        //     CalculateAddress_RBP_Shift(totalOffset, result);
+        // }
     }
 
 
@@ -235,9 +267,16 @@ public class CodeGenerator
     {
         b.Space();
         b.CommentLine($"{pointer.name}.address");
+
+        // Variable pointerToField = Allocate(PrimitiveTypes.PTR);
+        
         b.Line($"mov rbx, rbp");
         b.Line($"add rbx, {pointer.rbpOffset} ; offset to target ptr data cell");
         b.Line($"mov {result.RBP}, rbx ; now {result.RBP} is pointer to {pointer.name} (.address)");
+        
+        // b.Line($"mov rbx, rbp");
+        // b.Line($"add rbx, {pointer.rbpOffset} ; offset to target ptr data cell");
+        // b.Line($"mov {result.RBP}, rbx ; now {result.RBP} is pointer to {pointer.name} (.address)");
     }
 
     public void PtrGet(Variable pointerVariable, Variable result)
@@ -287,9 +326,10 @@ public class CodeGenerator
         SetValueFromReg(result, "rbx");
     }
 
-    public void RBP_Shift_And_LoadFromRAM(int shiftInBytes, Variable result)
+    public void RBP_Shift_And_LoadFromRAM(int shiftInBytes, Variable result, bool isSetter)
     {
         b.Line($"mov rbx, [rbp{shiftInBytes}]");
+        if (isSetter) b.Line($"mov rbx, [rbx] ; due to setter");
         b.Line($"mov {result.RBP}, rbx");
     }
 

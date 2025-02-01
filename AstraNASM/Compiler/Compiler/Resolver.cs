@@ -352,9 +352,9 @@ public static class Resolver
             get
         };
 
-
-
+        
         classInfoByName.Add(ptrInfo.name, ptrInfo);
+        PrimitiveTypes.PTR = ptrInfo;
     }
 
     private static void RegisterLong(Dictionary<string, TypeInfo> classInfoByName)

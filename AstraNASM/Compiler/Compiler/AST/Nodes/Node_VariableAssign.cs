@@ -15,12 +15,25 @@ public class Node_VariableAssign : Node
     {
         base.Generate(ctx);
 
-        target.Generate(ctx);
+        
+        ctx.gen.Comment("generating target for assign");
+        if (target is Node_FieldAccess targetField)
+        {
+            targetField.GenerateAsSetter(ctx);
+        }
+        else
+        {
+            target.Generate(ctx);
+        }
+        // target.Generate(ctx);
+        
+        ctx.gen.Comment("generating value for assign");
         value.Generate(ctx);
-
+        
+        
         ctx.gen.Space();
         ctx.gen.Comment($"Assign {target.result.name} = {(value.result.name)}");
-
+        // ctx.gen.SetValue(target.result, value.result);
 
         if (target is Node_FieldAccess)
         {

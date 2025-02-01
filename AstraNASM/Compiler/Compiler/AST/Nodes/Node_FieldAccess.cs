@@ -17,6 +17,16 @@ public class Node_FieldAccess : Node
     {
         base.Generate(ctx);
 
+        GenerateInternal(ctx, false);
+    }
+
+    public void GenerateAsSetter(Generator.Context ctx)
+    {
+        GenerateInternal(ctx, true);
+    }
+
+    private void GenerateInternal(Generator.Context ctx, bool isSetter)
+    {
         target.Generate(ctx);
 
         if (field is EmbeddedFieldInfo)
@@ -34,32 +44,13 @@ public class Node_FieldAccess : Node
         else
         {
             int fieldOffsetInBytes = 0;
-
-            result = ctx.gen.Allocate(PrimitiveTypes.PTR);
-
             int totalOffset = target.result.rbpOffset + fieldOffsetInBytes;
-
 
             ctx.gen.Space();
             ctx.gen.Comment($"{target.result.name}.{targetFieldName}");
+            result = ctx.gen.Allocate(PrimitiveTypes.PTR);
 
-            if (target is Node_FieldAccess)
-            {
-                // ctx.b.Line($"mov rbx, [rbp{totalOffset}]");
-                // ctx.b.Line($"mov {result.GetRBP()}, rbx");
-                
-                ctx.gen.RBP_Shift_And_LoadFromRAM(totalOffset, result);
-            }
-            else
-            {
-                // ctx.b.Line($"mov rbx, rbp");
-                // ctx.b.Line($"add rbx, {totalOffset}");
-                // ctx.b.Line($"mov {result.GetRBP()}, rbx");
-
-                ctx.gen.CalculateAddress_RBP_Shift(totalOffset, result);
-            }
-
-            // ctx.b.Line($"mov {result.GetRBP()}, rbx");
+            ctx.gen.FieldAccess(totalOffset, result, target, !isSetter);
         }
     }
 }

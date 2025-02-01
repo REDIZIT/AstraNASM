@@ -31,10 +31,8 @@ public class Node_Return : Node
 
                 if (expr is Node_FieldAccess)
                 {
-                    // ctx.b.Line($"mov rbx, {expr.result.GetRBP()}");
-                    // ctx.b.Line($"mov [rbp+{rbpOffset}], [rbx]");
-
-                    throw new NotImplementedException();
+                    // ctx.gen.Return_Field(function, expr.result);
+                    ctx.gen.Return_Variable(function, expr.result);
                 }
                 else
                 {
