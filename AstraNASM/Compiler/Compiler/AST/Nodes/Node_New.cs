@@ -14,7 +14,7 @@ public class Node_New : Node
 
     public override void Generate(Generator.Context ctx)
     {
-        result = ctx.gen.Allocate(PrimitiveTypes.LONG, "address");
+        result = ctx.gen.Allocate(PrimitiveTypes.LONG);
         int typeSizeInBytes = 8;
 
         ctx.gen.Space();
