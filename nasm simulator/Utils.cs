@@ -31,6 +31,10 @@
         {
             return (long)expression[1];
         }
+        else if (expression.StartsWith('\'') && expression.EndsWith('\''))
+        {
+            return (long)expression[1];
+        }
 
         throw new($"Failed to parse dec expression '{expression}'");
     }

@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AstraNASM", "AstraNASM.cspr
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AstraTests", "..\Tests\AstraTests.csproj", "{A7497CAD-4C32-4564-9E42-CDD066D71E1F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "nasm simulator", "..\nasm simulator\nasm simulator.csproj", "{794564BE-AC9D-470F-ADC5-73646EEB5234}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{A7497CAD-4C32-4564-9E42-CDD066D71E1F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A7497CAD-4C32-4564-9E42-CDD066D71E1F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A7497CAD-4C32-4564-9E42-CDD066D71E1F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{794564BE-AC9D-470F-ADC5-73646EEB5234}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{794564BE-AC9D-470F-ADC5-73646EEB5234}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{794564BE-AC9D-470F-ADC5-73646EEB5234}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{794564BE-AC9D-470F-ADC5-73646EEB5234}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

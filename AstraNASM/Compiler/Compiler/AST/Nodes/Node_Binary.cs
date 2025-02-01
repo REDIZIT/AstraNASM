@@ -16,16 +16,36 @@ public class Node_Binary : Node
     {
         base.Generate(ctx);
 
-        left.Generate(ctx);
-        right.Generate(ctx);
+        string leftResult, rightResult;
 
+        if (left is Node_Literal leftLiteral)
+        {
+            leftResult = leftLiteral.constant.value;
+        }
+        else
+        {
+            left.Generate(ctx);
+            leftResult = left.result.RBP;
+        }
+        
+        if (right is Node_Literal rightLiteral)
+        {
+            rightResult = rightLiteral.constant.value;
+        }
+        else
+        {
+            right.Generate(ctx);
+            rightResult = right.result.RBP;
+        }
+
+        
         TypeInfo resultType = ctx.module.GetType(@operator.ResultType);
 
         result = ctx.AllocateStackVariable(resultType);
         ctx.b.Line($"sub rsp, 8");
 
-        ctx.b.Line($"mov rbx, {left.result.GetRBP()}");
-        ctx.b.Line($"mov rdx, {right.result.GetRBP()}");
+        ctx.b.Line($"mov rbx, {leftResult}");
+        ctx.b.Line($"mov rdx, {rightResult}");
 
         if (@operator is Token_Comprassion || @operator is Token_Equality)
         {

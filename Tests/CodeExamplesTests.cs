@@ -42,7 +42,7 @@ public class CodeExamplesTests
                 try
                 {
                     Simulator sim = new();
-                    sim.Execute(nasm);
+                    sim.Execute(nasm, 1024);
 
                     if (sim.regs.rax.Get32() != int.Parse(returnResult))
                     {

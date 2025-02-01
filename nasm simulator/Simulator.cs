@@ -2,8 +2,8 @@
 
 public class Simulator
 {
-    public Regs regs = new();
-    public RAM ram = new();
+    public Regs regs;
+    public RAM ram;
 
     public long currentInstructionPointer;
 
@@ -13,9 +13,12 @@ public class Simulator
 
     private List<string> instructions;
 
-    public void Execute(string[] lines)
+    public void Execute(string[] lines, int stackAddress = 256)
     {
         currentInstructionPointer = 0;
+
+        regs = new(stackAddress);
+        ram = new();
 
         instructions = Compiler.Compile_NASM_to_Instructions(lines);
 
@@ -67,7 +70,6 @@ public class Simulator
                 {
                     value = ram.ReadAs(value, bytes);
                 }
-
 
                 ram.WriteAs(toAddress, value, bytes);
             }

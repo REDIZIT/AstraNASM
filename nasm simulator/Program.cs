@@ -2,27 +2,43 @@
 {
     public static void Main(string[] args)
     {
-        string nasmFolder = Environment.CurrentDirectory + "/build";
-        Simulator.ramDumpFilepath = Environment.CurrentDirectory + "/dumps/ram.bin";
-
-        Console.WriteLine($"Simulating nasm files inside: '{nasmFolder}'");
-
-
-        foreach (string filepath in Directory.GetFiles(nasmFolder, "*.nasm"))
+        if (args.Length > 0)
         {
-            Console.WriteLine("\n");
-            RunTest(filepath, false);
+            string nasmFolder = Environment.CurrentDirectory + "/build";
+            Simulator.ramDumpFilepath = Environment.CurrentDirectory + "/dumps/ram.bin";
+
+            Console.WriteLine($"Simulating nasm files inside: '{nasmFolder}'");
+
+
+            int stackAddress = 256;
+            if (args.Length > 1 && args[1].StartsWith("stack="))
+            {
+                stackAddress = int.Parse(args[1].Substring("stack=".Length));
+            }
+
+
+            foreach (string filepath in Directory.GetFiles(nasmFolder, "*.nasm"))
+            {
+                Console.WriteLine("\n");
+                RunTest(filepath, false, stackAddress);
+            }
         }
+        else
+        {
+            Console.WriteLine("Command not specified");
+            Console.Read();
+        }
+        
 
         //if (args.Length > 0)
         //{
-            
+
         //}
         //else
         //{
         //    string[] testFiles = Directory.GetFiles("../../../Tests");
 
-        //    RunTest(testFiles[7], false);
+        //    RunTest(testFiles.Last(), false);
 
         //    //for (int i = 0; i < testFiles.Length; i++)
         //    //{
@@ -35,10 +51,10 @@
         //    Console.WriteLine("Simulations end");
         //    Console.ReadLine();
         //}
-        
+
     }
 
-    private static bool RunTest(string testFilePath, bool silent)
+    private static bool RunTest(string testFilePath, bool silent, int stackAddress)
     {
         if (!silent) Console.WriteLine($"{Path.GetFileName(testFilePath)}:");
 
@@ -57,7 +73,7 @@
 
         string[] instructions = testResultsLine > 0 ? lines[0..testResultsLine] : lines;
         Simulator sim = new();
-        sim.Execute(instructions);
+        sim.Execute(instructions, stackAddress);
 
 
         bool isSuccess = true;

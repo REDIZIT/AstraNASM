@@ -15,9 +15,9 @@
 
     public FakeEFlags eflags = new();
 
-    public Regs()
+    public Regs(int stackAddress = 256)
     {
-        rsp.value = 256;
+        rsp.value = stackAddress;
         rbp.value = rsp.value;
     }
 

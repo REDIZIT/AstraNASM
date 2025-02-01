@@ -1,0 +1,69 @@
+class program
+{
+	public main(): int
+	{
+		ptr p = new ptr()
+		
+		p.address = 0xB8000
+		byte c = 'H'
+		p.set(c)
+		
+		p.address = 0xB8000 + 2
+        c = 'e'
+        p.set(c)
+        
+        p.address = 0xB8000 + 4
+        c = 'l'
+        p.set(c)
+        
+        p.address = 0xB8000 + 6
+        c = 'l'
+        p.set(c)
+        
+        p.address = 0xB8000 + 8
+        c = 'o'
+        p.set(c)
+                
+        p.address = 0xB8000 + 12
+        c = 'f'
+        p.set(c)
+        
+        p.address = 0xB8000 + 14
+        c = 'r'
+        p.set(c)
+        
+        p.address = 0xB8000 + 16
+        c = 'o'
+        p.set(c)
+        
+        p.address = 0xB8000 + 18
+        c = 'm'
+        p.set(c)
+        
+        p.address = 0xB8000 + 22
+        c = 'A'
+        p.set(c)
+        
+        p.address = 0xB8000 + 24
+        c = 's'
+        p.set(c)
+        
+        p.address = 0xB8000 + 26
+        c = 't'
+        p.set(c)
+        
+        p.address = 0xB8000 + 28
+        c = 'r'
+        p.set(c)
+        
+        p.address = 0xB8000 + 30
+        c = 'a'
+        p.set(c)
+
+		return 1
+	}
+}
+
+---
+
+1

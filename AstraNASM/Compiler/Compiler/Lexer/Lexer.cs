@@ -127,68 +127,7 @@ public class Lexer
 
         if (startChar == '-' && currentPos < endRead && chars[currentPos] == '-')
         {
-            // Read comment openning
-            int openningLength = 1;
-            while (currentPos < endRead)
-            {
-                char currentChar = chars[currentPos];
-
-                if (currentChar == '-')
-                {
-                    openningLength++;
-                }
-                else
-                {
-                    break;
-                }
-
-                currentPos++;
-            }
-
-            bool isBlock = openningLength > 2;
-
-            // Skip text section
-            while (currentPos < endRead)
-            {
-                char currentChar = chars[currentPos];
-
-                // For single-line comment new line is end
-                if (isBlock == false && (currentChar == '\r' || currentChar == '\n'))
-                {
-                    break;
-                }
-
-                // For block comment wait for same length ending
-                if (currentChar == '-')
-                {
-                    // Read comment ending
-                    int endingLength = 0;
-                    while (currentPos < endRead)
-                    {
-                        char commentChar = chars[currentPos];
-
-                        if (commentChar == '-')
-                        {
-                            endingLength++;
-                        }
-                        else
-                        {
-                            break;
-                        }
-
-                        currentPos++;
-                    }
-
-                    if (endingLength == openningLength)
-                    {
-                        break;
-                    }
-                }
-
-                currentPos++;
-            }
-
-            return new Token_Comment();
+            return ParseComment();
         }
 
 
@@ -199,92 +138,11 @@ public class Lexer
             //
             // Iterate digits for numbers
             //
-
-            NumberStyles numberStyle = NumberStyles.Integer;
-
-            List<char> valueChars = new();
-
-            if (currentPos < endRead)
-            {
-                char secondChar = chars[currentPos];
-
-                if (secondChar == 'x')
-                {
-                    numberStyle = NumberStyles.HexNumber;
-                    currentPos++;
-
-                    valueChars.Add('0');
-                    valueChars.Add('x');
-                }
-                else if (secondChar == 'b')
-                {
-                    numberStyle = NumberStyles.BinaryNumber;
-                    currentPos++;
-
-                    valueChars.Add('0');
-                    valueChars.Add('b');
-                }
-                else if (char.IsDigit(secondChar) == false && currentPos + 1 < endRead && char.IsDigit(chars[currentPos + 1]))
-                {
-                    return new Token_Bad();
-                    //throw new Exception($"Unknown number format '{secondChar}'");
-                }
-                else
-                {
-                    valueChars.Add(chars[currentPos - 1]);
-                }
-            }
-
-            Token parsedNumberToken = null;
-            bool isCollectingBadTrail = false;
-
-            while (currentPos < endRead)
-            {
-                char currentChar = chars[currentPos];
-
-                if (currentChar != '_')
-                {
-                    bool isFormatDigit;
-
-                    if (numberStyle == NumberStyles.HexNumber) isFormatDigit = char.IsAsciiHexDigit(currentChar);
-                    else if (numberStyle == NumberStyles.BinaryNumber) isFormatDigit = currentChar == '0' || currentChar == '1';
-                    else isFormatDigit = char.IsDigit(currentChar);
-
-                    bool isAnyLetter = char.IsLetterOrDigit(currentChar);
-
-                    if (isCollectingBadTrail == false)
-                    {
-                        //if (isFormatDigit == false)
-                        if (isAnyLetter == false)
-                        {
-                            // Reached end of formatted number -> parse it
-                            parsedNumberToken = ParseNumber(string.Concat(valueChars), numberStyle);
-
-                            if (parsedNumberToken is Token_Bad)
-                            {
-                                isCollectingBadTrail = true;
-                            }
-                            else
-                            {
-                                return parsedNumberToken;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        // Reached end of any text (like dot, bracket or new line)
-                        if (char.IsLetterOrDigit(currentChar) == false)
-                        {
-                            if (parsedNumberToken == null) throw new Exception($"Failed to parse number '{string.Concat(valueChars)}'");
-                            return parsedNumberToken;
-                        }
-                    }
-
-                    valueChars.Add(currentChar);
-                }
-
-                currentPos++;
-            }
+            return ParseNumber();
+        }
+        else if (startChar == '\'' || startChar == '"')
+        {
+            return ParseString();
         }
         else
         {
@@ -345,8 +203,145 @@ public class Lexer
                 name = word
             };
         }
+    }
 
-        return null;
+    private Token ParseString()
+    {
+        bool isParsingString = chars[currentPos - 1] == '"';
+
+        List<char> stringChars = new();
+        while (currentPos < endRead)
+        {
+            char currentChar = chars[currentPos];
+
+            if (currentChar == '\'')
+            {
+                currentPos++;
+                if (stringChars.Count > 1)
+                {
+                    return new Token_Bad();
+                }
+                else
+                {
+                    return new Token_Char()
+                    {
+                        character = stringChars[0]
+                    };
+                }
+            }
+            else if (currentChar == '\"')
+            {
+                currentPos++;
+                return new Token_String()
+                {
+                    str = string.Concat(stringChars)
+                };
+            }
+            else if (currentChar == '\n' || currentChar == '\r')
+            {
+                return new Token_Bad();
+            }
+            else
+            {
+                stringChars.Add(currentChar);
+            }
+
+            currentPos++;
+        }
+
+        return new Token_Bad();
+    }
+
+
+    private Token ParseNumber()
+    {
+        NumberStyles numberStyle = NumberStyles.Integer;
+
+        List<char> valueChars = new();
+
+        if (currentPos < endRead)
+        {
+            char secondChar = chars[currentPos];
+
+            if (secondChar == 'x')
+            {
+                numberStyle = NumberStyles.HexNumber;
+                currentPos++;
+
+                valueChars.Add('0');
+                valueChars.Add('x');
+            }
+            else if (secondChar == 'b')
+            {
+                numberStyle = NumberStyles.BinaryNumber;
+                currentPos++;
+
+                valueChars.Add('0');
+                valueChars.Add('b');
+            }
+            else if (char.IsDigit(secondChar) == false && currentPos + 1 < endRead && char.IsDigit(chars[currentPos + 1]))
+            {
+                return new Token_Bad();
+                //throw new Exception($"Unknown number format '{secondChar}'");
+            }
+            else
+            {
+                valueChars.Add(chars[currentPos - 1]);
+            }
+        }
+
+        Token parsedNumberToken = null;
+        bool isCollectingBadTrail = false;
+
+        while (currentPos < endRead)
+        {
+            char currentChar = chars[currentPos];
+
+            if (currentChar != '_')
+            {
+                bool isFormatDigit;
+
+                if (numberStyle == NumberStyles.HexNumber) isFormatDigit = char.IsAsciiHexDigit(currentChar);
+                else if (numberStyle == NumberStyles.BinaryNumber) isFormatDigit = currentChar == '0' || currentChar == '1';
+                else isFormatDigit = char.IsDigit(currentChar);
+
+                bool isAnyLetter = char.IsLetterOrDigit(currentChar);
+
+                if (isCollectingBadTrail == false)
+                {
+                    //if (isFormatDigit == false)
+                    if (isAnyLetter == false)
+                    {
+                        // Reached end of formatted number -> parse it
+                        parsedNumberToken = ParseNumber(string.Concat(valueChars), numberStyle);
+
+                        if (parsedNumberToken is Token_Bad)
+                        {
+                            isCollectingBadTrail = true;
+                        }
+                        else
+                        {
+                            return parsedNumberToken;
+                        }
+                    }
+                }
+                else
+                {
+                    // Reached end of any text (like dot, bracket or new line)
+                    if (char.IsLetterOrDigit(currentChar) == false)
+                    {
+                        break;
+                    }
+                }
+
+                valueChars.Add(currentChar);
+            }
+
+            currentPos++;
+        }
+
+        if (parsedNumberToken == null) throw new Exception($"Failed to parse number '{string.Concat(valueChars)}'");
+        return parsedNumberToken;
     }
 
     private Token ParseNumber(string word, NumberStyles numberStyle)
@@ -395,5 +390,71 @@ public class Lexer
         {
             throw new Exception($"Failed to parse number due to unknown format '{numberStyle}'");
         }
+    }
+
+    private Token ParseComment()
+    {
+        // Read comment openning
+        int openningLength = 1;
+        while (currentPos < endRead)
+        {
+            char currentChar = chars[currentPos];
+
+            if (currentChar == '-')
+            {
+                openningLength++;
+            }
+            else
+            {
+                break;
+            }
+
+            currentPos++;
+        }
+
+        bool isBlock = openningLength > 2;
+
+        // Skip text section
+        while (currentPos < endRead)
+        {
+            char currentChar = chars[currentPos];
+
+            // For single-line comment new line is end
+            if (isBlock == false && (currentChar == '\r' || currentChar == '\n'))
+            {
+                break;
+            }
+
+            // For block comment wait for same length ending
+            if (currentChar == '-')
+            {
+                // Read comment ending
+                int endingLength = 0;
+                while (currentPos < endRead)
+                {
+                    char commentChar = chars[currentPos];
+
+                    if (commentChar == '-')
+                    {
+                        endingLength++;
+                    }
+                    else
+                    {
+                        break;
+                    }
+
+                    currentPos++;
+                }
+
+                if (endingLength == openningLength)
+                {
+                    break;
+                }
+            }
+
+            currentPos++;
+        }
+
+        return new Token_Comment();
     }
 }

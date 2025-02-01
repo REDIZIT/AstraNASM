@@ -15,7 +15,8 @@ public class PtrGet_EmbeddedFunctionInfo : EmbeddedFunctionInfo
         var result = ctx.AllocateStackVariable(pointedType);
 
         ctx.b.Line($"mov rbx, {pointerVar.GetRBP()}");
-        ctx.b.Line($"mov {result.GetRBP()}, [rbx]");
+        ctx.b.Line($"mov rdx, [rbx]");
+        ctx.b.Line($"mov {result.GetRBP()}, rdx");
 
         ctx.b.Space();
 

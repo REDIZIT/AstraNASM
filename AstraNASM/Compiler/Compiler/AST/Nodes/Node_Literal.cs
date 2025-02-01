@@ -19,7 +19,7 @@ public class Node_Literal : Node
         result = ctx.AllocateStackVariable(literalType);
 
         ctx.b.Space();
-        ctx.b.CommentLine("Literal = " +constant.value);
+        ctx.b.CommentLine("Literal = " + constant.value);
         ctx.b.Line($"sub rsp, 8");
         ctx.b.Line($"mov qword {result.RBP}, {constant.value}");
 

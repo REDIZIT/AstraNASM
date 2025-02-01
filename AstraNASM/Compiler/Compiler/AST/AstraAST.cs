@@ -628,11 +628,15 @@ public class AstraAST : ASTBuilder
     }
     private Node Primary()
     {
-        if (Match(typeof(Token_Constant)))
+        if (Check<Token_Constant>() || Check<Token_Char>())
         {
+            string value;
+            if (Check<Token_Constant>()) value = Consume<Token_Constant>("Expected constant").value;
+            else value = "'" + Consume<Token_Char>("Expected char").character + "'";
+
             return new Node_Literal()
             {
-                constant = (Token_Constant)Previous()
+                constant = new Token_Constant(value)
             };
         }
 

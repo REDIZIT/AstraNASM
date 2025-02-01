@@ -6,7 +6,10 @@
 
     public void WriteAs(long address, long value, int bytesToWrite)
     {
-        if (address < 0 || address + bytesToWrite >= bytes.Length) throw new Exception($"Address 0x{address.ToString("X")} is out of RAM bounds.");
+        if (address < 0 || address + bytesToWrite >= bytes.Length)
+        {
+            throw new Exception($"Address 0x{address.ToString("X")} is out of RAM bounds.");
+        }
 
         byte[] valueBytes = BitConverter.GetBytes(value);
 
