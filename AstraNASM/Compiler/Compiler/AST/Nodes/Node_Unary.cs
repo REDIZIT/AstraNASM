@@ -16,29 +16,19 @@ public class Node_Unary : Node
         base.Generate(ctx);
 
         right.Generate(ctx);
-        Variable rightResult = right.result;
-
 
         // Logical not
         if (@operator.asmOperatorName == "not")
         {
-            result = ctx.AllocateStackVariable(PrimitiveTypes.BOOL);
-
-            ctx.b.Line($"mov rbx, {rightResult.GetRBP()}");
-            ctx.b.Line($"test rbx, rbx");
-            ctx.b.Line($"xor rbx, rbx"); // reset rbx to zero
-            ctx.b.Line($"sete bl"); // set last byte of reg to 1 or 0
-            ctx.b.Line($"mov {result.GetRBP()}, rbx");
+            result = ctx.gen.Allocate(PrimitiveTypes.BOOL);
+            ctx.gen.LogicalNOT(right.result, this.result);
         }
         else if (@operator.asmOperatorName == "sub")
         {
-            result = ctx.AllocateStackVariable(rightResult.type);
-
-            ctx.b.Line($"mov rbx, {rightResult.GetRBP()}");
-            ctx.b.Line($"neg rbx");
-            ctx.b.Line($"mov {result.GetRBP()}, rbx");
+            result = ctx.gen.Allocate(right.result.type);
+            ctx.gen.Negate(right.result, this.result);
         }
 
-        ctx.b.Space();
+        ctx.gen.Space();
     }
 }

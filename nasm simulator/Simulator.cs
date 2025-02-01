@@ -30,7 +30,7 @@ public class Simulator
 
         ram.Dump(ramDumpFilepath);
     }
-    public void Execute(string line)
+    private void Execute(string line)
     {
         string[] args = Utils.Split(line);
         string cmd = args[0];

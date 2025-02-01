@@ -14,7 +14,6 @@ public class Node_VariableUse : Node
     {
         base.Generate(ctx);
 
-        result = ctx.GetVariable(variableName);
-        //generatedVariableName = "%" + variableName;
+        result = ctx.gen.GetVariable(variableName);
     }
 }

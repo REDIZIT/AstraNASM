@@ -29,7 +29,7 @@ public class CodeStringBuilder
     public string BuildString()
     {
         string result = string.Join('\n', lines);
-        lines.Clear();
+        // lines.Clear();
         maxSpace = 0;
         return result;
     }

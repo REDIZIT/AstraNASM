@@ -35,7 +35,11 @@ public static class Program
             {
                 string fileContent = File.ReadAllText("C:\\Users\\REDIZIT\\Documents\\GitHub\\Astra-Rider-extension\\try2\\test\\example.ac");
                 string nasmCode = Compiler.Compile_Astra_to_NASM(fileContent);
-                //File.WriteAllText("../../../Compiler/output.asm", nasmCode);
+
+                // Simulator sim = new();
+                // sim.Execute(nasmCode.Split('\n'));
+                //
+                // Console.WriteLine(sim.regs.rax.value);
             }
 
             //CmdExecutor.CompileRunAndCheck("../../../Compiler", "output.ll", 123);

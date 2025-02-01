@@ -4,21 +4,19 @@ public class PtrGet_EmbeddedFunctionInfo : EmbeddedFunctionInfo
 {
     public Variable Generate(Generator.Context ctx, string pointerVariableName)
     {
-        ctx.b.Space();
-        ctx.b.CommentLine($"Get value from {pointerVariableName}");
+        ctx.gen.Space();
+        ctx.gen.Comment($"Get value from {pointerVariableName}");
 
 
-        var pointerVar = ctx.GetVariable(pointerVariableName);
+        var pointerVar = ctx.gen.GetVariable(pointerVariableName);
 
         TypeInfo pointedType = PrimitiveTypes.LONG; // TODO
 
-        var result = ctx.AllocateStackVariable(pointedType);
+        var result = ctx.gen.Allocate(pointedType);
 
-        ctx.b.Line($"mov rbx, {pointerVar.GetRBP()}");
-        ctx.b.Line($"mov rdx, [rbx]");
-        ctx.b.Line($"mov {result.GetRBP()}, rdx");
+        ctx.gen.PtrGet(pointerVar, result);
 
-        ctx.b.Space();
+        ctx.gen.Space();
 
         return result;
     }

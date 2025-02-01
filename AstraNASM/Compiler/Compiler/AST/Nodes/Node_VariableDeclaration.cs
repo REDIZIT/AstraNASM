@@ -37,35 +37,35 @@ public class Node_VariableDeclaration : Node
             Generate_WithInit_AnyExpression(ctx);
         }
 
-        ctx.b.Space();
+        ctx.gen.Space();
     }
 
     private void Generate_WithDefaultValue(Generator.Context ctx)
     {
         TypeInfo type = ctx.module.GetType(variable.rawType);
-
-        result = ctx.AllocateStackVariable(type, variable.name);
-        ctx.b.Line($"mov {result.GetRBP()}, 0");
+        
+        result = ctx.gen.Allocate(type, variable.name);
+        ctx.gen.SetValue(result, "0");
     }
     private void Generate_WithInit_Literal(Generator.Context ctx, Node_Literal literal)
     {
         TypeInfo type = ctx.module.GetType(variable.rawType);
-
-        result = ctx.AllocateStackVariable(type, variable.name);
-        ctx.b.Line($"mov qword {result.GetRBP()}, {literal.constant.value}");
+        
+        result = ctx.gen.Allocate(type, variable.name);
+        ctx.gen.SetValue(result, literal.constant.value);
     }
     private void Generate_WithInit_AnyExpression(Generator.Context ctx)
     {
         initValue.Generate(ctx);
 
-        result = initValue.result;
-        result.name = variable.name;
+        result = ctx.gen.Allocate(initValue.result.type, variable.name);
+        ctx.gen.SetValue(result, initValue.result);
     }
     private void Generate_WithInit_New(Generator.Context ctx, Node_New tokenNew)
     {
         tokenNew.Generate(ctx);
-
-        result = tokenNew.result;
-        result.name = variable.name;
+        
+        result = ctx.gen.Allocate(tokenNew.result.type, variable.name);
+        ctx.gen.SetValue(result, tokenNew.result);
     }
 }

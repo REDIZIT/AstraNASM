@@ -13,4 +13,8 @@
     <None Remove="Tests\**" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\nasm simulator\nasm simulator.csproj" />
+  </ItemGroup>
+
 </Project>

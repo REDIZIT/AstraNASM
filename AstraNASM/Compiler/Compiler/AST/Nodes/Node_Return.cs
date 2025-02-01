@@ -15,30 +15,30 @@ public class Node_Return : Node
     {
         base.Generate(ctx);
 
-        ctx.b.Space(2);
+        ctx.gen.Space(2);
 
         if (function.returns.Count > 0)
         {
             if (function.returns.Count > 1) throw new Exception("Not supported yet");
 
-            int rbpOffset = 16 + function.arguments.Count * 8;
-            if (function.owner != null) rbpOffset += 8;
+            
 
             if (expr != null)
             {
                 expr.Generate(ctx);
 
-                ctx.b.Space(1);
+                ctx.gen.Space();
 
                 if (expr is Node_FieldAccess)
                 {
-                    ctx.b.Line($"mov rbx, {expr.result.GetRBP()}");
-                    ctx.b.Line($"mov [rbp+{rbpOffset}], [rbx]");
+                    // ctx.b.Line($"mov rbx, {expr.result.GetRBP()}");
+                    // ctx.b.Line($"mov [rbp+{rbpOffset}], [rbx]");
+
+                    throw new NotImplementedException();
                 }
                 else
                 {
-                    ctx.b.Line($"mov rbx, {expr.result.GetRBP()}");
-                    ctx.b.Line($"mov [rbp+{rbpOffset}], rbx");
+                    ctx.gen.Return_Variable(function, expr.result);
                 }
             }
             else
@@ -47,9 +47,7 @@ public class Node_Return : Node
             }
         }
         
-
-        ctx.b.Line("mov rsp, rbp");
-        ctx.b.Line("pop rbp");
-        ctx.b.Line("ret");
+        ctx.gen.Epilogue();
+        ctx.gen.Return_Void();
     }
 }

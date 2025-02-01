@@ -35,11 +35,11 @@ public class Node_FunctionCall : Node
 
     private void GenerateRegular(Generator.Context ctx)
     {
-        ctx.b.Space();
-        ctx.b.CommentLine($"{caller}.{function.name}()");
+        ctx.gen.Space();
+        ctx.gen.Comment($"{caller}.{function.name}()");
 
 
-        ctx.b.CommentLine($"arguments generation");
+        ctx.gen.Comment($"arguments generation");
 
         bool isStatic = function.owner == null;
 
@@ -48,10 +48,10 @@ public class Node_FunctionCall : Node
         for (int i = 0; i < arguments.Count; i++)
         {
             Node node = arguments[i];
-            if (node is Node_Literal) continue;
+            // if (node is Node_Literal) continue;
 
             node.Generate(ctx);
-            argumentsResults[isStatic ? 0 : 1] = node.result;
+            argumentsResults[i + (isStatic ? 0 : 1)] = node.result;
         }
 
 
@@ -59,24 +59,24 @@ public class Node_FunctionCall : Node
         {
             if (function.returns.Count > 1) throw new Exception("Not supported yet");
 
-            result = ctx.AllocateStackVariable(function.returns[0]);
-
-            ctx.b.CommentLine($"return allocation");
-            ctx.b.Line($"sub rsp, 8");
+            result = ctx.gen.Allocate(function.returns[0]);
+            
+            // ctx.gen.Deallocate(result);
         }
 
 
-        ctx.b.CommentLine($"arguments pushing");
+        ctx.gen.Comment($"arguments pushing");
+
+        Variable selfVar = null;
 
         if (isStatic == false)
         {
             Node_VariableUse variableNode = (Node_VariableUse)((Node_FieldAccess)caller).target;
 
-            Variable selfVar = ctx.GetVariable(variableNode.variableName);
-            ctx.AllocateStackVariable(selfVar.type);
-
-            ctx.b.Line($"mov rbx, {selfVar.RBP} ; self");
-            ctx.b.Line($"push rbx");
+            selfVar = ctx.gen.GetVariable(variableNode.variableName);
+            // ctx.AllocateStackVariable(selfVar.type);
+            
+            ctx.gen.PushToStack(selfVar, "self");
 
             argumentsResults[0] = selfVar;
         }
@@ -88,34 +88,44 @@ public class Node_FunctionCall : Node
 
             if (arguments[i] is Node_Literal literal)
             {
-                ctx.b.Line($"mov rbx, {literal.constant.value} ; arg[{i}] = {argInfo.name}");
+                // ctx.b.Line($"mov rbx, {literal.constant.value} ; arg[{i}] = {argInfo.name}");
+                ctx.gen.PushToStack(literal.constant.value, $"arg[{i}] = {argInfo.name}");
             }
             else
             {
-                ctx.AllocateStackVariable(result.type, argInfo.name);
-                ctx.b.Line($"mov rbx, {result.GetRBP()} ; arg[{i}] = {argInfo.name}");
+                // ctx.AllocateStackVariable(result.type, argInfo.name);
+                // ctx.b.Line($"mov rbx, {result.GetRBP()} ; arg[{i}] = {argInfo.name}");
+                ctx.gen.PushToStack(result, $"arg[{i}] = {argInfo.name}");
             }
 
-            ctx.b.Line($"push rbx");
+            // ctx.b.Line($"push rbx");
         }
 
 
 
-        ctx.b.Line($"call {function.name}");
+        ctx.gen.Call(function.name);
 
 
 
         int argumentsSizeInBytes = 0;
-        for (int i = 0; i < argumentsResults.Length; i++)
+        for (int i = argumentsResults.Length - 1; i >= 0; i--)
         {
             Variable arg = argumentsResults[i];
 
-            if (arg != null) ctx.Release(arg);
+            if (arg != selfVar)
+            {
+                ctx.gen.Unregister_FunctionArgumentVariable(arg);
+            }
+            // else
+            // {
+            //     ctx.gen.Deallocate(arg);
+            // }
 
             argumentsSizeInBytes += 8;
         }
-
-        ctx.b.Line($"add rsp, {argumentsSizeInBytes}");
+        
+        // ctx.b.Line($"add rsp, {argumentsSizeInBytes}");
+        ctx.gen.Deallocate(argumentsSizeInBytes);
     }
 
 

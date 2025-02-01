@@ -15,14 +15,12 @@ public class Node_Literal : Node
         base.Generate(ctx);
 
         TypeInfo literalType = PrimitiveTypes.INT;
+        
+        ctx.gen.Space();
+        ctx.gen.Comment("Literal = " + constant.value);
+        result = ctx.gen.Allocate(literalType);
+        ctx.gen.SetValue(result, constant.value);
 
-        result = ctx.AllocateStackVariable(literalType);
-
-        ctx.b.Space();
-        ctx.b.CommentLine("Literal = " + constant.value);
-        ctx.b.Line($"sub rsp, 8");
-        ctx.b.Line($"mov qword {result.RBP}, {constant.value}");
-
-        ctx.b.Space();
+        ctx.gen.Space();
     }
 }

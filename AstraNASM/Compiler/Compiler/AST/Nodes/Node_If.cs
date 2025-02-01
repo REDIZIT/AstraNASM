@@ -27,36 +27,32 @@ public class Node_If : Node
         //    valueConditionVariable = castedConditionVariable;
         //}
 
-        ctx.b.Space();
-        ctx.b.CommentLine($"if {condition.result.name}");
+        ctx.gen.Space();
+        ctx.gen.Comment($"if {condition.result.name}");
 
 
         if (elseBranch == null)
         {
-            ctx.b.Line($"mov rbx, {condition.result.RBP}");
-            ctx.b.Line($"cmp rbx, 0");
-            ctx.b.Line($"jle if_false");
+            ctx.gen.JumpIfFalse(condition.result);
 
             thenBranch.Generate(ctx);
 
-            ctx.b.Line($"if_false:");
+            ctx.gen.Label("if_false");
         }
         else
         {
-            ctx.b.Line($"mov rbx, {condition.result.RBP}");
-            ctx.b.Line($"cmp rbx, 0");
-            ctx.b.Line($"jle if_false");
+            ctx.gen.JumpIfFalse(condition.result);
 
             thenBranch.Generate(ctx);
 
-            ctx.b.Line($"jmp if_end");
-            ctx.b.Line($"if_false:");
+            ctx.gen.JumpToLabel("if_end");
+            ctx.gen.Label("if_false");
 
             elseBranch.Generate(ctx);
 
-            ctx.b.Line("if_end:");
+            ctx.gen.Label("if_end");
         }
 
-        ctx.b.Space();
+        ctx.gen.Space();
     }
 }

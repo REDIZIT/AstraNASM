@@ -52,29 +52,33 @@ public class Node_Function : Node
 
         ctx = ctx.CreateSubContext();
 
-        ctx.b.Space(3);
+        ctx.gen.Space(3);
 
         
 
-        ctx.b.Line($"{name}:");
-        ctx.b.Line("push rbp");
-        ctx.b.Line("mov rbp, rsp");
-
-        ctx.b.Space(1);
+        // ctx.b.Line($"{name}:");
+        // ctx.b.Line("push rbp");
+        // ctx.b.Line("mov rbp, rsp");
+        
+        ctx.gen.Label(name);
+        ctx.gen.Prologue();
+        
+        ctx.gen.Space();
 
         int index = 0;
 
         for (int i = functionInfo.arguments.Count - 1; i >= 0; i--)
         {
             FieldInfo argInfo = functionInfo.arguments[i];
-            ctx.Register_FunctionArgumentVariable(argInfo, index);
+            ctx.gen.Register_FunctionArgumentVariable(argInfo, index);
             index++;
         }
 
         
         if (functionInfo.owner != null)
         {
-            ctx.Register_FunctionArgumentVariable(new FieldInfo()
+            // ctx.gen.RegisterSelf(functionInfo);
+            ctx.gen.Register_FunctionArgumentVariable(new FieldInfo()
             {
                 name = "self",
                 type = functionInfo.owner
@@ -84,6 +88,7 @@ public class Node_Function : Node
 
         body.Generate(ctx);
 
-        ctx.b.Space(1);
+        // ctx.b.Space(1);
+        ctx.gen.Space();
     }
 }

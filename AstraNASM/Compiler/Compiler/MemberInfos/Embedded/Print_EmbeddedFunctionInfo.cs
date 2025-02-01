@@ -4,9 +4,6 @@ public class Print_EmbeddedFunctionInfo : EmbeddedFunctionInfo
 {
     public void Generate(Generator.Context ctx, Variable variable)
     {
-        ctx.b.Space();
-        ctx.b.CommentLine($"print {variable.name}");
-        ctx.b.Line($"mov rbx, {variable.GetRBP()}");
-        ctx.b.Line($"print [rbx]");
+        ctx.gen.Print(variable);
     }
 }

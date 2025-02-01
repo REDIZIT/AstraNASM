@@ -23,14 +23,8 @@ public class Node_FieldAccess : Node
         {
             if (field is PtrAddress_EmbeddedFieldInfo ptrAddress)
             {
-                result = ctx.AllocateStackVariable(PrimitiveTypes.PTR);
-
-                ctx.b.Space();
-                ctx.b.CommentLine($"{target.result.name}.{targetFieldName}");
-                ctx.b.Line($"sub rsp, 8");
-                ctx.b.Line($"mov rbx, rbp");
-                ctx.b.Line($"add rbx, {target.result.rbpOffset} ; offset to target ptr data cell");
-                ctx.b.Line($"mov {result.GetRBP()}, rbx ; now {result.GetRBP()} is pointer to {target.result.name} (.address)");
+                result = ctx.gen.Allocate(PrimitiveTypes.PTR);
+                ctx.gen.PtrAddress(target.result, this.result);
             }
             else
             {
@@ -41,26 +35,31 @@ public class Node_FieldAccess : Node
         {
             int fieldOffsetInBytes = 0;
 
-            result = ctx.AllocateStackVariable(PrimitiveTypes.PTR);
+            result = ctx.gen.Allocate(PrimitiveTypes.PTR);
 
             int totalOffset = target.result.rbpOffset + fieldOffsetInBytes;
 
 
-            ctx.b.Space();
-            ctx.b.CommentLine($"{target.result.name}.{targetFieldName}");
-            ctx.b.Line($"sub rsp, 8");
+            ctx.gen.Space();
+            ctx.gen.Comment($"{target.result.name}.{targetFieldName}");
 
             if (target is Node_FieldAccess)
             {
-                ctx.b.Line($"mov rbx, [rbp{totalOffset}]");
+                // ctx.b.Line($"mov rbx, [rbp{totalOffset}]");
+                // ctx.b.Line($"mov {result.GetRBP()}, rbx");
+                
+                ctx.gen.RBP_Shift_And_LoadFromRAM(totalOffset, result);
             }
             else
             {
-                ctx.b.Line($"mov rbx, rbp");
-                ctx.b.Line($"add rbx, {totalOffset}");
+                // ctx.b.Line($"mov rbx, rbp");
+                // ctx.b.Line($"add rbx, {totalOffset}");
+                // ctx.b.Line($"mov {result.GetRBP()}, rbx");
+
+                ctx.gen.CalculateAddress_RBP_Shift(totalOffset, result);
             }
 
-            ctx.b.Line($"mov {result.GetRBP()}, rbx");
+            // ctx.b.Line($"mov {result.GetRBP()}, rbx");
         }
     }
 }

@@ -16,33 +16,19 @@ public class Node_VariableAssign : Node
         base.Generate(ctx);
 
         target.Generate(ctx);
-        
-        string valueResult;
-        if (value is Node_Literal node_literal)
-        {
-            valueResult = node_literal.constant.value;
-        }
-        else
-        {
-            value.Generate(ctx);
-            valueResult = value.result.RBP;
-        }
-        
+        value.Generate(ctx);
 
-        ctx.b.Space();
-        ctx.b.CommentLine($"Assign {target.result.name} = {(value.result != null ? value.result.name : valueResult)}");
+        ctx.gen.Space();
+        ctx.gen.Comment($"Assign {target.result.name} = {(value.result.name)}");
 
 
         if (target is Node_FieldAccess)
         {
-            ctx.b.Line($"mov rbx, {target.result.RBP}");
-            ctx.b.Line($"mov rdx, {valueResult}");
-            ctx.b.Line($"mov qword [rbx], rdx");
+            ctx.gen.SetValueToField(target.result, value.result);
         }
         else
         {
-            ctx.b.Line($"mov qword rbx, {valueResult}");
-            ctx.b.Line($"mov qword {target.result.RBP}, rbx");
+            ctx.gen.SetValue(target.result, value.result);
         }
     }
 }

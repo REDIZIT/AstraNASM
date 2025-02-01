@@ -14,11 +14,6 @@ public class Variable
             else return $"[rbp{rbpOffset}]";
         }
     }
-
-    public string GetRBP()
-    {
-        return RBP;
-    }
 }
 
 public static class Generator
@@ -27,83 +22,25 @@ public static class Generator
     {
         public Context parent;
 
-        public CodeStringBuilder b = new();
+        public CodeGenerator gen;
         public ResolvedModule module;
-
-
-        private List<Variable> localVariables = new();
-
-        private int lastLocalVariableIndex = 0;
-        private int lastAnonVariableIndex = 0;
-
-
-        public Variable Register_FunctionArgumentVariable(FieldInfo info, int index)
-        {
-            Variable variable = new Variable()
-            {
-                name = info.name,
-                type = info.type,
-                rbpOffset = index * 8 + 16, // index * 8 (arguments sizeInBytes) + 16 (pushed rbp (8 bytes) + pushed rsi (8 bytes)
-            };
-            localVariables.Add(variable);
-
-            return variable;
-        }
-        public Variable AllocateStackVariable(TypeInfo type, string name = null)
-        {
-            if (name == null)
-            {
-                name = NextStackAnonVariableName();
-            }
-
-            lastLocalVariableIndex -= 8;
-
-            Variable variable = new Variable()
-            {
-                name = name,
-                type = type,
-                rbpOffset = lastLocalVariableIndex,
-            };
-            localVariables.Add(variable);
-
-            return variable;
-        }
-        public string NextStackAnonVariableName()
-        {
-            lastAnonVariableIndex++;
-            return "anon_" + lastAnonVariableIndex;
-        }
-        public Variable GetVariable(string name)
-        {
-            Variable var = localVariables.FirstOrDefault(v => v.name == name);
-            if (var != null) return var;
-
-            if (parent != null) return parent.GetVariable(name);
-
-            throw new Exception($"Variable '{name}' not found in context");
-        }
-
 
         public Context CreateSubContext()
         {
             Context ctx = new()
             {
                 parent = this,
-                b = b,
                 module = module,
             };
 
-            return ctx;
-        }
-
-        public void Release(Variable variable)
-        {
-            if (localVariables.Contains(variable) == false)
+            ctx.gen = new()
             {
-                throw new Exception("Failed to release variable due to variable is not presented in current context");
-            }
+                parent = gen
+            };
+            
+            gen.children.Add(ctx.gen);
 
-            lastLocalVariableIndex += 8; // sizeInBytes
+            return ctx;
         }
     }
 
@@ -111,30 +48,19 @@ public static class Generator
     {
         Context ctx = new()
         {
-            module = module
+            module = module,
+            gen = new()
         };
 
-        ctx.b.Line("mov rbx, 0");
-        ctx.b.Line("push rbx ; return int");
-
-        ctx.b.Line("call main");
-
-        ctx.b.Line("add rsp, 8");
-        ctx.b.Line("pop rax");
-
-        ctx.b.Line("mov 0x00, rax");
-        ctx.b.Line("exit");
-
-      
-
-        ctx.b.Space(2);
+        ctx.gen.PrologueForSimulation();
+        
 
         foreach (Node statement in statements)
         {
             statement.Generate(ctx);
         }
 
-        return FormatNASM(ctx.b.BuildString());
+        return FormatNASM(ctx.gen.BuildString());
     }
 
     private static string FormatNASM(string nasm)
