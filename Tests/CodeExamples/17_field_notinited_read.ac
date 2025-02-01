@@ -1,0 +1,17 @@
+class program
+{
+	public main(): int
+	{
+		Test test = new Test()
+				
+		return test.a
+	}
+}
+class Test 
+{
+    long a
+}
+
+---
+
+0

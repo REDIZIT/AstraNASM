@@ -25,33 +25,21 @@
         }
         else
         {
-            Console.WriteLine("Command not specified");
-            Console.Read();
+            string[] testFiles = Directory.GetFiles("../../../Tests");
+
+            RunTest(testFiles.Last(), false, 1024);
+
+            //for (int i = 0; i < testFiles.Length; i++)
+            //{
+            //    if (RunTest(testFiles[i], true) == false)
+            //    {
+            //        throw new Exception($"Test '{Path.GetFileName(testFiles[i])}' failed");
+            //    }
+            //}
+
+            Console.WriteLine("Simulations end");
+            Console.ReadLine();
         }
-        
-
-        //if (args.Length > 0)
-        //{
-
-        //}
-        //else
-        //{
-        //    string[] testFiles = Directory.GetFiles("../../../Tests");
-
-        //    RunTest(testFiles.Last(), false);
-
-        //    //for (int i = 0; i < testFiles.Length; i++)
-        //    //{
-        //    //    if (RunTest(testFiles[i], true) == false)
-        //    //    {
-        //    //        throw new Exception($"Test '{Path.GetFileName(testFiles[i])}' failed");
-        //    //    }
-        //    //}
-
-        //    Console.WriteLine("Simulations end");
-        //    Console.ReadLine();
-        //}
-
     }
 
     private static bool RunTest(string testFilePath, bool silent, int stackAddress)

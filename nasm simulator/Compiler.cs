@@ -32,7 +32,16 @@ public static class Compiler
             {
                 if (instruction.Contains(kv.Key))
                 {
-                    instructions[i] = instruction.Replace(kv.Key, kv.Value.ToString());
+                    int index = instruction.IndexOf(kv.Key);
+                    int endIndex = index + kv.Key.Length;
+
+                    bool isLeftSep = index == 0 || index > 1 && (instruction[index - 1] == ' ' || instruction[index - 1] == '\t');
+                    bool isRightSep = endIndex == instruction.Length || endIndex < instruction.Length && (instruction[endIndex] == ' ' || instruction[endIndex] == '\t');
+
+                    if (isLeftSep && isRightSep)
+                    {
+                        instructions[i] = instruction.Replace(kv.Key, kv.Value.ToString());
+                    }
                 }
             }
         }
