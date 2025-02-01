@@ -166,7 +166,7 @@ public class CodeGenerator
         b.Line($"mov qword {destination.RBP}, rbx");
     }
 
-    public void SetValueToField(Variable destination, Variable value)
+    public void SetValueBehindPointer(Variable destination, Variable value)
     {
         b.Line($"mov rbx, {destination.RBP}");
         b.Line($"mov rdx, {value.RBP}");
@@ -179,17 +179,11 @@ public class CodeGenerator
     }
 
 
-    public void FieldAccess(int totalOffset, Variable result, Node target, bool isSetter)
+    public void FieldAccess(int totalOffset, Variable result, bool isGetter)
     {
-        RBP_Shift_And_LoadFromRAM(totalOffset, result, isSetter);
-        // if (target is Node_FieldAccess)
-        // {
-        //     RBP_Shift_And_LoadFromRAM(totalOffset, result, isSetter);
-        // }
-        // else
-        // {
-        //     CalculateAddress_RBP_Shift(totalOffset, result);
-        // }
+        b.Line($"mov rbx, [rbp{totalOffset}]");
+        if (isGetter) b.Line($"mov rbx, [rbx] ; depoint one more time due to getter");
+        b.Line($"mov {result.RBP}, rbx");
     }
 
 
@@ -324,13 +318,6 @@ public class CodeGenerator
         b.Line($"mov rbx, rbp");
         b.Line($"add rbx, {shiftInBytes}");
         SetValueFromReg(result, "rbx");
-    }
-
-    public void RBP_Shift_And_LoadFromRAM(int shiftInBytes, Variable result, bool isSetter)
-    {
-        b.Line($"mov rbx, [rbp{shiftInBytes}]");
-        if (isSetter) b.Line($"mov rbx, [rbx] ; due to setter");
-        b.Line($"mov {result.RBP}, rbx");
     }
 
 

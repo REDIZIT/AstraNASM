@@ -17,15 +17,20 @@ public class Node_FieldAccess : Node
     {
         base.Generate(ctx);
 
-        GenerateInternal(ctx, false);
+        // By default, FieldAccess will be generated as getter (primitive value will be allocated)
+        // This Generate function will be invoked every time if caller doesn't know (and he doesn't care about that)
+        // Only 1 case when you want to use FieldAccess as setter - VariableAssign
+        GenerateInternal(ctx, true);
     }
 
     public void GenerateAsSetter(Generator.Context ctx)
     {
-        GenerateInternal(ctx, true);
+        // If caller want, FieldAccess will be generated as setter (pointer to primitive value will be allocated)
+        // This the only case, when you want to use FieldAccess as setter - VariableAssign
+        GenerateInternal(ctx, false);
     }
 
-    private void GenerateInternal(Generator.Context ctx, bool isSetter)
+    private void GenerateInternal(Generator.Context ctx, bool isGetter)
     {
         target.Generate(ctx);
 
@@ -48,9 +53,17 @@ public class Node_FieldAccess : Node
 
             ctx.gen.Space();
             ctx.gen.Comment($"{target.result.name}.{targetFieldName}");
-            result = ctx.gen.Allocate(PrimitiveTypes.PTR);
+            
+            
 
-            ctx.gen.FieldAccess(totalOffset, result, target, !isSetter);
+            // (setter) result = pointer to pointer to primivite
+            // (getter) result = pointer to primitive
+            
+            // (setter) result - variable to variable
+            // (getter) result - variable
+            
+            result = ctx.gen.Allocate(PrimitiveTypes.PTR);
+            ctx.gen.FieldAccess(totalOffset, result, isGetter);
         }
     }
 }

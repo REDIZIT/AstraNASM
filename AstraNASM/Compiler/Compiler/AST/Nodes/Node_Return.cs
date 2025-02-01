@@ -1,5 +1,4 @@
-﻿
-namespace Astra.Compilation;
+﻿namespace Astra.Compilation;
 
 public class Node_Return : Node
 {
@@ -20,24 +19,13 @@ public class Node_Return : Node
         if (function.returns.Count > 0)
         {
             if (function.returns.Count > 1) throw new Exception("Not supported yet");
-
             
-
             if (expr != null)
             {
                 expr.Generate(ctx);
 
                 ctx.gen.Space();
-
-                if (expr is Node_FieldAccess)
-                {
-                    // ctx.gen.Return_Field(function, expr.result);
-                    ctx.gen.Return_Variable(function, expr.result);
-                }
-                else
-                {
-                    ctx.gen.Return_Variable(function, expr.result);
-                }
+                ctx.gen.Return_Variable(function, expr.result);
             }
             else
             {

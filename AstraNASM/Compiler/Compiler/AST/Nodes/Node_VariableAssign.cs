@@ -14,18 +14,18 @@ public class Node_VariableAssign : Node
     public override void Generate(Generator.Context ctx)
     {
         base.Generate(ctx);
-
         
         ctx.gen.Comment("generating target for assign");
         if (target is Node_FieldAccess targetField)
         {
+            // We're assigning value to field.
+            // That means, that we should generate pointer (setter), but don't depoint it (getter)
             targetField.GenerateAsSetter(ctx);
         }
         else
         {
             target.Generate(ctx);
         }
-        // target.Generate(ctx);
         
         ctx.gen.Comment("generating value for assign");
         value.Generate(ctx);
@@ -33,11 +33,10 @@ public class Node_VariableAssign : Node
         
         ctx.gen.Space();
         ctx.gen.Comment($"Assign {target.result.name} = {(value.result.name)}");
-        // ctx.gen.SetValue(target.result, value.result);
 
         if (target is Node_FieldAccess)
         {
-            ctx.gen.SetValueToField(target.result, value.result);
+            ctx.gen.SetValueBehindPointer(target.result, value.result);
         }
         else
         {
