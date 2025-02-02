@@ -6,7 +6,7 @@ public class Node_VariableDeclaration : Node
     public VariableRawData variable;
     public Node initValue;
 
-    public ClassTypeInfo ownerInfo;
+    public TypeInfo ownerInfo;
     public FieldInfo fieldInfo;
 
     public override IEnumerable<Node> EnumerateChildren()

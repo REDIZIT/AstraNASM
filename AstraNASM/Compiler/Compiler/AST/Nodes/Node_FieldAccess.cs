@@ -5,6 +5,7 @@ public class Node_FieldAccess : Node
     public Node target;
     public string targetFieldName;
 
+    public TypeInfo targetType;
     public FieldInfo field;
 
 
@@ -48,12 +49,17 @@ public class Node_FieldAccess : Node
         }
         else
         {
+            TypeInfo type = targetType;
+
             int fieldOffsetInBytes = 0;
-            int totalOffset = target.result.rbpOffset + fieldOffsetInBytes;
+            foreach (FieldInfo typeField in type.fields)
+            {
+                if (typeField == field) break;
+                fieldOffsetInBytes += 8;
+            }
 
             ctx.gen.Space();
             ctx.gen.Comment($"{target.result.name}.{targetFieldName}");
-            
             
 
             // (setter) result = pointer to pointer to primivite
@@ -63,7 +69,7 @@ public class Node_FieldAccess : Node
             // (getter) result - variable
             
             result = ctx.gen.Allocate(PrimitiveTypes.PTR);
-            ctx.gen.FieldAccess(totalOffset, result, isGetter);
+            ctx.gen.FieldAccess(target.result.rbpOffset, fieldOffsetInBytes, result, isGetter);
         }
     }
 }

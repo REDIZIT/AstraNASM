@@ -179,10 +179,21 @@ public class CodeGenerator
     }
 
 
-    public void FieldAccess(int totalOffset, Variable result, bool isGetter)
+    public void FieldAccess(int baseOffset, int fieldOffset, Variable result, bool isGetter)
     {
-        b.Line($"mov rbx, [rbp{totalOffset}]");
-        if (isGetter) b.Line($"mov rbx, [rbx] ; depoint one more time due to getter");
+        if (fieldOffset < 0) throw new Exception("Negative fieldOffset is not allowed.");
+        
+        b.Line($"mov rbx, [rbp{baseOffset}]");
+        
+        if (fieldOffset != 0)
+        {
+            b.Line($"add rbx, {fieldOffset}");
+        }
+        if (isGetter)
+        {
+            b.Line($"mov rbx, [rbx] ; depoint one more time due to getter");
+        }
+        
         b.Line($"mov {result.RBP}, rbx");
     }
 

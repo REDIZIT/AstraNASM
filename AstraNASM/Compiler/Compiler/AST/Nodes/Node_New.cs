@@ -5,7 +5,7 @@ public class Node_New : Node
 {
     public string className;
 
-    public ClassTypeInfo classInfo;
+    public TypeInfo classInfo;
 
     public override IEnumerable<Node> EnumerateChildren()
     {

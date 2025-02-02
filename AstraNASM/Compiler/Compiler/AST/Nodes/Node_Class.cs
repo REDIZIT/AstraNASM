@@ -6,7 +6,7 @@ public class Node_Class : Node
     public string name;
     public Node_Block body;
 
-    public ClassTypeInfo classInfo;
+    public TypeInfo classInfo;
 
     public override IEnumerable<Node> EnumerateChildren()
     {

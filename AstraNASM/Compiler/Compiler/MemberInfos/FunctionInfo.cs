@@ -3,7 +3,7 @@
 public class FunctionInfo
 {
     public string name;
-    public ClassTypeInfo owner;
+    public TypeInfo owner;
 
     public List<FieldInfo> arguments = new();
     public List<TypeInfo> returns = new();

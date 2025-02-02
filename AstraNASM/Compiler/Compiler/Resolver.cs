@@ -18,7 +18,7 @@ public static class Resolver
 
 
 
-        Dictionary<Node_Class, ClassTypeInfo> classInfos = new();
+        Dictionary<Node_Class, TypeInfo> classInfos = new();
         Dictionary<string, TypeInfo> classInfoByName = new();
 
 
@@ -35,7 +35,7 @@ public static class Resolver
         {
             if (node is Node_Class cls)
             {
-                ClassTypeInfo info = new()
+                TypeInfo info = new()
                 {
                     name = cls.name,
                     fields = new(),
@@ -53,10 +53,10 @@ public static class Resolver
         //
         // Pass 2: Register type fields
         //
-        foreach (KeyValuePair<Node_Class, ClassTypeInfo> kv in classInfos)
+        foreach (KeyValuePair<Node_Class, TypeInfo> kv in classInfos)
         {
             Node_Class node = kv.Key;
-            ClassTypeInfo clsInfo = kv.Value;
+            TypeInfo clsInfo = kv.Value;
 
             foreach (Node child in node.body.EnumerateChildren())
             {
@@ -78,10 +78,10 @@ public static class Resolver
         //
         // Pass 3: Register type functions
         //
-        foreach (KeyValuePair<Node_Class, ClassTypeInfo> kv in classInfos)
+        foreach (KeyValuePair<Node_Class, TypeInfo> kv in classInfos)
         {
             Node_Class node = kv.Key;
-            ClassTypeInfo clsInfo = kv.Value;
+            TypeInfo clsInfo = kv.Value;
 
             foreach (Node child in node.body.EnumerateChildren())
             {
@@ -132,7 +132,7 @@ public static class Resolver
         {
             if (node is Node_New nodeNew)
             {
-                nodeNew.classInfo = (ClassTypeInfo)classInfoByName[nodeNew.className];
+                nodeNew.classInfo = (TypeInfo)classInfoByName[nodeNew.className];
             }
             else if (node is Node_FunctionCall call)
             {
@@ -152,11 +152,12 @@ public static class Resolver
             {
                 TypeInfo targetType = CalculateType(access.target);
 
-                if (TryFindFunction(targetType, access.targetFieldName, module) == null && targetType is ClassTypeInfo classInfo)
+                if (TryFindFunction(targetType, access.targetFieldName, module) == null && targetType is TypeInfo classInfo)
                 {
                     FieldInfo targetTypeField = TryFindField(classInfo, access.targetFieldName, module);
                     if (targetTypeField == null) throw new Exception($"Failed to find field '{access.targetFieldName}' inside type '{targetType}'");
 
+                    access.targetType = targetType;
                     access.field = targetTypeField;
                 }                
             }
@@ -219,7 +220,7 @@ public static class Resolver
         {
             if (childNode is Node_VariableDeclaration varDec)
             {
-                ClassTypeInfo clsInfo = scope.Find(s => s.typeInfo != null).typeInfo;
+                TypeInfo clsInfo = scope.Find(s => s.typeInfo != null).typeInfo;
 
                 FieldInfo fieldInfo = new()
                 {
@@ -260,7 +261,7 @@ public static class Resolver
     {
         FunctionInfo targetTypeFunction = null;
 
-        if (targetType is ClassTypeInfo classType)
+        if (targetType is TypeInfo classType)
         {
             targetTypeFunction = classType.functions.FirstOrDefault(i => i.name == functionName);
         }
@@ -273,7 +274,7 @@ public static class Resolver
         return targetTypeFunction;
     }
 
-    private static FieldInfo TryFindField(ClassTypeInfo targetType, string fieldName, ResolvedModule module)
+    private static FieldInfo TryFindField(TypeInfo targetType, string fieldName, ResolvedModule module)
     {
         FieldInfo targetTypeField = targetType.fields.FirstOrDefault(i => i.name == fieldName);
 
@@ -294,7 +295,7 @@ public static class Resolver
     }
     private static void RegisterPtr(Dictionary<string, TypeInfo> classInfoByName)
     {
-        ClassTypeInfo ptrInfo = new ClassTypeInfo()
+        TypeInfo ptrInfo = new TypeInfo()
         {
             name = "ptr",
             isStruct = true
@@ -412,7 +413,7 @@ public static class Resolver
     {
         if (functionName == "to_ptr")
         {
-            return ((ClassTypeInfo)module.GetType("ptr")).functions.First(f => f.name == "to_ptr");
+            return ((TypeInfo)module.GetType("ptr")).functions.First(f => f.name == "to_ptr");
         }
 
         return null;

@@ -3,7 +3,7 @@
 public class Scope
 {
     public List<FieldInfo> variables = new();
-    public ClassTypeInfo typeInfo;
+    public TypeInfo typeInfo;
     public FunctionInfo functionInfo;
 
     public Scope parent;
