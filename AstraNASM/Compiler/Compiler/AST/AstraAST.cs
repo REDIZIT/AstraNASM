@@ -26,7 +26,6 @@ public class AstraAST : ASTBuilder
             {
                 LogAndSync(err);
             }
-            
         }
 
 
@@ -490,7 +489,9 @@ public class AstraAST : ASTBuilder
         Node action = Expression();
         Consume(typeof(Token_BracketClose), "Expected ')' after action");
 
-        Node body = Statement();
+        ConsumeSpace(true);
+        Consume<Token_BlockOpen>("Expected '{' after for declaration");
+        Node body = Block();
 
         return new Node_Block()
         {
@@ -518,7 +519,9 @@ public class AstraAST : ASTBuilder
         Node condition = Expression();
         Consume(typeof(Token_BracketClose), "Expected ')' after condition.");
 
-        Node body = Statement();
+        ConsumeSpace(true);
+        Consume<Token_BlockOpen>("Expected '{' after while declaration");
+        Node body = Block();
 
         return new Node_While()
         {

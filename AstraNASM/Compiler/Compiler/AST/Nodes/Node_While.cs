@@ -1,5 +1,4 @@
-﻿
-namespace Astra.Compilation;
+﻿namespace Astra.Compilation;
 
 public class Node_While : Node
 {
@@ -14,20 +13,15 @@ public class Node_While : Node
     public override void Generate(Generator.Context ctx)
     {
         base.Generate(ctx);
-
-        throw new Exception("Not upgraded");
-
-        //ctx.b.Line("br label %while_condition");
-        //ctx.b.Line("while_condition:");
-        //condition.Generate(ctx);
-
-        //string conditionName = Utils.SureNotPointer(condition.generatedVariableName, ctx);
-        //ctx.b.Line($"br i1 {conditionName}, label %while_body, label %while_end");
-
-        //ctx.b.Line("while_body:");
-        //body.Generate(ctx);
-        //ctx.b.Line("br label %while_condition");
-
-        //ctx.b.Line("while_end:");
+        
+        ctx.gen.Label("while_condition");
+        condition.Generate(ctx);
+        
+        ctx.gen.JumpIfFalse(condition.result, "while_end");
+        
+        body.Generate(ctx);
+        ctx.gen.JumpToLabel("while_condition");
+        
+        ctx.gen.Label("while_end");
     }
 }

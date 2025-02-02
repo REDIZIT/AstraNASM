@@ -208,11 +208,11 @@ public class CodeGenerator
 
 
 
-    public void JumpIfFalse(Variable condition)
+    public void JumpIfFalse(Variable condition, string label)
     {
         b.Line($"mov rbx, {condition.RBP}");
         b.Line($"cmp rbx, 0");
-        b.Line($"jle if_false");
+        b.Line($"jle {label}");
     }
 
     public void JumpToLabel(string label)

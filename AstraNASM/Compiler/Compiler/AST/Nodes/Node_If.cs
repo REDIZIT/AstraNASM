@@ -33,7 +33,7 @@ public class Node_If : Node
 
         if (elseBranch == null)
         {
-            ctx.gen.JumpIfFalse(condition.result);
+            ctx.gen.JumpIfFalse(condition.result, "if_false");
 
             thenBranch.Generate(ctx);
 
@@ -41,7 +41,7 @@ public class Node_If : Node
         }
         else
         {
-            ctx.gen.JumpIfFalse(condition.result);
+            ctx.gen.JumpIfFalse(condition.result, "if_false");
 
             thenBranch.Generate(ctx);
 
