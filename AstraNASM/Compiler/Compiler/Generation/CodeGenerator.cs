@@ -183,17 +183,26 @@ public class CodeGenerator
     {
         if (fieldOffset < 0) throw new Exception("Negative fieldOffset is not allowed.");
         
+        // Load from ram address to ref-type inside heap
         b.Line($"mov rbx, [rbp{baseOffset}]");
         
+        // If we accessing not first field
         if (fieldOffset != 0)
         {
+            // Add offset to rbx to go to field inside ref-type
             b.Line($"add rbx, {fieldOffset}");
         }
+        
+        // Now rbx is pointing to valid address of ref-type.field
+        
+        // If we don't need a pointer (like setter), but want to get a value (like getter)
         if (isGetter)
         {
+            // Depoint rbx to get actual field value
             b.Line($"mov rbx, [rbx] ; depoint one more time due to getter");
         }
         
+        // Put result (ref for setter and value for getter) inside result variable
         b.Line($"mov {result.RBP}, rbx");
     }
 
@@ -268,20 +277,15 @@ public class CodeGenerator
         b.Line($"mov {result.RBP}, [rbx]");
     }
 
-    public void PtrAddress(Variable pointer, Variable result)
+    public void PtrAddress(Variable pointer, Variable result, bool isGetter)
     {
         b.Space();
         b.CommentLine($"{pointer.name}.address");
-
-        // Variable pointerToField = Allocate(PrimitiveTypes.PTR);
         
         b.Line($"mov rbx, rbp");
         b.Line($"add rbx, {pointer.rbpOffset} ; offset to target ptr data cell");
+        if (isGetter) b.Line($"mov rbx, [rbx]");
         b.Line($"mov {result.RBP}, rbx ; now {result.RBP} is pointer to {pointer.name} (.address)");
-        
-        // b.Line($"mov rbx, rbp");
-        // b.Line($"add rbx, {pointer.rbpOffset} ; offset to target ptr data cell");
-        // b.Line($"mov {result.RBP}, rbx ; now {result.RBP} is pointer to {pointer.name} (.address)");
     }
 
     public void PtrGet(Variable pointerVariable, Variable result)

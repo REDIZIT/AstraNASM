@@ -40,7 +40,7 @@ public class Node_FieldAccess : Node
             if (field is PtrAddress_EmbeddedFieldInfo ptrAddress)
             {
                 result = ctx.gen.Allocate(PrimitiveTypes.PTR);
-                ctx.gen.PtrAddress(target.result, this.result);
+                ctx.gen.PtrAddress(target.result, this.result, isGetter);
             }
             else
             {

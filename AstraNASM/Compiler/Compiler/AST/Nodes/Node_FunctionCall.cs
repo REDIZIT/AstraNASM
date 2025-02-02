@@ -48,7 +48,12 @@ public class Node_FunctionCall : Node
         for (int i = 0; i < arguments.Count; i++)
         {
             Node node = arguments[i];
-            // if (node is Node_Literal) continue;
+            
+            if (node is Node_Literal lit)
+            {
+                ctx.gen.Comment("skip literal = " + lit.constant.value);
+                continue;
+            }
 
             node.Generate(ctx);
             argumentsResults[i + (isStatic ? 0 : 1)] = node.result;
@@ -112,14 +117,10 @@ public class Node_FunctionCall : Node
         {
             Variable arg = argumentsResults[i];
 
-            if (arg != selfVar)
+            if (arg != selfVar && arg != null)
             {
                 ctx.gen.Unregister_FunctionArgumentVariable(arg);
             }
-            // else
-            // {
-            //     ctx.gen.Deallocate(arg);
-            // }
 
             argumentsSizeInBytes += 8;
         }

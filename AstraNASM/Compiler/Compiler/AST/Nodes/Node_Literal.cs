@@ -14,7 +14,7 @@ public class Node_Literal : Node
     {
         base.Generate(ctx);
 
-        TypeInfo literalType = PrimitiveTypes.INT;
+        TypeInfo literalType = PrimitiveTypes.LONG;
         
         ctx.gen.Space();
         ctx.gen.Comment("Literal = " + constant.value);

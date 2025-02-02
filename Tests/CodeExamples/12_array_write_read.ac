@@ -1,6 +1,6 @@
 class program
 {
-	public main(): int
+	public main(): long
 	{
 		Array arr = new Array()
 
@@ -20,7 +20,7 @@ class Pointer
 
 class Array 
 {
-	public write(int index, int value)
+	public write(int index, long value)
 	{
 		ptr pointer = self.to_ptr()
 
@@ -29,7 +29,7 @@ class Array
 
 		return
 	}
-	public read(int index): int
+	public read(int index): long
 	{
 		ptr pointer = self.to_ptr()
 		pointer.shift(index * 8)

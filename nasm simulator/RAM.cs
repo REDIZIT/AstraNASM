@@ -2,7 +2,7 @@
 {
     public byte[] bytes = new byte[0xB8000 + 80 * 25 * 2];
 
-    public Endianness endianness = Endianness.BigEndian;
+    public Endianness endianness = Endianness.LittleEndian;
 
     public void WriteAs(long address, long value, int bytesToWrite)
     {
@@ -17,11 +17,26 @@
 
         if (bytesToWrite > valueBytes.Length) throw new Exception($"Failed to WriteAs to RAM due to bytesToWrite ({bytesToWrite}) is larger than value bytes ({valueBytes.Length})");
 
-        //int startByte = valueBytes.Length - bytesToWrite;
 
-        for (int i = 0; i < valueBytes.Length; i++)
+        if (endianness == Endianness.BigEndian)
         {
-            bytes[address + i] = valueBytes[i];
+            for (int i = 0; i < bytesToWrite; i++)
+            {
+                int valueIndex = valueBytes.Length - bytesToWrite + i;
+                long addressIndex = address + i;
+            
+                bytes[addressIndex] = valueBytes[valueIndex];
+            }
+        }
+        else
+        {
+            for (int i = 0; i < bytesToWrite; i++)
+            {
+                int valueIndex = i;
+                long addressIndex = address + i;
+            
+                bytes[addressIndex] = valueBytes[valueIndex];
+            }
         }
     }
 
@@ -52,6 +67,14 @@
         {
             valueBytes[i] = bytes[address + i];
         }
+        
+        // for (int i = 0; i < bytesToRead; i++)
+        // {
+        //     int valueIndex = i;
+        //     long addressIndex = address + 8 - bytesToRead + i;
+        //
+        //     valueBytes[valueIndex] = bytes[addressIndex];
+        // }
 
         Endianyze(valueBytes);
         return BitConverter.ToInt64(valueBytes);
