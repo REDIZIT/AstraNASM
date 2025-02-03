@@ -9,6 +9,7 @@ public class ErrorLogger
     public void Error(LogEntry entry)
     {
         entries.Add(entry);
+        throw new Exception();
     }
 }
 

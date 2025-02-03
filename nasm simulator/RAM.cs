@@ -40,6 +40,11 @@
         }
     }
 
+    public void WriteByte(long address, byte value)
+    {
+        bytes[address] = value;
+    }
+
     public void Write64(long address, long value)
     {
         if (address < 0 || address + 7 >= bytes.Length) throw new Exception($"Address 0x{address.ToString("X")} is out of RAM bounds.");

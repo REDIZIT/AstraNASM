@@ -1,9 +1,11 @@
-﻿using Astra.Simulation;
+﻿using System.Text;
+using Astra.Simulation;
 
 public class Simulator
 {
     public Regs regs;
     public RAM ram;
+    public DataSection data;
 
     public long currentInstructionPointer;
 
@@ -12,13 +14,23 @@ public class Simulator
     public static string ramDumpFilepath = "ram.bin";
 
     private List<string> instructions;
+    private bool isDataSection;
 
-    public void Execute(string[] lines, int stackAddress = 256)
+    private int stackAddress;
+    private int heapAddress;
+    private int dataSectionAddress;
+
+    public void Execute(string[] lines, int stackAddress = 0x100, int heapAddress = 0x200, int dataSectionAddress = 0x200)
     {
         currentInstructionPointer = 0;
 
+        this.stackAddress = stackAddress;
+        this.heapAddress = heapAddress;
+        this.stackAddress = dataSectionAddress;
+
         regs = new(stackAddress);
         ram = new();
+        data = new(dataSectionAddress);
 
         instructions = Compiler.Compile_NASM_to_Instructions(lines);
 
@@ -50,27 +62,27 @@ public class Simulator
             string destStr = args[args.Length - 2];
             string valueStr = args[args.Length - 1];
 
-            if (regs.TryGetReg(destStr, out Reg64 destReg))
+            long value;
+            if (data.addressByLabel.ContainsKey(valueStr))
             {
-                long value = Utils.ParseDec(valueStr, regs);
-
+                value = data.addressByLabel[valueStr];
+            }
+            else
+            {
+                value = Utils.ParseDec(valueStr, regs);
                 if (valueStr.StartsWith('['))
                 {
                     value = ram.ReadAs(value, bytes);
                 }
+            }
 
+            if (regs.TryGetReg(destStr, out Reg64 destReg))
+            {
                 regs.Set(destStr, value);
             }
             else
             {
                 long toAddress = Utils.ParseDec(destStr, regs);
-
-                long value = Utils.ParseDec(valueStr, regs);
-                if (valueStr.StartsWith('['))
-                {
-                    value = ram.ReadAs(value, bytes);
-                }
-
                 ram.WriteAs(toAddress, value, bytes);
             }
         }
@@ -192,6 +204,56 @@ public class Simulator
         {
             string p = cmd[3..];
             regs.Set(args[1], CanSet(p) ? 1 : 0);
+        }
+        else if (cmd == "section")
+        {
+            string section = args[1];
+
+            if (section == ".data")
+            {
+                isDataSection = true;
+            }
+            else if (section == ".text")
+            {
+                isDataSection = false;
+            }
+            else
+            {
+                throw new($"Unknown section '{section}'");
+            }
+        }
+        else if (isDataSection)
+        {
+            string name = args[0];
+            string type = args[1];
+
+            List<byte> value = new();
+
+            for (int i = 2; i < args.Length; i++)
+            {
+                string str = args[i];
+
+                if (str.StartsWith('"'))
+                {
+                    value.AddRange(Encoding.ASCII.GetBytes(str, 1, str.Length - 2));
+                }
+                else
+                {
+                    byte b = byte.Parse(str);
+                    value.Add(b);
+                }
+            }
+
+            int address = data.endAddress;
+
+            for (int i = 0; i < value.Count; i++)
+            {
+                ram.WriteByte(address + i, value[i]);
+            }
+
+            data.endAddress += value.Count;
+            
+            data.addressByLabel.Add(name, address);
         }
         else
         {

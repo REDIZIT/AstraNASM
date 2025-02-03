@@ -223,19 +223,13 @@ public class Lexer
                 }
                 else
                 {
-                    return new Token_Char()
-                    {
-                        character = stringChars[0]
-                    };
+                    return new Token_Char(stringChars[0].ToString());
                 }
             }
             else if (currentChar == '\"')
             {
                 currentPos++;
-                return new Token_String()
-                {
-                    str = string.Concat(stringChars)
-                };
+                return new Token_String(string.Concat(stringChars));
             }
             else if (currentChar == '\n' || currentChar == '\r')
             {

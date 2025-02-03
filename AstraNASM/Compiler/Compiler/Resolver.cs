@@ -118,15 +118,30 @@ public static class Resolver
         }
 
         module.classInfoByName = classInfoByName;
+        
+        //
+        // Pass 5: Register string constants
+        //
+        foreach (Node node in EnumerateAllNodes(ast))
+        {
+            if (node is Node_Literal lit)
+            {
+                if (lit.constant is Token_String)
+                {
+                    module.strings.Add(lit.constant.value);
+                    lit.constant.value = "str_" + lit.constant.value;
+                }
+            }
+        }
 
         //
-        // Pass 5: Generate Scopes
+        // Pass 6: Generate Scopes
         //
         Scope globalScope = new();
         GenerateScope(globalScope, new Node_Block() { children = ast}, module);
 
         //
-        // Pass 6: Resolve Nodes
+        // Pass 7: Resolve Nodes
         //
         foreach (Node node in flatTree)
         {
@@ -292,6 +307,7 @@ public static class Resolver
         RegisterBool(classInfoByName);
 
         RegisterPtr(classInfoByName);
+        RegisterString(classInfoByName);
     }
     private static void RegisterPtr(Dictionary<string, TypeInfo> classInfoByName)
     {
@@ -407,6 +423,16 @@ public static class Resolver
         classInfoByName.Add(info.name, info);
 
         PrimitiveTypes.BOOL = info;
+    }
+    private static void RegisterString(Dictionary<string, TypeInfo> classInfoByName)
+    {
+        TypeInfo info = new()
+        {
+            name = "string"
+        };
+        classInfoByName.Add(info.name, info);
+
+        PrimitiveTypes.STRING = info;
     }
 
     private static FunctionInfo GetExtensionFunction(TypeInfo type, string functionName, ResolvedModule module)

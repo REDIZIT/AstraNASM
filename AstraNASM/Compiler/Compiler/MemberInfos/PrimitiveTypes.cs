@@ -9,5 +9,5 @@ public static class PrimitiveTypes
     public static TypeInfo LONG;
 
     public static TypeInfo PTR;
-    public static TypeInfo ARRAY;
+    public static TypeInfo STRING;
 }

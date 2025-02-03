@@ -17,15 +17,15 @@ public class AstraAST : ASTBuilder
 
         while (IsAtEnd() == false)
         {
-            try
-            {
+            // try
+            // {
                 ConsumeSpace(true);
                 statements.Add(Declaration());
-            }
-            catch (Exception err)
-            {
-                LogAndSync(err);
-            }
+            // }
+            // catch (Exception err)
+            // {
+            //     LogAndSync(err);
+            // }
         }
 
 
@@ -631,16 +631,29 @@ public class AstraAST : ASTBuilder
     }
     private Node Primary()
     {
-        if (Check<Token_Constant>() || Check<Token_Char>())
+        if (Check<Token_Constant>() || Check<Token_Char>() || Check<Token_String>())
         {
-            string value;
-            if (Check<Token_Constant>()) value = Consume<Token_Constant>("Expected constant").value;
-            else value = "'" + Consume<Token_Char>("Expected char").character + "'";
-
-            return new Node_Literal()
+            if (Check<Token_Constant>())
             {
-                constant = new Token_Constant(value)
-            };
+                return new Node_Literal()
+                {
+                    constant = Consume<Token_Constant>("Expected constant")
+                };
+            }
+            else if (Check<Token_String>())
+            {
+                return new Node_Literal()
+                {
+                    constant = Consume<Token_String>("Expected string")
+                };
+            }
+            else
+            {
+                return new Node_Literal()
+                {
+                    constant = Consume<Token_Char>("Expected char")
+                };
+            }
         }
 
         if (Match(typeof(Token_Identifier)))

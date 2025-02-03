@@ -2,6 +2,9 @@
 
 public class CodeGenerator
 {
+    public CodeGenerator parent;
+    public List<CodeGenerator> children = new();
+    
     private CodeStringBuilder b = new();
     private int rbpOffset;
 
@@ -9,9 +12,6 @@ public class CodeGenerator
     private Dictionary<int, Variable> variableByRBPOffset = new();
     private Stack<Variable> variableStack = new();
     private int anonVariableNameIndex;
-
-    public CodeGenerator parent;
-    public List<CodeGenerator> children = new();
 
     public void Label(string labelName)
     {
@@ -350,6 +350,21 @@ public class CodeGenerator
     public void Call(string functionName)
     {
         b.Line($"call {functionName}");
+    }
+
+
+    public void SectionData()
+    {
+        b.Line("section .data");
+    }
+
+    public void SectionText()
+    {
+        b.Line("section .text");
+    }
+    public void BufferString(string str)
+    {
+        b.Line($"str_{str} db \"{str}\", 0");
     }
     
     public void Space(int lines = 1)

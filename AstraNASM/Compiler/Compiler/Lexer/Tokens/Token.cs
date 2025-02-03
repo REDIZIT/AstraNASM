@@ -132,11 +132,6 @@ public class Token_Space : Token
 public class Token_TypeName : Token
 {
 }
-public class Token_Char : Token
-{
-    public char character;
-}
-public class Token_String : Token
-{
-    public string str;
-}
+
+public class Token_Char(string value) : Token_Constant(value);
+public class Token_String(string value) : Token_Constant(value);

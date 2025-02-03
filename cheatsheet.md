@@ -26,3 +26,12 @@ https://wiki.osdev.org/Memory_Map_(x86)
 
 Загрузочный сектор: 0x7c00-0x7dff
 Свободная память: 0x100000-...
+
+# GRUB
+GRUB загружает kernel по адресу 1M = 0x100000
+GRUB передаёт управление kernel именно по адресу 1M
+
+Однако GRUB засерает память копиями kernel в разных местах:
+1. 0x6e800 - (0x7E00 - 0x7FFFF) 480.5 KiB - Conventional memory
+2. 0x100000 - RAM -- free for use (if it exists) - Extended memory
+3. 0x3e486a0, 0x3e48... - загадочные высокие адреса, в теории, можно перезаписывать

@@ -51,6 +51,21 @@ public static class Generator
             module = module,
             gen = new()
         };
+        
+        
+        if (module.strings.Count > 0)
+        {
+            ctx.gen.SectionData();
+            
+            foreach (string str in module.strings)
+            {
+                ctx.gen.BufferString(str);
+            }
+
+            ctx.gen.Space(1);
+            ctx.gen.SectionText();
+        }
+        
 
         ctx.gen.PrologueForSimulation();
         
