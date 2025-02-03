@@ -27,20 +27,48 @@ public class Node_VariableAssign : Node
             target.Generate(ctx);
         }
         
+        
         ctx.gen.Comment("generating value for assign");
-        value.Generate(ctx);
-        
-        
-        ctx.gen.Space();
-        ctx.gen.Comment($"Assign {target.result.name} = {(value.result.name)}");
 
-        if (target is Node_FieldAccess)
+        if (value is Node_Literal)
         {
-            ctx.gen.SetValueBehindPointer(target.result, value.result);
+            // Do not generate literal for shortcut
         }
         else
         {
-            ctx.gen.SetValue(target.result, value.result);
+            value.Generate(ctx);    
+        }
+        
+        ctx.gen.Space();
+        
+
+        if (target is Node_FieldAccess)
+        {
+            if (value is Node_Literal lit)
+            {
+                // Shortcut
+                ctx.gen.Comment($"Assign {target.result.name} = {lit.constant.value}");
+                ctx.gen.SetValueBehindPointer(target.result, lit.constant.value);
+            }
+            else
+            {
+                ctx.gen.Comment($"Assign {target.result.name} = {(value.result.name)}");
+                ctx.gen.SetValueBehindPointer(target.result, value.result);
+            }
+        }
+        else
+        {
+            if (value is Node_Literal lit)
+            {
+                // Shortcut
+                ctx.gen.Comment($"Assign {target.result.name} = {lit.constant.value}");
+                ctx.gen.SetValue(target.result, lit.constant.value);
+            }
+            else
+            {
+                ctx.gen.Comment($"Assign {target.result.name} = {(value.result.name)}");
+                ctx.gen.SetValue(target.result, value.result);
+            }
         }
     }
 }

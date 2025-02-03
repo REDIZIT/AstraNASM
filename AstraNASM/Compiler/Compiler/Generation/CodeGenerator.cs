@@ -30,16 +30,23 @@ public class CodeGenerator
     }
     public void PrologueForSimulation()
     {
-        b.Line("mov rbx, 0");
-        b.Line("push rbx ; return int");
+        if (Program.target == CompileTarget.Simulator)
+        {
+            b.Line("mov rbx, 0");
+            b.Line("push rbx ; return int");
 
-        b.Line("call main");
+            b.Line("call main");
 
-        b.Line("add rsp, 8");
-        b.Line("pop rax");
+            b.Line("add rsp, 8");
+            b.Line("pop rax");
 
-        b.Line("mov 0x00, rax");
-        b.Line("exit");
+            b.Line("mov 0x00, rax");
+            b.Line("exit");
+        }
+        else
+        {
+            b.Line("global main");
+        }
         
         b.Space(2);
     }
@@ -172,6 +179,11 @@ public class CodeGenerator
         b.Line($"mov rdx, {value.RBP}");
         b.Line($"mov qword [rbx], rdx");
     }
+    public void SetValueBehindPointer(Variable destination, string value)
+    {
+        b.Line($"mov rbx, {destination.RBP}");
+        b.Line($"mov qword [rbx], {value}");
+    }
 
     public void SetValueFromReg(Variable destination, string sourceReg)
     {
@@ -274,7 +286,8 @@ public class CodeGenerator
         b.CommentLine($"ToPtr {askedVariable.name} (heap data)");
         b.Line($"mov rbx, rbp");
         b.Line($"add rbx, {askedVariable.rbpOffset}");
-        b.Line($"mov {result.RBP}, [rbx]");
+        b.Line($"mov rbx, [rbx]");
+        b.Line($"mov {result.RBP}, rbx");
     }
 
     public void PtrAddress(Variable pointer, Variable result, bool isGetter)
@@ -290,25 +303,38 @@ public class CodeGenerator
 
     public void PtrGet(Variable pointerVariable, Variable result)
     {
+        string nasmType = Utils.GetNASMType(result.type);
+        
+        Comment("Ptr get");
         b.Line($"mov rbx, {pointerVariable.RBP}");
         b.Line($"mov rdx, [rbx]");
-        b.Line($"mov {result.RBP}, rdx");
+        b.Line($"mov {nasmType} {result.RBP}, {Utils.ClampRegister(nasmType)}");
     }
 
     public void PtrSet(Variable pointerVariable, Variable targetVariable)
     {
         string nasmType = Utils.GetNASMType(targetVariable.type);
         
+        Comment("Ptr set");
         b.Line($"mov rbx, {pointerVariable.RBP}");
         b.Line($"mov rdx, {targetVariable.RBP}");
         b.Line($"mov {nasmType} [rbx], {Utils.ClampRegister(nasmType)}");
     }
 
-    public void PtrShift(Variable pointerVariable, Variable shiftVariable)
+    public void PtrShift(Variable pointerVariable, Variable shiftVariable, int additionalShift = 0)
     {
+        Comment("Ptr shift");
         b.Line($"mov rbx, {pointerVariable.RBP}");
         b.Line($"mov rdx, {shiftVariable.RBP}");
         b.Line($"add rbx, rdx");
+        if (additionalShift != 0) b.Line($"add rbx, {additionalShift} ; additionalShift");
+        b.Line($"mov {pointerVariable.RBP}, rbx");
+    }
+    
+    public void PtrShift(Variable pointerVariable, int shift)
+    {
+        b.Line($"mov rbx, {pointerVariable.RBP}");
+        b.Line($"add rbx, {shift}");
         b.Line($"mov {pointerVariable.RBP}, rbx");
     }
 
@@ -364,7 +390,7 @@ public class CodeGenerator
     }
     public void BufferString(string str)
     {
-        b.Line($"str_{str} db \"{str}\", 0");
+        b.Line($"str_{str.Replace(' ', '_')} db {str.Length}, \"{str}\", 0");
     }
     
     public void Space(int lines = 1)

@@ -23,13 +23,13 @@ public static class Resolver
 
 
         //
-        // Pass 4: Register virtual members
+        // Pass 1: Register virtual members
         //
         RegisterVirtualMembers(classInfoByName);
 
 
         //
-        // Pass 1: Register types
+        // Pass 2: Register types
         //
         foreach (Node node in flatTree)
         {
@@ -51,7 +51,7 @@ public static class Resolver
 
 
         //
-        // Pass 2: Register type fields
+        // Pass 3: Register type fields
         //
         foreach (KeyValuePair<Node_Class, TypeInfo> kv in classInfos)
         {
@@ -76,7 +76,7 @@ public static class Resolver
         }
 
         //
-        // Pass 3: Register type functions
+        // Pass 4: Register type functions
         //
         foreach (KeyValuePair<Node_Class, TypeInfo> kv in classInfos)
         {
@@ -129,7 +129,7 @@ public static class Resolver
                 if (lit.constant is Token_String)
                 {
                     module.strings.Add(lit.constant.value);
-                    lit.constant.value = "str_" + lit.constant.value;
+                    lit.constant.value = "str_" + lit.constant.value.Replace(' ', '_');
                 }
             }
         }
@@ -432,6 +432,32 @@ public static class Resolver
         };
         classInfoByName.Add(info.name, info);
 
+        FunctionInfo get = new StringGet_EmbeddedFunctionInfo()
+        {
+            arguments = new()
+            {
+                new FieldInfo(PrimitiveTypes.INT, "index"),
+            },
+            returns = new()
+            {
+                PrimitiveTypes.BYTE
+            },
+            name = "get",
+            owner = info
+        };
+        info.functions.Add(get);
+        
+        FunctionInfo length = new StringLength_EmbeddedFunctionInfo()
+        {
+            returns = new()
+            {
+                PrimitiveTypes.BYTE
+            },
+            name = "length",
+            owner = info
+        };
+        info.functions.Add(length);
+
         PrimitiveTypes.STRING = info;
     }
 
@@ -439,7 +465,7 @@ public static class Resolver
     {
         if (functionName == "to_ptr")
         {
-            return ((TypeInfo)module.GetType("ptr")).functions.First(f => f.name == "to_ptr");
+            return (module.GetType("ptr")).functions.First(f => f.name == "to_ptr");
         }
 
         return null;

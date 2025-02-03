@@ -166,6 +166,24 @@ public class Node_FunctionCall : Node
 
             print.Generate(ctx, variable.result);
         }
+        else if (embeddedFunctionInfo is StringGet_EmbeddedFunctionInfo stringGet)
+        {
+            Node_VariableUse variableNode = (Node_VariableUse)((Node_FieldAccess)caller).target;
+            Variable stringVariable = ctx.gen.GetVariable(variableNode.variableName);
+            
+            Node indexNode = arguments[0];
+            indexNode.Generate(ctx);
+            Variable indexVariable = indexNode.result;
+            
+            result = stringGet.Generate(ctx, stringVariable, indexVariable);
+        }
+        else if (embeddedFunctionInfo is StringLength_EmbeddedFunctionInfo stringLength)
+        {
+            Node_VariableUse variableNode = (Node_VariableUse)((Node_FieldAccess)caller).target;
+            Variable stringVariable = ctx.gen.GetVariable(variableNode.variableName);
+
+            result = stringLength.Generate(ctx, stringVariable);
+        }
         else
         {
             throw new Exception($"Unknown EmbeddedFunctionInfo '{embeddedFunctionInfo}'");

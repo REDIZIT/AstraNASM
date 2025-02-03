@@ -1,7 +1,15 @@
 ﻿using Astra.Compilation;
 
+public enum CompileTarget
+{
+    Simulator,
+    NASM
+}
+
 public static class Program
 {
+    public static CompileTarget target;
+    
     public static void Main(string[] args)
     {
         if (args.Length > 0)
@@ -10,6 +18,15 @@ public static class Program
 
             if (cmd == "compile")
             {
+                if (args.Length > 1)
+                {
+                    target = (CompileTarget)args[1][0];
+                }
+                else
+                {
+                    target = CompileTarget.Simulator;
+                }
+                
                 string sourceFolder = Environment.CurrentDirectory;
                 string outputFolder = sourceFolder + "/build";
 

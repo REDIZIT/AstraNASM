@@ -13,13 +13,21 @@ public class Node_Literal : Node
     public override void Generate(Generator.Context ctx)
     {
         base.Generate(ctx);
-
-        TypeInfo literalType = PrimitiveTypes.LONG;
         
         ctx.gen.Space();
-        ctx.gen.Comment("Literal = " + constant.value);
-        result = ctx.gen.Allocate(literalType);
-        ctx.gen.SetValue(result, constant.value);
+
+        if (constant is Token_Char)
+        {
+            ctx.gen.Comment($"Literal = '{constant.value}'");
+            result = ctx.gen.Allocate(PrimitiveTypes.LONG);
+            ctx.gen.SetValue(result, "'" + constant.value + "'");
+        }
+        else
+        {
+            ctx.gen.Comment("Literal = " + constant.value);
+            result = ctx.gen.Allocate(PrimitiveTypes.LONG);
+            ctx.gen.SetValue(result, constant.value);
+        }
 
         ctx.gen.Space();
     }
