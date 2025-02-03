@@ -4,6 +4,63 @@
     {
         return line.Split(';')[0].Replace(",", " ").Replace("  ", " ").Trim().Split(" ");
     }
+
+    public static List<string> Split_StringSafe(string line)
+    {
+        List<string> args = new();
+
+        List<char> arg = new();
+        bool isCollectingString = false;
+        
+        for (int i = 0; i < line.Length; i++)
+        {
+            char currentChar = line[i];
+
+            if (currentChar == ' ' || currentChar == ',')
+            {
+                if (isCollectingString)
+                {
+                    arg.Add(currentChar);
+                }
+                else
+                {
+                    if (arg.Count > 0)
+                    {
+                        args.Add(string.Concat(arg));
+                        arg.Clear();   
+                    }
+                }
+            }
+            else if (currentChar == '"')
+            {
+                arg.Add(currentChar);
+                
+                if (isCollectingString)
+                {
+                    isCollectingString = false;
+                    args.Add(string.Concat(arg));
+                    arg.Clear();
+                }
+                else
+                {
+                    isCollectingString = true;
+                }
+            }
+            else
+            {
+                arg.Add(currentChar);
+            }
+        }
+
+        if (arg.Count > 0)
+        {
+            args.Add(string.Concat(arg));
+            arg.Clear();
+        }
+
+        return args;
+    }
+    
     public static long ParseDec(string expression, Regs regs)
     {
         if (long.TryParse(expression, out long dec))

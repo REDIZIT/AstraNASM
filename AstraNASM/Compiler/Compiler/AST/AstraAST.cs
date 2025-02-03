@@ -633,11 +633,11 @@ public class AstraAST : ASTBuilder
     {
         if (Check<Token_Constant>() || Check<Token_Char>() || Check<Token_String>())
         {
-            if (Check<Token_Constant>())
+            if (Check<Token_Char>())
             {
                 return new Node_Literal()
                 {
-                    constant = Consume<Token_Constant>("Expected constant")
+                    constant = new("'" + Consume<Token_Char>("Expected char").value + "'")
                 };
             }
             else if (Check<Token_String>())
@@ -651,7 +651,7 @@ public class AstraAST : ASTBuilder
             {
                 return new Node_Literal()
                 {
-                    constant = Consume<Token_Char>("Expected char")
+                    constant = Consume<Token_Constant>("Expected constant")
                 };
             }
         }

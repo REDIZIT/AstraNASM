@@ -113,6 +113,11 @@
         return slice;
     }
 
+    public byte ReadByte(long address)
+    {
+        return bytes[address];
+    }
+
     public void Dump(string filepath)
     {
         File.WriteAllBytes(filepath, bytes);

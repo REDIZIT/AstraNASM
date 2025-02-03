@@ -224,14 +224,16 @@ public class Simulator
         }
         else if (isDataSection)
         {
-            string name = args[0];
-            string type = args[1];
+            var split = Utils.Split_StringSafe(line);
+
+            string name = split[0];
+            string type = split[1];
 
             List<byte> value = new();
 
-            for (int i = 2; i < args.Length; i++)
+            for (int i = 2; i < split.Count; i++)
             {
-                string str = args[i];
+                string str = split[i];
 
                 if (str.StartsWith('"'))
                 {
