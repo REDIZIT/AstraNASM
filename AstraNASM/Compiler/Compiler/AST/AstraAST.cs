@@ -17,15 +17,15 @@ public class AstraAST : ASTBuilder
 
         while (IsAtEnd() == false)
         {
-            // try
-            // {
+            try
+            {
                 ConsumeSpace(true);
                 statements.Add(Declaration());
-            // }
-            // catch (Exception err)
-            // {
-            //     LogAndSync(err);
-            // }
+            }
+            catch (Exception err)
+            {
+                LogAndSync(err);
+            }
         }
 
 
@@ -53,8 +53,9 @@ public class AstraAST : ASTBuilder
         {
             entry = new LogEntry()
             {
-                tokenBeginIndex = current,
-                tokenEndIndex = current,
+                //tokenBeginIndex = current,
+                //tokenEndIndex = current,
+                token = tokens[current],
                 message = messageText
             };
         }
@@ -64,8 +65,9 @@ public class AstraAST : ASTBuilder
 
             entry = new LogEntry()
             {
-                tokenBeginIndex = tokenIndex,
-                tokenEndIndex = tokenIndex,
+                //tokenBeginIndex = tokenIndex,
+                //tokenEndIndex = tokenIndex,
+                token = tokens[tokenIndex],
                 message = messageText
             };
         }
@@ -73,10 +75,15 @@ public class AstraAST : ASTBuilder
         logger.Error(entry);
     }
 
+    private void Log(string message)
+    {
+        //Console.WriteLine(message);
+    }
+
     private void Sync()
     {
         Token failedToken = Previous();
-        Console.WriteLine("Syncing. Failed: " + failedToken);
+        Log("Syncing. Failed: " + failedToken);
 
         if (IsAtEnd())
         {
@@ -86,22 +93,22 @@ public class AstraAST : ASTBuilder
         if (failedToken is Token_Terminator)
         {
             Advance();
-            Console.WriteLine("Skip failed (previous token) terminator");
+            Log("Skip failed (previous token) terminator");
         }
 
         while (IsAtEnd() == false && Peek() is Token_Terminator == false)
         {
-            Console.WriteLine("Skipping " + Peek());
+            Log("Skipping " + Peek());
             Advance();
         }
 
         if (IsAtEnd())
         {
-            Console.WriteLine("Synced at end");
+            Log("Synced at end");
         }
         else
         {
-            Console.WriteLine("Synced at " + Peek());
+            Log("Synced at " + Peek());
         }
     }
 

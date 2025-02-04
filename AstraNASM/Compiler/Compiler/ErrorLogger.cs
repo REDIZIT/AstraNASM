@@ -9,13 +9,13 @@ public class ErrorLogger
     public void Error(LogEntry entry)
     {
         entries.Add(entry);
-        throw new Exception();
     }
 }
 
 public class LogEntry
 {
-    public int tokenBeginIndex, tokenEndIndex;
+    //public int tokenBeginIndex, tokenEndIndex;
+    public Token token;
     public string message;
 }
 public class LogEntries

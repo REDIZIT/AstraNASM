@@ -4,6 +4,10 @@ using System.Text.RegularExpressions;
 
 public abstract class Token
 {
+    public int line, endLine;
+    public int begin, end;
+    public int linedBegin;
+    public char[] chars;
 }
 public class Token_Constant : Token
 {

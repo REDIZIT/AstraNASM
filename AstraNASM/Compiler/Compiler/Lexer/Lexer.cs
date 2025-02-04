@@ -12,6 +12,17 @@ public class Lexer
     public int markedPos;
     public int lexicalState;
 
+    public int beginLine;
+    public int currentLine;
+    public int linedCurrentPos;
+
+    public bool splitBlockCommentsIntoSeveralTokens = true;
+
+    //private Queue<Token_Comment> multilineCommentsQueue = new();
+    private bool isCollectingMultilineComment = false;
+    private int multilineCommentOpenningLength = 0;
+
+
     private static Dictionary<string, Type> tokenTypeBySingleWord = new Dictionary<string, Type>()
     {
         { "if", typeof(Token_If) },
@@ -37,10 +48,19 @@ public class Lexer
         { "]", typeof(Token_SquareBracketClose) },
     };
 
+    public List<Token> Tokenize(List<char> chars, bool includeSpacesAndEOF)
+    {
+        Reset(chars, 0, chars.Count, 0);
+        return Tokenize(includeSpacesAndEOF);
+    }
+
     public List<Token> Tokenize(string astraCode, bool includeSpacesAndEOF)
     {
         Reset(astraCode.ToList(), 0, astraCode.Length, 0);
-
+        return Tokenize(includeSpacesAndEOF);
+    }
+    private List<Token> Tokenize(bool includeSpacesAndEOF)
+    {
         List<Token> tokens = new();
 
         while (true)
@@ -62,11 +82,14 @@ public class Lexer
         return tokens;
     }
 
+
     public void Reset(List<char> chars, int start, int end, int initialState)
     {
         this.chars = chars;
         currentPos = markedPos = startRead = start;
         endRead = end;
+
+        currentLine = linedCurrentPos = 0;
 
         lexicalState = initialState;
 
@@ -83,6 +106,8 @@ public class Lexer
         // Save word start pos
         startRead = currentPos;
 
+        beginLine = currentLine;
+
 
         Token token = AdvanceInternal();
         markedPos = currentPos; // Save word end pos
@@ -93,9 +118,110 @@ public class Lexer
         }
         else
         {
+            if (token is Token_Terminator)
+            {
+                linedCurrentPos = 0;
+            }
+
+            FillToken(token);
+
+            //currentLine = token.endLine;
+
+            if (token is Token_Terminator == false)
+            {
+                linedCurrentPos += currentPos - startRead;
+            }
+
             return token;
         }
     }
+
+    private void FillToken(Token token)
+    {
+        token.begin = startRead;
+        token.end = currentPos;
+        token.line = beginLine;
+        token.endLine = currentLine;
+        token.linedBegin = linedCurrentPos;
+
+        token.chars = chars[token.begin..token.end].ToArray();
+    }
+    private void RestoreFromToken(Token token)
+    {
+        startRead = token.begin;
+        currentPos = token.end;
+        beginLine = token.line;
+        currentLine = token.endLine;
+        linedCurrentPos = token.linedBegin;
+    }
+
+    //private Token AdvanceWithComments()
+    //{
+    //    if (multilineCommentsQueue.Count == 0)
+    //    {
+    //        Token token = AdvanceInternal();
+
+    //        FillToken(token);
+
+    //        if (splitBlockCommentsIntoSeveralTokens && token is Token_Comment comment)
+    //        {
+    //            Token_Comment currentComment = new Token_Comment()
+    //            {
+    //                begin = comment.begin,
+    //                end = comment.begin,
+    //                line = comment.line,
+    //                endLine = comment.line,
+    //                linedBegin = comment.linedBegin
+    //            };
+
+    //            for (int i = comment.begin; i < comment.end; i++)
+    //            {
+    //                char c = chars[i];
+
+    //                if (c == '\r' || c == '\n' || i == comment.end - 1)
+    //                {
+    //                    if (i == comment.end - 1)
+    //                    {
+    //                        currentComment.end++;
+    //                    }
+                        
+    //                    currentComment.chars = chars[currentComment.begin..currentComment.end].ToArray();
+
+    //                    multilineCommentsQueue.Enqueue(currentComment);
+
+    //                    currentComment = new Token_Comment()
+    //                    {
+    //                        begin = currentComment.end + 2, // skip \r\n pair
+    //                        end = currentComment.end + 2,
+    //                        line = currentComment.line + 1,
+    //                        endLine = currentComment.line + 1,
+    //                        linedBegin = 0,
+    //                    };
+
+    //                    i++; // due to pair \r\n
+    //                }
+    //                else
+    //                {
+    //                    currentComment.end++;
+    //                }
+    //            }
+
+    //            Token_Comment nextComment = multilineCommentsQueue.Dequeue();
+    //            RestoreFromToken(nextComment);
+    //            return nextComment;
+    //        }
+    //        else
+    //        {
+    //            return token;
+    //        }
+    //    }
+    //    else
+    //    {
+    //        Token_Comment nextComment = multilineCommentsQueue.Dequeue();
+    //        RestoreFromToken(nextComment);
+    //        return nextComment;
+    //    }
+    //}
 
     private Token AdvanceInternal()
     {
@@ -110,8 +236,17 @@ public class Lexer
 
         if (startChar == '\r' || startChar == '\n' || startChar == ';')
         {
+            //if (startChar == '\r' || startChar == '\n')
+            //{
+            //    currentLine++;
+            //}
+
             while (currentPos < endRead && (chars[currentPos] == '\r' || chars[currentPos] == '\n' || chars[currentPos] == ';'))
             {
+                if (chars[currentPos] == '\n')
+                {
+                    currentLine++;
+                }
                 currentPos++;
             }
             return new Token_Terminator();
@@ -125,10 +260,15 @@ public class Lexer
 
 
 
+        if (isCollectingMultilineComment)
+        {
+            return ContinueParseComment();
+        }
         if (startChar == '-' && currentPos < endRead && chars[currentPos] == '-')
         {
-            return ParseComment();
+            return BeginParseComment();
         }
+        
 
 
 
@@ -386,6 +526,91 @@ public class Lexer
         }
     }
 
+    private Token BeginParseComment()
+    {
+        // Read comment openning
+        multilineCommentOpenningLength = 1;
+        while (currentPos < endRead)
+        {
+            char currentChar = chars[currentPos];
+
+            if (currentChar == '-')
+            {
+                multilineCommentOpenningLength++;
+            }
+            else
+            {
+                break;
+            }
+
+            currentPos++;
+        }
+
+        bool isBlock = multilineCommentOpenningLength > 2;
+        isCollectingMultilineComment = isBlock;
+
+        // Skip text section
+        while (currentPos < endRead)
+        {
+            char currentChar = chars[currentPos];
+
+            if (currentChar == '\r' || currentChar == '\n')
+            {
+                break;
+            }
+
+            currentPos++;
+        }
+
+        return new Token_Comment();
+    }
+    private Token ContinueParseComment()
+    {
+        // Skip text section
+        while (currentPos < endRead)
+        {
+            char currentChar = chars[currentPos];
+
+            // For single-line comment new line is end
+            if (currentChar == '\r' || currentChar == '\n')
+            {
+                break;
+            }
+
+            // For block comment wait for same length ending
+            if (currentChar == '-')
+            {
+                // Read comment ending
+                int endingLength = 1;
+                while (currentPos < endRead)
+                {
+                    char commentChar = chars[currentPos];
+
+                    if (commentChar == '-')
+                    {
+                        endingLength++;
+                    }
+                    else
+                    {
+                        break;
+                    }
+
+                    currentPos++;
+                }
+
+                if (endingLength == multilineCommentOpenningLength)
+                {
+                    isCollectingMultilineComment = false;
+                    break;
+                }
+            }
+
+            currentPos++;
+        }
+
+        return new Token_Comment();
+    }
+
     private Token ParseComment()
     {
         // Read comment openning
@@ -414,9 +639,12 @@ public class Lexer
             char currentChar = chars[currentPos];
 
             // For single-line comment new line is end
-            if (isBlock == false && (currentChar == '\r' || currentChar == '\n'))
+            if (currentChar == '\r' || currentChar == '\n')
             {
-                break;
+                if (isBlock == false)
+                {
+                    break;
+                }
             }
 
             // For block comment wait for same length ending

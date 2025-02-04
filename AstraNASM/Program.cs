@@ -50,7 +50,8 @@ public static class Program
 
             if (doRecompile)
             {
-                string fileContent = File.ReadAllText("C:\\Users\\REDIZIT\\Documents\\GitHub\\Astra-Rider-extension\\try2\\test\\example.ac");
+                //string fileContent = File.ReadAllText("C:\\Users\\REDIZIT\\Documents\\GitHub\\Astra-Rider-extension\\try2\\test\\example.ac");
+                string fileContent = File.ReadAllText("C:\\Users\\REDIZIT\\Documents\\GitHub\\Astra-Rider-extension\\vscode extension\\astralanguage\\test\\example.ac");
                 string nasmCode = Compiler.Compile_Astra_to_NASM(fileContent);
 
                 // Simulator sim = new();

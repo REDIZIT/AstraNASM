@@ -27,6 +27,8 @@ https://wiki.osdev.org/Memory_Map_(x86)
 Загрузочный сектор: 0x7c00-0x7dff
 Свободная память: 0x100000-...
 
+Адрес VGA: 0xB8000
+
 # GRUB
 GRUB загружает kernel по адресу 1M = 0x100000
 GRUB передаёт управление kernel именно по адресу 1M
