@@ -5,7 +5,7 @@ public static class Compiler
     private static Lexer lexer = new();
     private static AstraAST parser = new();
 
-    public static string Compile_Astra_to_NASM(string astraCode)
+    public static string Compile_Astra_to_NASM(string astraCode, CompileTarget target)
     {
         List<Token> tokens = lexer.Tokenize(astraCode, false);
 
@@ -26,7 +26,7 @@ public static class Compiler
 
         ResolvedModule module = Resolver.DiscoverModule(ast);
 
-        string llvm = Generator.Generate(ast, module);
+        string llvm = Generator.Generate(ast, module, target);
 
         return llvm;
     }

@@ -28,9 +28,9 @@ public class CodeGenerator
         b.Line("mov rsp, rbp");
         b.Line("pop rbp");
     }
-    public void PrologueForSimulation()
+    public void PrologueForSimulation(CompileTarget target)
     {
-        if (Program.target == CompileTarget.Simulator)
+        if (target == CompileTarget.Simulator)
         {
             b.Line("mov rbx, 0");
             b.Line("push rbx ; return int");
@@ -137,7 +137,7 @@ public class CodeGenerator
     public void AllocateHeap(Variable storageOfPointerToHeap)
     {
         b.CommentLine($"heap alloc");
-        b.Line($"mov {storageOfPointerToHeap.RBP}, 0x110"); // result.RBP - pointer to object table, 0x110 - pointer to real data
+        b.Line($"mov qword {storageOfPointerToHeap.RBP}, 0x110"); // result.RBP - pointer to object table, 0x110 - pointer to real data
         b.Line($"mov rbx, [0x100]");
         b.Line($"add rbx, 1");
         b.Line($"mov [0x100], rbx");

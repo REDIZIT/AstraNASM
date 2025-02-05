@@ -44,7 +44,7 @@ public static class Generator
         }
     }
 
-    public static string Generate(List<Node> statements, ResolvedModule module)
+    public static string Generate(List<Node> statements, ResolvedModule module, CompileTarget target)
     {
         Context ctx = new()
         {
@@ -67,7 +67,7 @@ public static class Generator
         }
         
 
-        ctx.gen.PrologueForSimulation();
+        ctx.gen.PrologueForSimulation(target);
         
 
         foreach (Node statement in statements)

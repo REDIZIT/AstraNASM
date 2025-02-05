@@ -229,6 +229,11 @@ public static class Resolver
             {
                 throw new Exception("Static functions are not supported");
             }
+
+            foreach (FieldInfo argument in func.functionInfo.arguments)
+            {
+                scope.variables.Add(argument);
+            }
         }
 
         foreach (Node childNode in node.EnumerateChildren())

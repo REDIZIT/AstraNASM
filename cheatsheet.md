@@ -1,3 +1,18 @@
+# Компиляция и запуск в VirtualBox
+
+1. Запустить Ubuntu
+
+2. Скопировать скомпилированный example.nasm в \\wsl.localhost\Ubuntu\home\redizit\Experiments\AstraNASM\source\example.nasm
+
+3. В Ubuntu: 
+cd Experiments/AstraNASM
+./makeiso.sh
+
+4. Запустить ConEmu:
+cd C:\Program Files\Oracle\VirtualBox
+VirtualBoxVM.exe --dbg --startvm AstraNASM
+
+
 # Дамп физической памяти ОЗУ из VirtualBox
 
 cd C:\Program Files\Oracle\VirtualBox
