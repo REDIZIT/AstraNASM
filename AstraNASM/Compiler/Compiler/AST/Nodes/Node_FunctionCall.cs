@@ -39,6 +39,8 @@ public class Node_FunctionCall : Node
         ctx.gen.Comment($"{caller}.{function.name}()");
 
 
+
+
         ctx.gen.Comment($"arguments generation");
 
         bool isStatic = function.owner == null;
@@ -112,21 +114,23 @@ public class Node_FunctionCall : Node
 
 
 
-        int argumentsSizeInBytes = 0;
-        for (int i = argumentsResults.Length - 1; i >= 0; i--)
-        {
-            Variable arg = argumentsResults[i];
+        //int argumentsSizeInBytes = 0;
+        //for (int i = argumentsResults.Length - 1; i >= 0; i--)
+        //{
+        //    Variable arg = argumentsResults[i];
 
-            if (arg != selfVar && arg != null)
-            {
-                ctx.gen.Unregister_FunctionArgumentVariable(arg);
-            }
+        //    if (arg != selfVar && arg != null)
+        //    {
+        //        ctx.gen.Unregister_FunctionArgumentVariable(arg);
+        //    }
 
-            argumentsSizeInBytes += 8;
-        }
-        
-        // ctx.b.Line($"add rsp, {argumentsSizeInBytes}");
-        ctx.gen.Deallocate(argumentsSizeInBytes);
+        //    argumentsSizeInBytes += 8;
+        //}
+
+        //// ctx.b.Line($"add rsp, {argumentsSizeInBytes}");
+        //ctx.gen.Deallocate(argumentsSizeInBytes);
+
+        ctx.gen.Deallocate(24);
     }
 
 

@@ -139,6 +139,32 @@ public class CodeGenerator
 
         return variable;
     }
+    //public void PushRSP()
+    //{
+    //    rbpOffset -= 8;
+    //    b.Line($"push rsp ; allocate saver at [rbp{rbpOffset}]");
+    //}
+    //public void PopRSP()
+    //{
+    //    rbpOffset += 8;
+    //    b.Line($"pop rsp ; deallocate saver at [rbp{rbpOffset}]");
+    //}
+
+    public int AllocateRSPSaver()
+    {
+        rbpOffset -= 8;
+        b.Line($"push rsp ; allocate saver at [rbp{rbpOffset}]");
+        return rbpOffset;
+    }
+    public void RestoreRSPSaver(int saverRBPOffset)
+    {
+        b.Line($"mov rsp, [rbp{saverRBPOffset}] ; restore saver");
+    }
+    public void DeallocateRSPSaver()
+    {
+        rbpOffset -= 8;
+        b.Line($"pop rsp ; deallocate saver");
+    }
     
     public void Deallocate(Variable variable)
     {
@@ -178,7 +204,7 @@ public class CodeGenerator
         b.Line($"mov [0x100], rbx");
     }
 
-    public void Register_FunctionArgumentVariable(FieldInfo info, int index)
+    public Variable Register_FunctionArgumentVariable(FieldInfo info, int index)
     {
         Variable variable = new Variable()
         {
@@ -189,6 +215,8 @@ public class CodeGenerator
         
         variableByName.Add(variable.name, variable);
         variableByRBPOffset.Add(variable.rbpOffset, variable);
+
+        return variable;
     }
 
     public void Unregister_FunctionArgumentVariable(Variable variable)
@@ -224,6 +252,10 @@ public class CodeGenerator
     {
         b.Line($"mov {destination.RBP}, {sourceReg}");
     }
+    public void SetValueToReg(string destReg, Variable source)
+    {
+        b.Line($"mov {destReg}, {source.RBP}");
+    }
 
 
     public void FieldAccess(int baseOffset, int fieldOffset, Variable result, bool isGetter)
@@ -258,7 +290,11 @@ public class CodeGenerator
     public void JumpIfFalse(Variable condition, string label)
     {
         b.Line($"mov rbx, {condition.RBP}");
-        b.Line($"cmp rbx, 0");
+        JumpIfFalse("rbx", label);
+    }
+    public void JumpIfFalse(string reg, string label)
+    {
+        b.Line($"cmp {reg}, 0");
         b.Line($"jle {label}");
     }
 
@@ -417,6 +453,15 @@ public class CodeGenerator
     {
         b.Line($"mov rbx, {value}" + (string.IsNullOrWhiteSpace(comment) ? "" : " ; " + comment));
         b.Line($"push rbx");
+    }
+    public void PushRegToStack(string regName, string comment = null)
+    {
+        b.Line($"push {regName}" + (string.IsNullOrWhiteSpace(comment) ? "" : " ; " + comment));
+    }
+
+    public void PopRegFromStack(string regName, string comment = null)
+    {
+        b.Line($"pop {regName}" + (string.IsNullOrWhiteSpace(comment) ? "" : " ; " + comment));
     }
 
 

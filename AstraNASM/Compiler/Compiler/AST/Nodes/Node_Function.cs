@@ -67,30 +67,40 @@ public class Node_Function : Node
         
         ctx.gen.Space();
 
+
+        List<Variable> functionParams = new();
+
         int index = 0;
 
         for (int i = functionInfo.arguments.Count - 1; i >= 0; i--)
         {
             FieldInfo argInfo = functionInfo.arguments[i];
-            ctx.gen.Register_FunctionArgumentVariable(argInfo, index);
+            functionParams.Add(ctx.gen.Register_FunctionArgumentVariable(argInfo, index));
             index++;
         }
 
-        
+
         if (functionInfo.owner != null)
         {
-            // ctx.gen.RegisterSelf(functionInfo);
-            ctx.gen.Register_FunctionArgumentVariable(new FieldInfo()
+            functionParams.Add(ctx.gen.Register_FunctionArgumentVariable(new FieldInfo()
             {
                 name = "self",
                 type = functionInfo.owner
-            }, index);
+            }, index));
             index++;
         }
 
+
+
         body.Generate(ctx);
 
-        // ctx.b.Space(1);
+
+
+        foreach (Variable param in functionParams)
+        {
+            ctx.gen.Unregister_FunctionArgumentVariable(param);
+        }
+
         ctx.gen.Space();
     }
 }
