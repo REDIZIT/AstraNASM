@@ -111,7 +111,33 @@
             }
         }
 
-        if (!silent) Console.WriteLine($"Exit code (rax) = {sim.regs.rax.ToString(32)}");
+        if (!silent)
+        {
+            Console.WriteLine($"Exit code (rax) = {sim.regs.rax.ToString(32)}");
+
+            Console.WriteLine($"\nVGA text:");
+            long vgaAddress = 0xB8000;
+
+            for (int y = 0; y < 25; y++)
+            {
+                for (int x = 0; x < 80; x++)
+                {
+                    byte character = sim.ram.ReadByte(vgaAddress + 2 * (y * 80 + x));
+                    byte color = sim.ram.ReadByte(vgaAddress + 2 * (y * 80 + x) + 1);
+
+                    if (character == 0)
+                    {
+                        Console.Write(' ');
+                    }
+                    else
+                    {
+                        Console.Write((char)character);
+                    }
+                }
+
+                Console.WriteLine();
+            }
+        }
         return isSuccess;
     }
 }

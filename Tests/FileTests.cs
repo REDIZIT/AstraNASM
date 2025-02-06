@@ -14,7 +14,7 @@ public class FileTests
             yield return new TestCaseData(filePath).SetName(Path.GetFileName(filePath));
         }
     }
-    
+
     [TestCaseSource(nameof(GetTextFiles))]
     public void TestFileProcessing(string filepath)
     {
@@ -27,7 +27,7 @@ public class FileTests
 
         
         
-        string[] nasm = Compilation.Compiler.Compile_Astra_to_NASM(code).Split('\n');
+        string[] nasm = Compilation.Compiler.Compile_Astra_to_NASM(code, CompileTarget.Simulator).Split('\n');
 
 
         Simulator sim = new();
