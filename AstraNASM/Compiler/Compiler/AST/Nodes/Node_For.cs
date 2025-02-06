@@ -21,13 +21,13 @@ public class Node_For : Node
 
         ctx.gen.Comment("Node_For begin", 6);
 
-
         ctx.gen.Comment("for.declaration", 4);
         declaration.Generate(ctx);
 
         ctx.gen.Space();
         ctx.gen.Comment("for.condition", 4);
         ctx.gen.Label(conditionLabel);
+        int rspRbpOffset = ctx.gen.AllocateRSPSaver();
         condition.Generate(ctx);
 
 
@@ -47,11 +47,13 @@ public class Node_For : Node
         advance.Generate(ctx);
 
         ctx.gen.Space();
+        ctx.gen.RestoreRSPSaver(rspRbpOffset);
         ctx.gen.JumpToLabel(conditionLabel);
 
 
         ctx.gen.Space();
         ctx.gen.Label(endLabel);
+        ctx.gen.DeallocateRSPSaver();
         ctx.gen.Comment("Node_For end", 6);
     }
 }
