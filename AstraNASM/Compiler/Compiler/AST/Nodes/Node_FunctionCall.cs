@@ -90,22 +90,17 @@ public class Node_FunctionCall : Node
 
         for (int i = 0; i < arguments.Count; i++)
         {
-            Variable result = argumentsResults[isStatic ? 0 : 1];
+            Variable result = argumentsResults[isStatic ? 0 : 1 + i];
             FieldInfo argInfo = function.arguments[i];
 
             if (arguments[i] is Node_Literal literal)
             {
-                // ctx.b.Line($"mov rbx, {literal.constant.value} ; arg[{i}] = {argInfo.name}");
                 ctx.gen.PushToStack(literal.constant.value, $"arg[{i}] = {argInfo.name}");
             }
             else
             {
-                // ctx.AllocateStackVariable(result.type, argInfo.name);
-                // ctx.b.Line($"mov rbx, {result.GetRBP()} ; arg[{i}] = {argInfo.name}");
                 ctx.gen.PushToStack(result, $"arg[{i}] = {argInfo.name}");
             }
-
-            // ctx.b.Line($"push rbx");
         }
 
 

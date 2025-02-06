@@ -4,6 +4,7 @@ public class CodeStringBuilder
 {
     public List<string> lines = new();
     public int maxSpace = 0;
+    public HashSet<string> labels = new();
 
     public void CommentLine(string comment)
     {

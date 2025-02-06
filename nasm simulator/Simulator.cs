@@ -86,13 +86,21 @@ public class Simulator
                 ram.WriteAs(toAddress, value, bytes);
             }
         }
-        else if (cmd == "add" || cmd == "sub" || cmd == "mul" || cmd == "div")
+        else if (cmd == "add" || cmd == "sub")
         {
             long a = Utils.ParseDec(args[1], regs);
             long b = Utils.ParseDec(args[2], regs);
 
             if (cmd == "add") a += b;
             if (cmd == "sub") a -= b;
+
+            regs.Set(args[1], a);
+        }
+        else if (cmd == "mul" || cmd == "div")
+        {
+            long a = regs.rax.value;
+            long b = Utils.ParseDec(args[1], regs);
+
             if (cmd == "mul") a *= b;
             if (cmd == "div") a /= b;
 

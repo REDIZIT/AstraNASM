@@ -35,7 +35,8 @@ public static class Generator
 
             ctx.gen = new()
             {
-                parent = gen
+                parent = gen,
+                b = gen.b
             };
             
             gen.children.Add(ctx.gen);
@@ -50,6 +51,9 @@ public static class Generator
         {
             module = module,
             gen = new()
+            {
+                b = new()
+            }
         };
         
         

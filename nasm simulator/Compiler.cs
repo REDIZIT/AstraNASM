@@ -40,6 +40,7 @@ public static class Compiler
 
                     if (isLeftSep && isRightSep)
                     {
+                        //Console.WriteLine($"Replace label '{kv.Key}' with '{kv.Value.ToString()}' at '{instruction}'");
                         instructions[i] = instruction.Replace(kv.Key, kv.Value.ToString());
                     }
                 }

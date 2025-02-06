@@ -5,7 +5,7 @@ public class CodeGenerator
     public CodeGenerator parent;
     public List<CodeGenerator> children = new();
     
-    private CodeStringBuilder b = new();
+    public CodeStringBuilder b;
     private int rbpOffset;
 
     private Dictionary<string, Variable> variableByName = new();
@@ -13,11 +13,10 @@ public class CodeGenerator
     private Stack<Variable> variableStack = new();
     private int anonVariableNameIndex;
 
-    private HashSet<string> labels = new();
 
     public void Label(string labelName)
     {
-        if (labels.Contains(labelName) == false)
+        if (b.labels.Contains(labelName) == false)
         {
             throw new Exception("Failed to generate label code because label '' is not registered yet. You must register label before it's generation.");
         }
@@ -27,19 +26,19 @@ public class CodeGenerator
 
     public string RegisterLabel(string labelName)
     {
-        if (labels.Contains(labelName))
+        if (b.labels.Contains(labelName))
         {
             labelName = NextLabel(labelName, 2);
         }
 
-        labels.Add(labelName);
+        b.labels.Add(labelName);
         return labelName;
     }
 
     private string NextLabel(string originalLabelName, int i)
     {
         string uniqueLabelName = originalLabelName + "_" + i;
-        if (labels.Contains(uniqueLabelName))
+        if (b.labels.Contains(uniqueLabelName))
         {
             return NextLabel(originalLabelName, i + 1);
         }
@@ -63,7 +62,7 @@ public class CodeGenerator
             b.Line("mov rbx, 0");
             b.Line("push rbx ; return int");
 
-            b.Line("call main");
+            b.Line("call start");
 
             b.Line("add rsp, 8");
             b.Line("pop rax");
@@ -493,6 +492,23 @@ public class CodeGenerator
     {
         b.CommentLine(comment);
     }
+    public void Comment(string comment, int bookmarkDistance)
+    {
+        List<char> chars = new();
+
+        for (int i = 0; i < bookmarkDistance; i++)
+        {
+            for (int d = 0; d < 4; d++)
+            {
+                chars.Add('-');
+            }
+        }
+
+        chars.Add(' ');
+        chars.AddRange(comment);
+
+        b.CommentLine(string.Concat(chars));
+    }
 
     public Variable GetVariable(string name)
     {
@@ -505,17 +521,7 @@ public class CodeGenerator
 
     public string BuildString()
     {
-        List<string> childrenStrings = new();
-
-        childrenStrings.Add(b.BuildString());
-        
-        foreach (CodeGenerator child in children)
-        {
-            childrenStrings.Add(child.BuildString());
-        }
-        
-
-        string nasm = string.Join("\n", childrenStrings);
+        string nasm = string.Join("\n", b.BuildString());
         return nasm;
     }
 }

@@ -500,24 +500,31 @@ public class AstraAST : ASTBuilder
         Consume<Token_BlockOpen>("Expected '{' after for declaration");
         Node body = Block();
 
-        return new Node_Block()
+        //return new Node_Block()
+        //{
+        //    children = new List<Node>()
+        //    {
+        //        declaration,
+        //        new Node_While()
+        //        {
+        //            condition = condition,
+        //            body = new Node_Block()
+        //            {
+        //                children = new List<Node>()
+        //                {
+        //                    body,
+        //                    action
+        //                }
+        //            }
+        //        }
+        //    }
+        //};
+        return new Node_For()
         {
-            children = new List<Node>()
-            {
-                declaration,
-                new Node_While()
-                {
-                    condition = condition,
-                    body = new Node_Block()
-                    {
-                        children = new List<Node>()
-                        {
-                            body,
-                            action
-                        }
-                    }
-                }
-            }
+            declaration = declaration,
+            condition = condition,
+            advance = action,
+            body = body
         };
     }
     private Node While()
