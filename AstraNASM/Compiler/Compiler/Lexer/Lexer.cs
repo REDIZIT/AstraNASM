@@ -18,7 +18,6 @@ public class Lexer
 
     public bool splitBlockCommentsIntoSeveralTokens = true;
 
-    //private Queue<Token_Comment> multilineCommentsQueue = new();
     private bool isCollectingMultilineComment = false;
     private int multilineCommentOpenningLength = 0;
 
@@ -146,82 +145,6 @@ public class Lexer
 
         token.chars = chars[token.begin..token.end].ToArray();
     }
-    private void RestoreFromToken(Token token)
-    {
-        startRead = token.begin;
-        currentPos = token.end;
-        beginLine = token.line;
-        currentLine = token.endLine;
-        linedCurrentPos = token.linedBegin;
-    }
-
-    //private Token AdvanceWithComments()
-    //{
-    //    if (multilineCommentsQueue.Count == 0)
-    //    {
-    //        Token token = AdvanceInternal();
-
-    //        FillToken(token);
-
-    //        if (splitBlockCommentsIntoSeveralTokens && token is Token_Comment comment)
-    //        {
-    //            Token_Comment currentComment = new Token_Comment()
-    //            {
-    //                begin = comment.begin,
-    //                end = comment.begin,
-    //                line = comment.line,
-    //                endLine = comment.line,
-    //                linedBegin = comment.linedBegin
-    //            };
-
-    //            for (int i = comment.begin; i < comment.end; i++)
-    //            {
-    //                char c = chars[i];
-
-    //                if (c == '\r' || c == '\n' || i == comment.end - 1)
-    //                {
-    //                    if (i == comment.end - 1)
-    //                    {
-    //                        currentComment.end++;
-    //                    }
-                        
-    //                    currentComment.chars = chars[currentComment.begin..currentComment.end].ToArray();
-
-    //                    multilineCommentsQueue.Enqueue(currentComment);
-
-    //                    currentComment = new Token_Comment()
-    //                    {
-    //                        begin = currentComment.end + 2, // skip \r\n pair
-    //                        end = currentComment.end + 2,
-    //                        line = currentComment.line + 1,
-    //                        endLine = currentComment.line + 1,
-    //                        linedBegin = 0,
-    //                    };
-
-    //                    i++; // due to pair \r\n
-    //                }
-    //                else
-    //                {
-    //                    currentComment.end++;
-    //                }
-    //            }
-
-    //            Token_Comment nextComment = multilineCommentsQueue.Dequeue();
-    //            RestoreFromToken(nextComment);
-    //            return nextComment;
-    //        }
-    //        else
-    //        {
-    //            return token;
-    //        }
-    //    }
-    //    else
-    //    {
-    //        Token_Comment nextComment = multilineCommentsQueue.Dequeue();
-    //        RestoreFromToken(nextComment);
-    //        return nextComment;
-    //    }
-    //}
 
     private Token AdvanceInternal()
     {
@@ -236,11 +159,6 @@ public class Lexer
 
         if (startChar == '\r' || startChar == '\n' || startChar == ';')
         {
-            //if (startChar == '\r' || startChar == '\n')
-            //{
-            //    currentLine++;
-            //}
-
             while (currentPos < endRead && (chars[currentPos] == '\r' || chars[currentPos] == '\n' || chars[currentPos] == ';'))
             {
                 if (chars[currentPos] == '\n')

@@ -13,9 +13,37 @@ public class CodeGenerator
     private Stack<Variable> variableStack = new();
     private int anonVariableNameIndex;
 
+    private HashSet<string> labels = new();
+
     public void Label(string labelName)
     {
+        if (labels.Contains(labelName) == false)
+        {
+            throw new Exception("Failed to generate label code because label '' is not registered yet. You must register label before it's generation.");
+        }
+
         b.Line(labelName + ":");
+    }
+
+    public string RegisterLabel(string labelName)
+    {
+        if (labels.Contains(labelName))
+        {
+            labelName = NextLabel(labelName, 2);
+        }
+
+        labels.Add(labelName);
+        return labelName;
+    }
+
+    private string NextLabel(string originalLabelName, int i)
+    {
+        string uniqueLabelName = originalLabelName + "_" + i;
+        if (labels.Contains(uniqueLabelName))
+        {
+            return NextLabel(originalLabelName, i + 1);
+        }
+        return uniqueLabelName;
     }
     
     public void Prologue()
@@ -46,6 +74,13 @@ public class CodeGenerator
         else
         {
             b.Line("global main");
+            b.Space();
+            b.Line("main:");
+            b.Line("call start");
+            b.Line("halt:");
+            b.Line("hlt");
+            b.Line("jmp halt");
+            b.Space(3);
         }
         
         b.Space(2);
@@ -247,12 +282,24 @@ public class CodeGenerator
 
     public void Calculate(Variable a, Variable b, Token_Operator @operator, Variable result)
     {
-        this.b.Line($"mov rbx, {a.RBP}"); 
-        this.b.Line($"mov rdx, {b.RBP}"); 
-        
-        this.b.Line($"{@operator.asmOperatorName} rbx, rdx");
-        
-        this.b.Line($"mov {result.RBP}, rbx");
+        if (@operator is Token_Factor)
+        {
+            this.b.Line($"mov rbx, {a.RBP}");
+            this.b.Line($"mov rax, {b.RBP}");
+
+            this.b.Line($"{@operator.asmOperatorName} rbx");
+
+            this.b.Line($"mov {result.RBP}, rax");
+        }
+        else
+        {
+            this.b.Line($"mov rbx, {a.RBP}");
+            this.b.Line($"mov rdx, {b.RBP}");
+
+            this.b.Line($"{@operator.asmOperatorName} rbx, rdx");
+
+            this.b.Line($"mov {result.RBP}, rbx");
+        }
     }
 
 

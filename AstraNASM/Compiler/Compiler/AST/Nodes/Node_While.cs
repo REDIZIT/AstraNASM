@@ -13,15 +13,18 @@ public class Node_While : Node
     public override void Generate(Generator.Context ctx)
     {
         base.Generate(ctx);
+
+        string conditionLabel = ctx.gen.RegisterLabel("while_condition");
+        string endLabel = ctx.gen.RegisterLabel("while_end");
         
-        ctx.gen.Label("while_condition");
+        ctx.gen.Label(conditionLabel);
         condition.Generate(ctx);
         
-        ctx.gen.JumpIfFalse(condition.result, "while_end");
+        ctx.gen.JumpIfFalse(condition.result, endLabel);
         
         body.Generate(ctx);
-        ctx.gen.JumpToLabel("while_condition");
+        ctx.gen.JumpToLabel(conditionLabel);
         
-        ctx.gen.Label("while_end");
+        ctx.gen.Label(endLabel);
     }
 }

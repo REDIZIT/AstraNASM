@@ -30,27 +30,30 @@ public class Node_If : Node
         ctx.gen.Space();
         ctx.gen.Comment($"if {condition.result.name}");
 
+        string falseLabel = ctx.gen.RegisterLabel("if_false");
 
         if (elseBranch == null)
         {
-            ctx.gen.JumpIfFalse(condition.result, "if_false");
+            ctx.gen.JumpIfFalse(condition.result, falseLabel);
 
             thenBranch.Generate(ctx);
 
-            ctx.gen.Label("if_false");
+            ctx.gen.Label(falseLabel);
         }
         else
         {
-            ctx.gen.JumpIfFalse(condition.result, "if_false");
+            string endLabel = ctx.gen.RegisterLabel("if_end");
+
+            ctx.gen.JumpIfFalse(condition.result, falseLabel);
 
             thenBranch.Generate(ctx);
 
-            ctx.gen.JumpToLabel("if_end");
-            ctx.gen.Label("if_false");
+            ctx.gen.JumpToLabel(endLabel);
+            ctx.gen.Label(falseLabel);
 
             elseBranch.Generate(ctx);
 
-            ctx.gen.Label("if_end");
+            ctx.gen.Label(endLabel);
         }
 
         ctx.gen.Space();

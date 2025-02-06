@@ -54,13 +54,15 @@ public class Node_Function : Node
 
         ctx.gen.Space(3);
 
-        
+
 
         // ctx.b.Line($"{name}:");
         // ctx.b.Line("push rbp");
         // ctx.b.Line("mov rbp, rsp");
+
+        string functionLabel = ctx.gen.RegisterLabel(name);
         
-        ctx.gen.Label(name);
+        ctx.gen.Label(functionLabel);
         ctx.gen.Prologue();
         
         ctx.gen.Space();
