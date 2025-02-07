@@ -238,7 +238,7 @@ public class AstraAST : ASTBuilder
     {
         Node left = NotNeg();
 
-        while (Match(out Token_BitShift operatorToken))
+        while (Match(out Token_BitOperator operatorToken))
         {
             Node right = NotNeg();
             left = new Node_Binary()

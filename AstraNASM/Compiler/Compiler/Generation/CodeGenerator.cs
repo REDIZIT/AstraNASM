@@ -352,17 +352,34 @@ public class CodeGenerator
                 throw new Exception($"Unknown Token_Factor operator '{@operator.asmOperatorName}'");
             }
         }
-        else if (@operator is Token_BitShift)
+        else if (@operator is Token_BitOperator)
         {
             this.b.Line($"mov rbx, {b.RBP}");
             this.b.Line($"mov {result.RBP}, {a.RBP}");
-            if (@operator.asmOperatorName == ">>")
+            
+            if (@operator.asmOperatorName == ">>" || @operator.asmOperatorName == "<<")
             {
-                this.b.Line($"shr {result.RBP}, rbx");
+                if (@operator.asmOperatorName == ">>")
+                {
+                    this.b.Line($"shr {result.RBP}, rbx");
+                }
+                else
+                {
+                    this.b.Line($"shl {result.RBP}, rbx"); 
+                }
             }
             else
             {
-                this.b.Line($"shl {result.RBP}, rbx"); 
+                this.b.Line($"mov rbx, {b.RBP}");
+                this.b.Line($"mov {result.RBP}, {a.RBP}");
+                if (@operator.asmOperatorName == "&")
+                {
+                    this.b.Line($"and {result.RBP}, rbx");
+                }
+                else
+                {
+                    this.b.Line($"or {result.RBP}, rbx"); 
+                }
             }
         }
         else

@@ -261,6 +261,17 @@ public class Simulator
                 reg.value = value;
             }
         }
+        else if (cmd == "and" || cmd == "or")
+        {
+            IStorage a = ParseStorage(args[1]);
+            IStorage b = ParseStorage(args[2]);
+
+            long result;
+            if (cmd == "and") result = a.Read() & b.Read();
+            else result = a.Read() | b.Read();
+            
+            a.Write(result);
+        }
         else if (isDataSection)
         {
             var split = Utils.Split_StringSafe(line);
@@ -341,5 +352,24 @@ public class Simulator
         regs.rsp.Set64(address);
 
         return value;
+    }
+
+    private IStorage ParseStorage(string expression)
+    {
+        if (Utils.IsMemoryAccess(expression))
+        {
+            return new MemoryStorage()
+            {
+                address = Utils.ParseDec(expression, regs),
+                ram = ram
+            };
+        }
+        else
+        {
+            return new RegistryStorage()
+            {
+                reg = regs.GetReg(expression)
+            };
+        }
     }
 }

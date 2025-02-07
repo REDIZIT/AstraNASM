@@ -230,7 +230,7 @@ public class Lexer
                     if (Token_Equality.TryMatch(operatorWord, out var eq)) return eq;
                     if (Token_Comprassion.TryMatch(operatorWord, out var cmp)) return cmp;
                     if (Token_Assign.TryMatch(operatorWord, out var ass)) return ass;
-                    if (Token_BitShift.TryMatch(operatorWord, out var bitShift)) return bitShift;
+                    if (Token_BitOperator.TryMatch(operatorWord, out var bitShift)) return bitShift;
                 }
 
 
@@ -242,7 +242,7 @@ public class Lexer
 
                 if (Token_AddSub.TryMatch(word, out var term)) return term;
                 if (Token_Factor.TryMatch(word, out var fact)) return fact;
-                if (Token_BitShift.TryMatch(word, out var bit)) return bit;
+                if (Token_BitOperator.TryMatch(word, out var bit)) return bit;
                 if (Token_Unary.TryMatch(word, out var un)) return un;
 
 
