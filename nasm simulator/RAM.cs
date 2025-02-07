@@ -72,7 +72,12 @@
 
         for (int i = 0; i < bytesToRead; i++)
         {
-            valueBytes[i] = bytes[address + i];
+            byte b = 0;
+            if (bytes.ContainsKey(address + i))
+            {
+                b = bytes[address + i]; ;
+            }
+            valueBytes[i] = b;
         }
         
         Endianyze(valueBytes);

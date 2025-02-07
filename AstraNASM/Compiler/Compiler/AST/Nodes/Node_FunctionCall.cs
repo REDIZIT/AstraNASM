@@ -105,7 +105,7 @@ public class Node_FunctionCall : Node
 
 
 
-        ctx.gen.Call(function.name);
+        ctx.gen.Call(function.GetCombinedName());
 
 
 

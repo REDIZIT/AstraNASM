@@ -7,4 +7,9 @@ public class FunctionInfo
 
     public List<FieldInfo> arguments = new();
     public List<TypeInfo> returns = new();
+
+    public string GetCombinedName()
+    {
+        return owner.name + "." + name;
+    }
 }

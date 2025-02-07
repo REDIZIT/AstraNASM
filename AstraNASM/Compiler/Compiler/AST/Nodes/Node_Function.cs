@@ -60,7 +60,7 @@ public class Node_Function : Node
         // ctx.b.Line("push rbp");
         // ctx.b.Line("mov rbp, rsp");
 
-        string functionLabel = ctx.gen.RegisterLabel(name);
+        string functionLabel = ctx.gen.RegisterLabel(functionInfo.GetCombinedName());
         
         ctx.gen.Label(functionLabel);
         ctx.gen.Prologue();

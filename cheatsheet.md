@@ -64,7 +64,8 @@ GRUB загружает kernel в protected mode (CR0.PE = 1)
 
 # BOOTBOOT
 
-Загрузчик по типу GRUB, но позволяет загружаться сразу в Long mode (64 битном) (в теории, я ещё не проверял)
+Загрузчик по типу GRUB, но позволяет загружаться сразу в Long mode (64 битном)
+https://gitlab.com/bztsrc/bootboot
 
 Как использовать:
 

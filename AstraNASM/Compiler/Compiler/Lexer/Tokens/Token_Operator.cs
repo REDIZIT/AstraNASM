@@ -93,6 +93,7 @@ public class Token_Factor : Token_Operator
 
             if (word == "*") op.asmOperatorName = "mul";
             if (word == "/") op.asmOperatorName = "div";
+            if (word == "%") op.asmOperatorName = "%";
 
             return true;
         }
@@ -102,7 +103,7 @@ public class Token_Factor : Token_Operator
     }
     public static bool IsMatch(string word)
     {
-        return word == "*" || word == "/";
+        return word == "*" || word == "/" || word == "%";
     }
 }
 public class Token_Unary : Token_Operator

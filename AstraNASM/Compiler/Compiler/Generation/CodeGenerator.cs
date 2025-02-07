@@ -62,7 +62,7 @@ public class CodeGenerator
             b.Line("mov rbx, 0");
             b.Line("push rbx ; return int");
 
-            b.Line("call start");
+            b.Line("call program.main");
 
             b.Line("add rsp, 8");
             b.Line("pop rax");
@@ -75,7 +75,7 @@ public class CodeGenerator
             b.Line("global main");
             b.Space();
             b.Line("main:");
-            b.Line("call start");
+            b.Line("call program.main");
             b.Line("halt:");
             b.Line("hlt");
             b.Line("jmp halt");
@@ -319,12 +319,40 @@ public class CodeGenerator
     {
         if (@operator is Token_Factor)
         {
-            this.b.Line($"mov rbx, {a.RBP}");
-            this.b.Line($"mov rax, {b.RBP}");
+            if (@operator.asmOperatorName == "mul")
+            {
+                this.b.Line($"mov rbx, {a.RBP}");
+                this.b.Line($"mov rax, {b.RBP}");
 
-            this.b.Line($"{@operator.asmOperatorName} rbx");
+                this.b.Line($"{@operator.asmOperatorName} rbx");
 
-            this.b.Line($"mov {result.RBP}, rax");
+                this.b.Line($"mov {result.RBP}, rbx");
+            }
+            else if (@operator.asmOperatorName == "div" || @operator.asmOperatorName == "%")
+            {
+                // div operator:
+                // rax / N
+                // quotient inside rax
+                // remainder inside N
+                this.b.Line($"mov rax, {a.RBP}");
+                this.b.Line($"mov rcx, {b.RBP}");
+                this.b.Line($"mov rdx, 0"); // clear rdx, because it used as extension for rdx:rax
+
+                this.b.Line($"div rcx");
+
+                if (@operator.asmOperatorName == "div")
+                {
+                    this.b.Line($"mov {result.RBP}, rax"); // take quotient
+                }
+                else
+                {
+                    this.b.Line($"mov {result.RBP}, rdx"); // take remainder
+                }
+            }
+            else
+            {
+                throw new Exception($"Unknown Token_Factor operator '{@operator.asmOperatorName}'");
+            }
         }
         else
         {
