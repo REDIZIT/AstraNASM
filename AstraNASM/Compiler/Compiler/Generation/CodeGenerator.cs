@@ -321,12 +321,10 @@ public class CodeGenerator
         {
             if (@operator.asmOperatorName == "mul")
             {
-                this.b.Line($"mov rbx, {a.RBP}");
+                this.b.Line($"mov rdi, {a.RBP}");
                 this.b.Line($"mov rax, {b.RBP}");
-
-                this.b.Line($"{@operator.asmOperatorName} rbx");
-
-                this.b.Line($"mov {result.RBP}, rbx");
+                this.b.Line($"mul rdi");
+                this.b.Line($"mov {result.RBP}, rax");
             }
             else if (@operator.asmOperatorName == "div" || @operator.asmOperatorName == "%")
             {

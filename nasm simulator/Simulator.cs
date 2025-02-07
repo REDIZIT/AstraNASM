@@ -104,7 +104,7 @@ public class Simulator
             if (cmd == "mul") a *= b;
             if (cmd == "div") a /= b;
 
-            regs.Set(args[1], a);
+            regs.rax.Set64(a);
         }
         else if (cmd.StartsWith("j"))
         {
