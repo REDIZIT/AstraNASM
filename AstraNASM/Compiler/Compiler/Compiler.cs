@@ -30,4 +30,15 @@ public static class Compiler
 
         return llvm;
     }
+    public static string Compile_AstraProject(List<string> astraCodes, CompileTarget target)
+    {
+        List<char> mergedCode = new();
+
+        foreach (string astraCode in astraCodes)
+        {
+            mergedCode.AddRange(astraCode);
+        }
+
+        return Compile_Astra_to_NASM(string.Concat(mergedCode), target);
+    }
 }

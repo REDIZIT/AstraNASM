@@ -1,12 +1,13 @@
 ﻿using Astra.Compilation;
 using ManyConsole;
-using System.Drawing;
 
 public class CompileCommand : ConsoleCommand
 {
-    private string inputPath;
-    private string outputPath;
-    private CompileTarget target;
+    public string inputPath;
+    public string outputPath;
+    public CompileTarget target;
+    public bool isProject;
+    public string copyOutputPath;
 
     public CompileCommand()
     {
@@ -17,9 +18,25 @@ public class CompileCommand : ConsoleCommand
 
         HasOption("t|target=", "Compilation target. Simulation-ready = 0 (default) or Machine-ready = 1",
             t => target = t == null ? CompileTarget.Simulator : (CompileTarget)int.Parse(t));
+
+        HasOption("p|project", "Bundle all Astra files into one nasm file", s => { isProject = true; });
+
+        HasOption("co|copy-output=", "Path to folder, where to copy output", s => { copyOutputPath = s; });
     }
 
     public override int Run(string[] remainingArguments)
+    {
+        if (isProject)
+        {
+            return CompileProject();
+        }
+        else
+        {
+            return CompileSingles();
+        }
+    }
+
+    private int CompileSingles()
     {
         if (string.IsNullOrEmpty(inputPath))
         {
@@ -31,7 +48,7 @@ public class CompileCommand : ConsoleCommand
             throw new Exception($"Input path does not exists '{inputPath}'");
         }
 
-        
+
 
         bool isInputFolder = string.IsNullOrWhiteSpace(Path.GetExtension(inputPath));
         bool isOutputFolder = string.IsNullOrWhiteSpace(Path.GetExtension(outputPath));
@@ -65,40 +82,77 @@ public class CompileCommand : ConsoleCommand
             {
                 foreach (string filePath in Directory.GetFiles(inputPath, "*.ac"))
                 {
-                    Compile(filePath, outputPath + "/" + Path.GetFileNameWithoutExtension(filePath) + ".nasm");
+                    string nasmFileName = Path.GetFileNameWithoutExtension(inputPath) + ".nasm";
+                    string nasmFilePath = outputPath + "/" + nasmFileName;
+
+                    Compile(filePath, nasmFilePath);
+
+                    if (copyOutputPath != null)
+                    {
+                        File.Copy(nasmFilePath, copyOutputPath + "/" + nasmFileName, true);
+                    }
                 }
             }
             else
             {
                 //  string fileContent = File.ReadAllText("C:\\Users\\REDIZIT\\Documents\\GitHub\\Astra-Rider-extension\\vscode extension\\astralanguage\\test\\example.ac");
-                Compile(inputPath, outputPath + "/" + Path.GetFileNameWithoutExtension(inputPath) + ".nasm");
+
+                string nasmFileName = Path.GetFileNameWithoutExtension(inputPath) + ".nasm";
+                string nasmFilePath = outputPath + "/" + nasmFileName;
+
+                Compile(inputPath, nasmFilePath);
+
+                if (copyOutputPath != null)
+                {
+                    File.Copy(nasmFilePath, copyOutputPath + "/" + nasmFileName, true);
+                }
             }
 
-            Console.BackgroundColor = ConsoleColor.DarkGreen;
-            Console.Write(" Sucesss ");
-            Console.ResetColor();
-
-            Console.WriteLine("\n");
-
-            Console.WriteLine($"Absolute output path: '{Path.GetFullPath(outputPath)}'");
+            PrintSuccess();
         }
         catch (Exception err)
         {
-            Console.BackgroundColor = ConsoleColor.Red;
-            Console.Write(" Compilation failed ");
-            Console.ResetColor();
-
-            Console.WriteLine("\n");
-
-            Console.WriteLine(err.Message);
-            Console.WriteLine(err.StackTrace);
-
+            PrintFail(err);
             return 1;
         }
-       
-       
+
 
         return 0;
+    }
+    private int CompileProject()
+    {
+        try
+        {
+            if (string.IsNullOrEmpty(inputPath))
+            {
+                inputPath = Environment.CurrentDirectory;
+            }
+
+            if (Directory.Exists(outputPath) == false)
+            {
+                Directory.CreateDirectory(outputPath);
+            }
+
+
+            string nasmFileName = "project.nasm";
+            string nasmFilePath = outputPath + "/" + nasmFileName;
+
+            Compile(Directory.GetFiles(inputPath, "*.ac").ToList(), nasmFilePath);
+
+            if (copyOutputPath != null)
+            {
+                File.Copy(nasmFilePath, copyOutputPath + "/" + nasmFileName, true);
+            }
+
+
+            PrintSuccess();
+            return 0;
+        }
+        catch (Exception err)
+        {
+            PrintFail(err);
+            return 1;
+        }
     }
 
     private void Compile(string astraFilePath, string nasmFilePath)
@@ -106,5 +160,39 @@ public class CompileCommand : ConsoleCommand
         string fileContent = File.ReadAllText(astraFilePath);
         string nasmCode = Compiler.Compile_Astra_to_NASM(fileContent, target);
         File.WriteAllText(nasmFilePath, nasmCode);
+    }
+    private void Compile(List<string> astraFiles, string nasmFilePath)
+    {
+        List<string> astraFileContent = new List<string>();
+
+        foreach (string path in astraFiles)
+        {
+            astraFileContent.Add(File.ReadAllText(path));
+        }
+
+        string nasmCode = Compiler.Compile_AstraProject(astraFileContent, target);
+        File.WriteAllText(nasmFilePath, nasmCode);
+    }
+
+    private void PrintSuccess()
+    {
+        Console.BackgroundColor = ConsoleColor.DarkGreen;
+        Console.Write(" Sucesss ");
+        Console.ResetColor();
+
+        Console.WriteLine("\n");
+
+        Console.WriteLine($"Absolute output path: '{Path.GetFullPath(outputPath)}'");
+    }
+    private void PrintFail(Exception err)
+    {
+        Console.BackgroundColor = ConsoleColor.Red;
+        Console.Write(" Compilation failed ");
+        Console.ResetColor();
+
+        Console.WriteLine("\n");
+
+        Console.WriteLine(err.Message);
+        Console.WriteLine(err.StackTrace);
     }
 }

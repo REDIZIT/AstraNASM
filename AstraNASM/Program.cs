@@ -7,8 +7,18 @@ public static class Program
     {
         if (args.Length == 0)
         {
-            string fileContent = File.ReadAllText("C:\\Users\\REDIZIT\\Documents\\GitHub\\Astra-Rider-extension\\vscode extension\\astralanguage\\test\\example.ac");
-            Compiler.Compile_Astra_to_NASM(fileContent, CompileTarget.Simulator);
+            //string fileContent = File.ReadAllText("C:\\Users\\REDIZIT\\Documents\\GitHub\\Astra-Rider-extension\\vscode extension\\astralanguage\\test\\example.ac");
+            //Compiler.Compile_Astra_to_NASM(fileContent, CompileTarget.Simulator);
+
+            var cmd = new CompileCommand()
+            {
+                inputPath = "C:\\Users\\REDIZIT\\Documents\\GitHub\\Astra-Rider-extension\\vscode extension\\astralanguage\\test",
+                outputPath = "C:\\Users\\REDIZIT\\Documents\\GitHub\\Astra-Rider-extension\\vscode extension\\astralanguage\\test\\build",
+                target = CompileTarget.NASM,
+                isProject = true,
+            };
+
+            return cmd.Run(null);
         }
 
         var commands = GetCommands();
