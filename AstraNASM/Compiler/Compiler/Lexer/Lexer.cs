@@ -477,6 +477,34 @@ public class Lexer
                 break;
             }
 
+            if (currentChar == '-')
+            {
+                // Inline block
+                int endingLength = 0;
+                while (currentPos < endRead)
+                {
+                    currentChar = chars[currentPos];
+
+                    if (currentChar == '-')
+                    {
+                        endingLength++;
+                    }
+                    else
+                    {
+                        break;
+                    }
+
+                    currentPos++;
+                }
+
+                bool isEnding = endingLength == multilineCommentOpenningLength;
+                if (isEnding)
+                {
+                    isCollectingMultilineComment = false;
+                    break;
+                }
+            }
+
             currentPos++;
         }
 
