@@ -106,6 +106,29 @@ public class Token_Factor : Token_Operator
         return word == "*" || word == "/" || word == "%";
     }
 }
+
+public class Token_BitShift : Token_Operator
+{
+    public static bool TryMatch(string word, out Token_BitShift op)
+    {
+        if (IsMatch(word))
+        {
+            op = new Token_BitShift();
+
+            if (word == ">>") op.asmOperatorName = ">>";
+            if (word == "<<") op.asmOperatorName = "<<";
+
+            return true;
+        }
+
+        op = null;
+        return false;
+    }
+    private static bool IsMatch(string word)
+    {
+        return word == ">>" || word == "<<";
+    }
+}
 public class Token_Unary : Token_Operator
 {
     public static bool TryMatch(string word, out Token_Unary op)

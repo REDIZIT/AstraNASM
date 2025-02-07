@@ -352,6 +352,19 @@ public class CodeGenerator
                 throw new Exception($"Unknown Token_Factor operator '{@operator.asmOperatorName}'");
             }
         }
+        else if (@operator is Token_BitShift)
+        {
+            this.b.Line($"mov rbx, {b.RBP}");
+            this.b.Line($"mov {result.RBP}, {a.RBP}");
+            if (@operator.asmOperatorName == ">>")
+            {
+                this.b.Line($"shr {result.RBP}, rbx");
+            }
+            else
+            {
+                this.b.Line($"shl {result.RBP}, rbx"); 
+            }
+        }
         else
         {
             this.b.Line($"mov rbx, {a.RBP}");

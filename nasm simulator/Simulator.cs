@@ -230,6 +230,37 @@ public class Simulator
                 throw new($"Unknown section '{section}'");
             }
         }
+        else if (cmd == "shr" || cmd == "shl")
+        {
+            if (Utils.IsMemoryAccess(args[1]))
+            {
+                long address = Utils.ParseDec(args[1], regs);
+                
+                Console.WriteLine(args[1]);
+                Console.WriteLine(address);
+
+                long value = ram.Read64(address);
+                Console.WriteLine(value);
+                
+                int shift = (int)Utils.ParseDec(args[2], regs);
+
+                if (cmd == "shr") value = value >> shift;
+                else value = value << shift;
+                
+                ram.Write64(address, value);
+            }
+            else
+            {
+                Reg64 reg = regs.GetReg(args[1]);
+                long value = reg.value;
+                int shift = (int)Utils.ParseDec(args[2], regs);
+
+                if (cmd == "shr") value = value >> shift;
+                else value = value << shift;
+
+                reg.value = value;
+            }
+        }
         else if (isDataSection)
         {
             var split = Utils.Split_StringSafe(line);

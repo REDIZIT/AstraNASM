@@ -219,9 +219,26 @@ public class AstraAST : ASTBuilder
     }
     private Node MulDiv()
     {
-        Node left = NotNeg();
+        Node left = BitShift();
 
         while (Match(out Token_Factor operatorToken))
+        {
+            Node right = NotNeg();
+            left = new Node_Binary()
+            {
+                left = left,
+                @operator = operatorToken,
+                right = right
+            };
+        }
+
+        return left;
+    }
+    private Node BitShift()
+    {
+        Node left = NotNeg();
+
+        while (Match(out Token_BitShift operatorToken))
         {
             Node right = NotNeg();
             left = new Node_Binary()

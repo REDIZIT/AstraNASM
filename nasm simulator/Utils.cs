@@ -67,11 +67,11 @@
         {
             return dec;
         }
-        else if (long.TryParse(expression.Substring(2, expression.Length - 2), System.Globalization.NumberStyles.HexNumber, null, out long hex))
+        else if (TryParseNumber(expression, out long value))
         {
-            return hex;
+            return value;
         }
-        else if (expression.StartsWith('[') && expression.EndsWith(']'))
+        else if (IsMemoryAccess(expression))
         {
             string body = expression.Substring(1, expression.Length - 2);
             return ParseMathExpression(body, regs);
@@ -95,6 +95,22 @@
 
         throw new($"Failed to parse dec expression '{expression}'");
     }
+
+    public static bool IsMemoryAccess(string expression)
+    {
+        return expression.StartsWith('[') && expression.EndsWith(']');
+    }
+
+    private static bool TryParseNumber(string expression, out long value)
+    {
+        string valueString = expression.Substring(2, expression.Length - 2);
+        
+        if (expression.StartsWith("0x")) return long.TryParse(valueString, System.Globalization.NumberStyles.HexNumber, null, out value);
+        if (expression.StartsWith("0b")) return long.TryParse(valueString, System.Globalization.NumberStyles.BinaryNumber, null, out value);
+        
+        return long.TryParse(valueString, out value);
+    }
+    
     private static long ParseMathExpression(string body, Regs regs)
     {
         string[] args = body.Replace('-', '+').Replace('*', '+').Replace('/', '+').Split('+');
