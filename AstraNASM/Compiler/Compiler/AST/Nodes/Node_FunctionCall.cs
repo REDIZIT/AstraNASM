@@ -109,23 +109,12 @@ public class Node_FunctionCall : Node
 
 
 
-        //int argumentsSizeInBytes = 0;
-        //for (int i = argumentsResults.Length - 1; i >= 0; i--)
-        //{
-        //    Variable arg = argumentsResults[i];
-
-        //    if (arg != selfVar && arg != null)
-        //    {
-        //        ctx.gen.Unregister_FunctionArgumentVariable(arg);
-        //    }
-
-        //    argumentsSizeInBytes += 8;
-        //}
-
-        //// ctx.b.Line($"add rsp, {argumentsSizeInBytes}");
-        //ctx.gen.Deallocate(argumentsSizeInBytes);
-
-        ctx.gen.Deallocate(24);
+        int argumentsSizeInBytes = arguments.Count * 8;
+        if (isStatic == false)
+        {
+            argumentsSizeInBytes += 8; // self pointer
+        }
+        ctx.gen.Deallocate(argumentsSizeInBytes);
     }
 
 

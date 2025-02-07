@@ -14,42 +14,29 @@ public class Node_While : Node
         base.Generate(ctx);
 
 
-        throw new Exception("Not fixed");
+        string endLabel = ctx.gen.RegisterLabel("while_end");
+        string conditionLabel = ctx.gen.RegisterLabel("while_condition");
 
+
+        ctx.gen.Label(conditionLabel);
+        int rspRbpOffset = ctx.gen.AllocateRSPSaver();
+        condition.Generate(ctx);
+
+
+        ctx.gen.Space();
+        ctx.gen.JumpIfFalse(condition.result, endLabel);
+
+
+        ctx.gen.Space();
         body.Generate(ctx);
 
 
-
-        //////string conditionLabel = ctx.gen.RegisterLabel("while_condition");
-        //////string endLabel = ctx.gen.RegisterLabel("while_end");
-
-        ////////ctx.gen.Comment("Allocate rsp saver");
-        ////////Variable rspSaver = ctx.gen.Allocate(TypeIn)
-        //////int rspRBPOffset = ctx.gen.AllocateRSPSaver();
-
-        //////ctx.gen.Label(conditionLabel);
-
-        ////////ctx.gen.Prologue();
-        ////////ctx.gen.PushRegToStack("rsp");
-
-        ////////ctx.gen.Comment("isolated condition body");
-        //////condition.Generate(ctx);
-        ////////ctx.gen.SetValueToReg("rbx", condition.result);
-
-        ////////ctx.gen.Epilogue();
-        ////////ctx.gen.PopRegFromStack("rsp");
+        ctx.gen.RestoreRSPSaver(rspRbpOffset);
+        ctx.gen.JumpToLabel(conditionLabel);
 
 
-        //////ctx.gen.JumpIfFalse(condition.result, endLabel);
-        ////////ctx.gen.JumpIfFalse("rbx", endLabel);
-
-        //////body.Generate(ctx);
-
-
-        //////ctx.gen.RestoreRSPSaver(rspRBPOffset);
-        //////ctx.gen.JumpToLabel(conditionLabel);
-
-        //////ctx.gen.Label(endLabel);
-        //////ctx.gen.DeallocateRSPSaver();
+        ctx.gen.Space();
+        ctx.gen.Label(endLabel);
+        ctx.gen.DeallocateRSPSaver();
     }
 }
