@@ -4,6 +4,7 @@ public class FunctionInfo
 {
     public string name;
     public TypeInfo owner;
+    public bool isStatic;
 
     public List<FieldInfo> arguments = new();
     public List<TypeInfo> returns = new();

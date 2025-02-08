@@ -351,6 +351,8 @@ public class AstraAST : ASTBuilder
     }
     private Node Function()
     {
+        bool isStatic = Match<Token_Static>();
+        
         Token_Identifier functionName = Consume<Token_Identifier>("Expected function name");
         Consume<Token_BracketOpen>("Expected '(' after function name");
 
@@ -406,6 +408,7 @@ public class AstraAST : ASTBuilder
             body = body,
             parameters = parameters,
             returnValues = returnValues,
+            isStatic = isStatic
         };
 
     }

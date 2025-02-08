@@ -43,7 +43,7 @@ public class Node_FunctionCall : Node
 
         ctx.gen.Comment($"arguments generation");
 
-        bool isStatic = function.owner == null;
+        bool isStatic = function.isStatic;
 
         Variable[] argumentsResults = new Variable[isStatic ? arguments.Count : arguments.Count + 1];
 

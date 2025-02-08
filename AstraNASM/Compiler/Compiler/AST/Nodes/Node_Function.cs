@@ -7,6 +7,7 @@ public class Node_Function : Node
     public Node body;
     public List<VariableRawData> parameters = new();
     public List<VariableRawData> returnValues = new();
+    public bool isStatic;
 
     public FunctionInfo functionInfo;
 
@@ -24,41 +25,12 @@ public class Node_Function : Node
             throw new NotImplementedException("Function has 1+ return values. Generation for this is not supported yet");
         }
 
-        //List<string> paramsDeclars = new();
-        //foreach (VariableRawData param in parameters)
-        //{
-        //    string generatedName = ctx.NextPointerVariableName(param.type, param.name);
-        //    string generatedType = (param.type is PrimitiveTypeInfo) ? param.type.ToString() : "ptr";
-
-        //    paramsDeclars.Add($"{generatedType} {generatedName}");
-        //}
-        //string paramsStr = string.Join(", ", paramsDeclars);
-
-
-        //ctx.b.Space(3);
-
-        //if (returnValues.Count == 0)
-        //{
-        //    ctx.b.Line($"define void @{name}({paramsStr})");
-        //}
-        //else
-        //{
-        //    ctx.b.Line($"define {returnValues[0].type} @{name}({paramsStr})");
-        //}
-        
-        //ctx.b.Line("{");
-
        
 
         ctx = ctx.CreateSubContext();
 
         ctx.gen.Space(3);
-
-
-
-        // ctx.b.Line($"{name}:");
-        // ctx.b.Line("push rbp");
-        // ctx.b.Line("mov rbp, rsp");
+        
 
         string functionLabel = ctx.gen.RegisterLabel(functionInfo.GetCombinedName());
         
@@ -80,7 +52,7 @@ public class Node_Function : Node
         }
 
 
-        if (functionInfo.owner != null)
+        if (functionInfo.isStatic == false)
         {
             functionParams.Add(ctx.gen.Register_FunctionArgumentVariable(new FieldInfo()
             {

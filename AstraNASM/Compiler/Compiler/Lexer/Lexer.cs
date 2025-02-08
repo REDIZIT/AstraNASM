@@ -32,6 +32,7 @@ public class Lexer
         { "return", typeof(Token_Return) },
         { "class", typeof(Token_Class) },
         { "new", typeof(Token_New) },
+        { "static", typeof(Token_Static) },
     };
     private static Dictionary<string, Type> tokenTypeBySingleChar = new Dictionary<string, Type>()
     {

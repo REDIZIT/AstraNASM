@@ -91,6 +91,7 @@ public static class Resolver
                     {
                         name = funcDec.name,
                         owner = clsInfo,
+                        isStatic = funcDec.isStatic,
                         arguments = new(),
                         returns = new()
                     };
@@ -151,7 +152,7 @@ public static class Resolver
             }
             else if (node is Node_FunctionCall call)
             {
-                TypeInfo targetType = CalculateType(call.caller);
+                TypeInfo targetType = CalculateType(call.caller, module);
 
                 FunctionInfo targetTypeFunction = TryFindFunction(targetType, call.functionName, module);
                 if (targetTypeFunction == null) throw new Exception($"Failed to find function '{call.functionName}' inside type '{targetType}'");
@@ -165,7 +166,7 @@ public static class Resolver
             }
             else if (node is Node_FieldAccess access)
             {
-                TypeInfo targetType = CalculateType(access.target);
+                TypeInfo targetType = CalculateType(access.target, module);
 
                 if (TryFindFunction(targetType, access.targetFieldName, module) == null && targetType is TypeInfo classInfo)
                 {
@@ -217,17 +218,13 @@ public static class Resolver
         {
             scope.functionInfo = func.functionInfo;
             
-            if (func.functionInfo.owner != null)
+            if (func.functionInfo.isStatic == false)
             {
                 scope.variables.Add(new FieldInfo()
                 {
                     name = "self",
                     type = func.functionInfo.owner
                 });
-            }
-            else
-            {
-                throw new Exception("Static functions are not supported");
             }
 
             foreach (FieldInfo argument in func.functionInfo.arguments)
@@ -259,19 +256,29 @@ public static class Resolver
         }
     }
 
-    private static TypeInfo CalculateType(Node targetNode)
+    private static TypeInfo CalculateType(Node targetNode, ResolvedModule module)
     {
         if (targetNode is Node_FieldAccess acces)
         {
-            return CalculateType(acces.target);
+            return CalculateType(acces.target, module);
         }
         if (targetNode is Node_VariableUse use)
         {
-            string variableName = use.variableName;
-            Scope scope = targetNode.scope.Find(s => s.variables.Any(f => f.name == variableName));
+            string name = use.variableName;
 
-            FieldInfo variable = scope.variables.First(f => f.name == variableName);
-            return variable.type;
+            if (module.classInfoByName.TryGetValue(name, out TypeInfo type))
+            {
+                // Access to static type name
+                // Example: Console.
+                return type;
+            }
+            else
+            {
+                // Access to variable
+                // Example: listOfItems.
+                FieldInfo variable = targetNode.scope.FindVariable(name);
+                return variable.type;   
+            }
         }
 
         return null;

@@ -21,7 +21,15 @@ public class Scope
     public Scope Find(Func<Scope, bool> predicate)
     {
         if (predicate(this)) return this;
-        if (parent == null) throw new Exception("Failed to find scope");
+        if (parent == null) throw new Exception("Failed to find scope for predicate");
         return parent.Find(predicate);
+    }
+
+    public FieldInfo FindVariable(string variableName)
+    {
+        FieldInfo variable = variables.FirstOrDefault(f => f.name == variableName);
+        if (variable != null) return variable;
+        if (parent == null) throw new Exception($"Failed to find variable '{variableName}' in scopes");
+        return parent.FindVariable(variableName);
     }
 }

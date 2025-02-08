@@ -139,3 +139,7 @@ public class Token_TypeName : Token
 
 public class Token_Char(string value) : Token_Constant(value);
 public class Token_String(string value) : Token_Constant(value);
+
+public class Token_Static() : Token
+{
+}

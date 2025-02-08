@@ -6,6 +6,17 @@ public class ASTBuilder
     protected int current;
     protected List<Node> statements;
 
+    protected bool Match<T>() where T : Token
+    {
+        ConsumeSpace(false);
+
+        if (Check<T>())
+        {
+            Advance();
+            return true;
+        }
+        return false;
+    }
     protected bool Match<T>(out T token) where T : Token
     {
         ConsumeSpace(false);

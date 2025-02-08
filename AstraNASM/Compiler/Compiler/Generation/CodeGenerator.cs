@@ -92,7 +92,7 @@ public class CodeGenerator
     public void Return_Variable(FunctionInfo function, Variable variable)
     {
         int rbpOffset = 16 + function.arguments.Count * 8;
-        if (function.owner != null) rbpOffset += 8;
+        if (function.isStatic == false) rbpOffset += 8;
         
         b.Line($"mov rbx, {variable.RBP}");
         b.Line($"mov [rbp+{rbpOffset}], rbx");

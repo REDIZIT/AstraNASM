@@ -109,11 +109,11 @@ public static class Generator
     {
         if (node is Node_VariableDeclaration decl)
         {
-            if (decl.fieldInfo.name == "_binary_font_psf_start")
+            if (decl.fieldInfo.name == "_binary_src_font_psf_start")
             {
                 decl.initValue = new Node_Literal()
                 {
-                    constant = new Token_Constant("_binary_font_psf_start")
+                    constant = new Token_Constant("_binary_src_font_psf_start")
                 };
 
                 gen.Extern(decl.fieldInfo.name);
