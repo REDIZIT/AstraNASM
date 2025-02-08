@@ -117,24 +117,24 @@ public class AstraAST : ASTBuilder
 
     private Node Declaration()
     {
-        if (Match(typeof(Token_Class))) return ClassDeclaration();
+        if (Check<Token_Class>()) return ClassDeclaration();
 
         return FunctionsAndFieldsDeclaration();
     }
     public Node FunctionsAndFieldsDeclaration()
     {
         if (Check<Token_Identifier>()) return Variable();
-        if (Match(typeof(Token_Visibility))) return FunctionDeclaration();
+        if (Check<Token_Visibility>()) return FunctionDeclaration();
 
         return Statement();
     }
     private Node Statement()
     {
         if (Match(typeof(Token_BlockOpen))) return Block();
-        if (Match(typeof(Token_If))) return If();
-        if (Match(typeof(Token_While))) return While();
-        if (Match(typeof(Token_For))) return For();
-        if (Match(typeof(Token_Return))) return Return();
+        if (Check<Token_If>()) return If();
+        if (Check<Token_While>()) return While();
+        if (Check<Token_For>()) return For();
+        if (Check<Token_Return>()) return Return();
 
         return Expression();
     }
@@ -148,9 +148,13 @@ public class AstraAST : ASTBuilder
         Node left = Equality();
 
         // '='
-        if (Match(typeof(Token_Assign)))
+        if (Check<Token_Assign>())
         {
             // Value
+            StartNewFrame();
+
+            Consume<Token_Assign>("Expected '=' for variable assignment");
+            
             Node right = Assignment();
 
             if (left is Node_VariableUse || left is Node_FieldAccess)
@@ -158,7 +162,8 @@ public class AstraAST : ASTBuilder
                 return new Node_VariableAssign()
                 {
                     target = left,
-                    value = right
+                    value = right,
+                    consumedTokens = PopFrame()
                 };
             }
             else
@@ -173,13 +178,17 @@ public class AstraAST : ASTBuilder
     {
         Node left = Comprassion();
 
-        while (Match(out Token_Equality operatorToken))
+        while (Check<Token_Equality>())
         {
+            StartNewFrame();
+            Token_Equality operatorToken = Consume<Token_Equality>("Expected '=' for equality");
+            
             left = new Node_Binary()
             {
                 left = left,
                 @operator = operatorToken,
-                right = Comprassion()
+                right = Comprassion(),
+                consumedTokens = PopFrame()
             };
         }
 
@@ -189,13 +198,17 @@ public class AstraAST : ASTBuilder
     {
         Node left = AddSub();
 
-        while (Match(out Token_Comprassion operatorToken))
+        while (Check<Token_Comprassion>())
         {
+            StartNewFrame();
+            Token_Comprassion operatorToken = Consume<Token_Comprassion>("Expected token comprassion for comprassion");
+            
             left = new Node_Binary()
             {
                 left = left,
                 @operator = operatorToken,
-                right = AddSub()
+                right = AddSub(),
+                consumedTokens = PopFrame()
             };
         }
 
@@ -205,13 +218,17 @@ public class AstraAST : ASTBuilder
     {
         Node left = MulDiv();
 
-        while (Match(out Token_AddSub operatorToken))
+        while (Check<Token_AddSub>())
         {
+            StartNewFrame();
+            Token_AddSub operatorToken = Consume<Token_AddSub>("Expected token add or sub for add sub");
+            
             left = new Node_Binary()
             {
                 left = left,
                 @operator = operatorToken,
-                right = MulDiv()
+                right = MulDiv(),
+                consumedTokens = PopFrame()
             };
         }
 
@@ -221,14 +238,17 @@ public class AstraAST : ASTBuilder
     {
         Node left = BitShift();
 
-        while (Match(out Token_Factor operatorToken))
+        while (Check<Token_Factor>())
         {
-            Node right = NotNeg();
+            StartNewFrame();
+            Token_Factor operatorToken = Consume<Token_Factor>("Expected token factor for factor");
+
             left = new Node_Binary()
             {
                 left = left,
                 @operator = operatorToken,
-                right = right
+                right = BitShift(),
+                consumedTokens = PopFrame()
             };
         }
 
@@ -238,14 +258,16 @@ public class AstraAST : ASTBuilder
     {
         Node left = NotNeg();
 
-        while (Match(out Token_BitOperator operatorToken))
+        while (Check<Token_BitOperator>())
         {
-            Node right = NotNeg();
+            StartNewFrame();
+            Token_BitOperator operatorToken = Consume<Token_BitOperator>("Expected token bit operator for bit operation");
+            
             left = new Node_Binary()
             {
                 left = left,
                 @operator = operatorToken,
-                right = right
+                right = NotNeg()
             };
         }
 
@@ -253,12 +275,16 @@ public class AstraAST : ASTBuilder
     }
     private Node NotNeg()
     {
-        if (Match(out Token_Unary operatorToken))
+        if (Check<Token_Unary>())
         {
+            StartNewFrame();
+            Token_Unary operatorToken = Consume<Token_Unary>("Expected token unary for unary operation");
+            
             return new Node_Unary()
             {
                 @operator = operatorToken,
-                right = NotNeg()
+                right = NotNeg(),
+                consumedTokens = PopFrame()
             };
         }
         else if (Peek() is Token_AddSub tokenAddSub && tokenAddSub.asmOperatorName == "sub")
@@ -292,18 +318,18 @@ public class AstraAST : ASTBuilder
     }
     private Node Call()
     {
-        if (Match(typeof(Token_New))) return New();
+        if (Check<Token_New>()) return New();
 
         Node expr = Primary();
 
         while (true)
         {
             Token_Identifier token = Previous() as Token_Identifier;
-            if (Match(typeof(Token_BracketOpen)))
+            if (Check<Token_BracketOpen>())
             {
                 expr = FinishCall(expr, token);
             }
-            else if (Match(typeof(Token_Dot)))
+            else if (Check<Token_Dot>())
             {
                 expr = Property(expr);
             }
@@ -321,8 +347,11 @@ public class AstraAST : ASTBuilder
 
     private Node ClassDeclaration()
     {
-        Token_Identifier ident = Consume<Token_Identifier>("Expected class name");
+        StartNewFrame();
 
+        Consume<Token_Class>("Expected class declaration");
+        
+        Token_Identifier ident = Consume<Token_Identifier>("Expected class name");
 
 
         ConsumeSpace(true);
@@ -341,7 +370,8 @@ public class AstraAST : ASTBuilder
         return new Node_Class()
         {
             name = ident.name,
-            body = body
+            body = body,
+            consumedTokens = PopFrame()
         };
     }
     private Node FunctionDeclaration()
@@ -351,6 +381,10 @@ public class AstraAST : ASTBuilder
     }
     private Node Function()
     {
+        StartNewFrame();
+
+        Consume<Token_Visibility>("Expected visibility");
+        
         bool isStatic = Match<Token_Static>();
         
         Token_Identifier functionName = Consume<Token_Identifier>("Expected function name");
@@ -408,7 +442,8 @@ public class AstraAST : ASTBuilder
             body = body,
             parameters = parameters,
             returnValues = returnValues,
-            isStatic = isStatic
+            isStatic = isStatic,
+            consumedTokens = PopFrame()
         };
 
     }
@@ -449,6 +484,8 @@ public class AstraAST : ASTBuilder
     }
     private Node VariableDeclaration()
     {
+        StartNewFrame();
+        
         var type = Consume<Token_Identifier>("Expected variable type");
 
         bool isArray = false;
@@ -474,12 +511,15 @@ public class AstraAST : ASTBuilder
                 rawType = isArray ? "array" : type.name,
                 name = varNameToken.name
             },
-            initValue = initValue
+            initValue = initValue,
+            consumedTokens = PopFrame()
         };
     }
 
     private Node New()
     {
+        StartNewFrame();
+        
         Token_Identifier ident = Consume<Token_Identifier>("Expected ref type name");
 
         Consume<Token_BracketOpen>("Expected '(' after type name");
@@ -488,26 +528,36 @@ public class AstraAST : ASTBuilder
         return new Node_New()
         {
             className = ident.name,
+            consumedTokens = PopFrame()
         };
     }
     private Node Return()
     {
+        StartNewFrame();
+
+        Consume<Token_Return>("Expected 'return'");
+        
         if (Match(typeof(Token_Terminator)))
         {
-            return new Node_Return();
+            return new Node_Return()
+            {
+                consumedTokens = PopFrame()
+            };
         }
         else
         {
             Node expr = Expression();
-            //Consume<Token_Terminator>("Expected terminator after return", skipTerminators: false);
             return new Node_Return()
             {
-                expr = expr
+                expr = expr,
+                consumedTokens = PopFrame()
             };
         }
     }
     private Node For()
     {
+        StartNewFrame();
+        
         Consume(typeof(Token_BracketOpen), "Expected '(' after 'for'");
         Node declaration = Declaration();
         Consume(typeof(Token_Terminator), "Expected ';' after declaration");
@@ -519,36 +569,20 @@ public class AstraAST : ASTBuilder
         ConsumeSpace(true);
         Consume<Token_BlockOpen>("Expected '{' after for declaration");
         Node body = Block();
-
-        //return new Node_Block()
-        //{
-        //    children = new List<Node>()
-        //    {
-        //        declaration,
-        //        new Node_While()
-        //        {
-        //            condition = condition,
-        //            body = new Node_Block()
-        //            {
-        //                children = new List<Node>()
-        //                {
-        //                    body,
-        //                    action
-        //                }
-        //            }
-        //        }
-        //    }
-        //};
+        
         return new Node_For()
         {
             declaration = declaration,
             condition = condition,
             advance = action,
-            body = body
+            body = body,
+            consumedTokens = PopFrame()
         };
     }
     private Node While()
     {
+        StartNewFrame();
+        
         Consume(typeof(Token_BracketOpen), "Expected '(' before condition.");
         Node condition = Expression();
         Consume(typeof(Token_BracketClose), "Expected ')' after condition.");
@@ -560,11 +594,16 @@ public class AstraAST : ASTBuilder
         return new Node_While()
         {
             condition = condition,
-            body = body
+            body = body,
+            consumedTokens = PopFrame()
         };
     }
     private Node If()
     {
+        StartNewFrame();
+
+        Consume<Token_If>("Expected if statement");
+        
         Consume(typeof(Token_BracketOpen), "Expected '(' before condition.");
         Node condition = Expression();
         Consume(typeof(Token_BracketClose), "Expected ')' after condition.");
@@ -585,7 +624,8 @@ public class AstraAST : ASTBuilder
         {
             condition = condition,
             thenBranch = thenBranch,
-            elseBranch = elseBranch
+            elseBranch = elseBranch,
+            consumedTokens = PopFrame()
         };
     }
 
@@ -620,10 +660,12 @@ public class AstraAST : ASTBuilder
                     throw new Exception("This block has '}' but not '{'");
                 }
 
+                StartNewFrame();
                 Consume<Token_BlockClose>("Expected '}' after block");
                 return new Node_Block()
                 {
-                    children = nodes
+                    children = nodes,
+                    consumedTokens = PopFrame()
                 };
             }
         }
@@ -634,16 +676,25 @@ public class AstraAST : ASTBuilder
 
     private Node Property(Node target)
     {
+        StartNewFrame();
+
+        Consume<Token_Dot>("Expected '.' for property access");
+        
         Token_Identifier ident = Consume<Token_Identifier>("Expected field name");
 
         return new Node_FieldAccess()
         {
             target = target,
             targetFieldName = ident.name,
+            consumedTokens = PopFrame()
         };
     }
     private Node FinishCall(Node caller, Token_Identifier ident)
     {
+        StartNewFrame();
+
+        Consume<Token_BracketOpen>("Expected '(' for function call");
+        
         List<Node> arguments = new();
 
         if (Check(typeof(Token_BracketClose)) == false)
@@ -661,31 +712,37 @@ public class AstraAST : ASTBuilder
             functionName = ident == null ? "<anon>" : ident.name,
             caller = caller,
             arguments = arguments,
+            consumedTokens = PopFrame()
         };
     }
     private Node Primary()
     {
+        StartNewFrame();
+        
         if (Check<Token_Constant>() || Check<Token_Char>() || Check<Token_String>())
         {
             if (Check<Token_Char>())
             {
                 return new Node_Literal()
                 {
-                    constant = new("'" + Consume<Token_Char>("Expected char").value + "'")
+                    constant = new("'" + Consume<Token_Char>("Expected char").value + "'"),
+                    consumedTokens = PopFrame()
                 };
             }
             else if (Check<Token_String>())
             {
                 return new Node_Literal()
                 {
-                    constant = Consume<Token_String>("Expected string")
+                    constant = Consume<Token_String>("Expected string"),
+                    consumedTokens = PopFrame()
                 };
             }
             else
             {
                 return new Node_Literal()
                 {
-                    constant = Consume<Token_Constant>("Expected constant")
+                    constant = Consume<Token_Constant>("Expected constant"),
+                    consumedTokens = PopFrame()
                 };
             }
         }
@@ -694,7 +751,8 @@ public class AstraAST : ASTBuilder
         {
             return new Node_VariableUse()
             {
-                variableName = ((Token_Identifier)Previous()).name
+                variableName = ((Token_Identifier)Previous()).name,
+                consumedTokens = PopFrame()
             };
         }
 
@@ -705,25 +763,17 @@ public class AstraAST : ASTBuilder
             Consume(typeof(Token_BracketClose), "Expect ')' after expression.");
             return new Node_Grouping()
             {
-                expression = expr
+                expression = expr,
+                consumedTokens = PopFrame()
             };
         }
 
 
         if (Check(typeof(Token_Terminator)))
         {
-            //bool anyTerminatorSkipped = SkipTerminators();
-
-            //if (IsAtEnd()) return null;
-            //else if (anyTerminatorSkipped) return Declaration();
-
             return null;
         }
 
-        //throw new Exception($"Totally unexpected token '{Peek()}'");
         throw new TotallyUnexpectedTokenException(Peek());
     }
-
-
-    
 }

@@ -6,6 +6,8 @@ public class ASTBuilder
     protected int current;
     protected List<Node> statements;
 
+    private Stack<List<Token>> frames = new();
+
     protected bool Match<T>() where T : Token
     {
         ConsumeSpace(false);
@@ -59,7 +61,11 @@ public class ASTBuilder
     {
         ConsumeSpace(false);
 
-        if (IsAtEnd() == false) current++;
+        if (IsAtEnd() == false)
+        {
+            frames.Peek().Add(tokens[current]);
+            current++;
+        }
         return Previous();
     }
     protected bool IsAtEnd()
@@ -117,5 +123,15 @@ public class ASTBuilder
                 return;
             }
         }
+    }
+
+    protected void StartNewFrame()
+    {
+        frames.Push(new List<Token>());
+    }
+
+    protected List<Token> PopFrame()
+    {
+        return frames.Pop();
     }
 }

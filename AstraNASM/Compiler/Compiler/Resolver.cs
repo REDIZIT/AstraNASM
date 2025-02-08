@@ -167,22 +167,28 @@ public static class Resolver
             else if (node is Node_FieldAccess access)
             {
                 TypeInfo targetType = CalculateType(access.target, module);
+                access.targetType = targetType;
 
                 if (TryFindFunction(targetType, access.targetFieldName, module) == null && targetType is TypeInfo classInfo)
                 {
                     FieldInfo targetTypeField = TryFindField(classInfo, access.targetFieldName, module);
                     if (targetTypeField == null) throw new Exception($"Failed to find field '{access.targetFieldName}' inside type '{targetType}'");
-
-                    access.targetType = targetType;
+                    
                     access.field = targetTypeField;
                 }                
+            }
+            else if (node is Node_VariableUse varUse)
+            {
+                TypeInfo targetType = CalculateType(varUse, module);
+
+                varUse.type = targetType;
             }
         }
 
         return module;
     }
 
-    private static IEnumerable<Node> EnumerateAllNodes(List<Node> nodes)
+    public static IEnumerable<Node> EnumerateAllNodes(List<Node> nodes)
     {
         foreach (Node node in nodes)
         {
@@ -192,7 +198,7 @@ public static class Resolver
             }
         }
     }
-    private static IEnumerable<Node> EnumerateAllNodes(Node node)
+    public static IEnumerable<Node> EnumerateAllNodes(Node node)
     {
         yield return node;
 
