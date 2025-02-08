@@ -25,7 +25,7 @@
         }
         else
         {
-            string exampleNasmPath = "C:\\Users\\REDIZIT\\Documents\\GitHub\\Astra-Rider-extension\\vscode extension\\astralanguage\\test\\build\\example.nasm";
+            string exampleNasmPath = "C:/Users/REDIZIT/Documents/GitHub/AstraOS/main/vscode project/build/project.nasm";
             RunTest(exampleNasmPath, false, 1024);
 
             //string[] testFiles = Directory.GetFiles("../../../Tests");

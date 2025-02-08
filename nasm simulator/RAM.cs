@@ -1,16 +1,15 @@
 ﻿public class RAM
 {
-    //public byte[] bytes = new byte[0xB8000 + 80 * 25 * 2];
-    public Dictionary<long, byte> bytes = new();
+    public IAddressableMemory memory = new ArrayMemory();
 
     public Endianness endianness = Endianness.LittleEndian;
 
     public void WriteAs(long address, long value, int bytesToWrite)
     {
-        //if (address < 0 || address + bytesToWrite >= bytes.Length)
-        //{
-        //    throw new Exception($"Address 0x{address.ToString("X")} is out of RAM bounds.");
-        //}
+        if (memory.IsOutOfBounds(address, bytesToWrite))
+        {
+            throw new Exception($"Address 0x{address.ToString("X")} is out of RAM bounds.");
+        }
 
         byte[] valueBytes = BitConverter.GetBytes(value);
 
@@ -25,9 +24,8 @@
             {
                 int valueIndex = valueBytes.Length - bytesToWrite + i;
                 long addressIndex = address + i;
-            
-                //bytes[addressIndex] = valueBytes[valueIndex];
-                bytes[addressIndex] = valueBytes[valueIndex];
+                
+                memory.Write(addressIndex, valueBytes[valueIndex]);
             }
         }
         else
@@ -37,14 +35,14 @@
                 int valueIndex = i;
                 long addressIndex = address + i;
             
-                bytes[addressIndex] = valueBytes[valueIndex];
+                memory.Write(addressIndex, valueBytes[valueIndex]);
             }
         }
     }
 
     public void WriteByte(long address, byte value)
     {
-        bytes[address] = value;
+        memory.Write(address, value);
     }
 
     public void Write64(long address, long value)
@@ -54,14 +52,14 @@
         byte[] valueBytes = BitConverter.GetBytes(value);
         Endianyze(valueBytes);
 
-        bytes[address + 0] = valueBytes[0];
-        bytes[address + 1] = valueBytes[1];
-        bytes[address + 2] = valueBytes[2];
-        bytes[address + 3] = valueBytes[3];
-        bytes[address + 4] = valueBytes[4];
-        bytes[address + 5] = valueBytes[5];
-        bytes[address + 6] = valueBytes[6];
-        bytes[address + 7] = valueBytes[7];
+        memory.Write(address + 0, valueBytes[0]);
+        memory.Write(address + 1, valueBytes[1]);
+        memory.Write(address + 2, valueBytes[2]);
+        memory.Write(address + 3, valueBytes[3]);
+        memory.Write(address + 4, valueBytes[4]);
+        memory.Write(address + 5, valueBytes[5]);
+        memory.Write(address + 6, valueBytes[6]);
+        memory.Write(address + 7, valueBytes[7]);
     }
 
     public long ReadAs(long address, int bytesToRead)
@@ -72,12 +70,7 @@
 
         for (int i = 0; i < bytesToRead; i++)
         {
-            byte b = 0;
-            if (bytes.ContainsKey(address + i))
-            {
-                b = bytes[address + i]; ;
-            }
-            valueBytes[i] = b;
+            valueBytes[i] = memory.Read(address + i);
         }
         
         Endianyze(valueBytes);
@@ -89,26 +82,22 @@
 
         byte[] valueBytes = new byte[8];
 
-        valueBytes[0] = ReadByte(address + 0);
-        valueBytes[1] = ReadByte(address + 1);
-        valueBytes[2] = ReadByte(address + 2);
-        valueBytes[3] = ReadByte(address + 3);
-        valueBytes[4] = ReadByte(address + 4);
-        valueBytes[5] = ReadByte(address + 5);
-        valueBytes[6] = ReadByte(address + 6);
-        valueBytes[7] = ReadByte(address + 7);
-
-        //valueBytes[0] = bytes[address + 0];
-        //valueBytes[1] = bytes[address + 1];
-        //valueBytes[2] = bytes[address + 2];
-        //valueBytes[3] = bytes[address + 3];
-        //valueBytes[4] = bytes[address + 4];
-        //valueBytes[5] = bytes[address + 5];
-        //valueBytes[6] = bytes[address + 6];
-        //valueBytes[7] = bytes[address + 7];
+        valueBytes[0] = memory.Read(address + 0);
+        valueBytes[1] = memory.Read(address + 1);
+        valueBytes[2] = memory.Read(address + 2);
+        valueBytes[3] = memory.Read(address + 3);
+        valueBytes[4] = memory.Read(address + 4);
+        valueBytes[5] = memory.Read(address + 5);
+        valueBytes[6] = memory.Read(address + 6);
+        valueBytes[7] = memory.Read(address + 7);
 
         Endianyze(valueBytes);
         return BitConverter.ToInt64(valueBytes);
+    }
+
+    public byte ReadByte(long address)
+    {
+        return memory.Read(address);
     }
 
     public byte[] ReadBytes(long address, int count)
@@ -116,22 +105,14 @@
         byte[] slice = new byte[count];
         for (int i = 0; i < count; i++)
         {
-            slice[i] = bytes[address + i];
+            slice[i] = memory.Read(address + i);
         }
         return slice;
     }
-
-
-    public byte ReadByte(long address)
-    {
-        if (bytes.ContainsKey(address) == false) return 0;
-        return bytes[address];
-    }
-
+    
     public void Dump(string filepath)
     {
-        Console.Error.WriteLine("Dump is not available for Dictionary<long, byte> bytes");
-        //File.WriteAllBytes(filepath, bytes);
+        memory.Dump(filepath);
     }
 
     private void Endianyze(byte[] bytes)
