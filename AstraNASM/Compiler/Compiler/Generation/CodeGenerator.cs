@@ -262,7 +262,8 @@ public class CodeGenerator
         if (fieldOffset < 0) throw new Exception("Negative fieldOffset is not allowed.");
         
         // Load from ram address to ref-type inside heap
-        b.Line($"mov rbx, [rbp{baseOffset}]");
+        string rbp = baseOffset > 0 ? "+" + baseOffset : baseOffset.ToString();
+        b.Line($"mov rbx, [rbp{rbp}]");
         
         // If we accessing not first field
         if (fieldOffset != 0)
@@ -354,33 +355,33 @@ public class CodeGenerator
         }
         else if (@operator is Token_BitOperator)
         {
-            this.b.Line($"mov rbx, {b.RBP}");
-            this.b.Line($"mov {result.RBP}, {a.RBP}");
+            this.b.Line($"mov rdx, {a.RBP}");
             
             if (@operator.asmOperatorName == ">>" || @operator.asmOperatorName == "<<")
             {
+                this.b.Line($"mov rcx, {b.RBP}");
                 if (@operator.asmOperatorName == ">>")
                 {
-                    this.b.Line($"shr {result.RBP}, rbx");
+                    this.b.Line($"shr rdx, cl");
                 }
                 else
                 {
-                    this.b.Line($"shl {result.RBP}, rbx"); 
+                    this.b.Line($"shl rdx, cl"); 
                 }
             }
             else
             {
                 this.b.Line($"mov rbx, {b.RBP}");
-                this.b.Line($"mov {result.RBP}, {a.RBP}");
                 if (@operator.asmOperatorName == "&")
                 {
-                    this.b.Line($"and {result.RBP}, rbx");
+                    this.b.Line($"and rdx, rbx");
                 }
                 else
                 {
-                    this.b.Line($"or {result.RBP}, rbx"); 
+                    this.b.Line($"or rdx, rbx"); 
                 }
             }
+            this.b.Line($"mov {result.RBP}, rdx");
         }
         else
         {
@@ -538,6 +539,11 @@ public class CodeGenerator
     public void BufferString(string str)
     {
         b.Line($"str_{str.Replace(' ', '_')} db {str.Length}, \"{str}\", 0");
+    }
+
+    public void Extern(string variableName)
+    {
+        b.Line($"extern {variableName}");
     }
     
     public void Space(int lines = 1)

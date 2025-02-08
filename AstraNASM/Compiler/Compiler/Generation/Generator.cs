@@ -55,6 +55,13 @@ public static class Generator
                 b = new()
             }
         };
+
+
+        foreach (Node node in statements)
+        {
+            InjectEnvironmentVariables(node, ctx.gen);
+        }
+        
         
         
         if (module.strings.Count > 0)
@@ -96,5 +103,26 @@ public static class Generator
         }
 
         return string.Join('\n', lines);
+    }
+
+    private static void InjectEnvironmentVariables(Node node, CodeGenerator gen)
+    {
+        if (node is Node_VariableDeclaration decl)
+        {
+            if (decl.fieldInfo.name == "_binary_font_psf_start")
+            {
+                decl.initValue = new Node_Literal()
+                {
+                    constant = new Token_Constant("_binary_font_psf_start")
+                };
+
+                gen.Extern(decl.fieldInfo.name);
+            }
+        }
+        
+        foreach (Node child in node.EnumerateChildren())
+        {
+            InjectEnvironmentVariables(child, gen);
+        }
     }
 }
