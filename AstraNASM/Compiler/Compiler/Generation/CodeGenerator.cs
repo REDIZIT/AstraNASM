@@ -13,6 +13,8 @@ public class CodeGenerator
     private Stack<Variable> variableStack = new();
     private int anonVariableNameIndex;
 
+    private int addressOfHeapSize = 0x100; // On this address located a long, that describes the heap size
+    private int heapBaseAddress = 0x110; // The start (zero address) of heap
 
     public void Label(string labelName)
     {
@@ -138,16 +140,6 @@ public class CodeGenerator
 
         return variable;
     }
-    //public void PushRSP()
-    //{
-    //    rbpOffset -= 8;
-    //    b.Line($"push rsp ; allocate saver at [rbp{rbpOffset}]");
-    //}
-    //public void PopRSP()
-    //{
-    //    rbpOffset += 8;
-    //    b.Line($"pop rsp ; deallocate saver at [rbp{rbpOffset}]");
-    //}
 
     public int AllocateRSPSaver()
     {
@@ -193,14 +185,31 @@ public class CodeGenerator
     {
         b.Line($"add rsp, {sizeInBytes}");
     }
+    
+    public void AllocateHeap(Variable storageOfPointerToHeap, Variable bytesToAllocateVariable)
+    {
+        AllocateHeap(storageOfPointerToHeap);
+        
+        b.Line($"add rbx, {bytesToAllocateVariable.RBP}");
+        b.Line($"mov [{addressOfHeapSize}], rbx");
+    }
+    public void AllocateHeap(Variable storageOfPointerToHeap, int bytesToAllocate)
+    {
+        AllocateHeap(storageOfPointerToHeap);
+        
+        b.Line($"add rbx, {bytesToAllocate}");
+        b.Line($"mov [{addressOfHeapSize}], rbx");
+    }
 
-    public void AllocateHeap(Variable storageOfPointerToHeap)
+    private void AllocateHeap(Variable storageOfPointerToHeap)
     {
         b.CommentLine($"heap alloc");
-        b.Line($"mov qword {storageOfPointerToHeap.RBP}, 0x110"); // result.RBP - pointer to object table, 0x110 - pointer to real data
-        b.Line($"mov rbx, [0x100]");
-        b.Line($"add rbx, 1");
-        b.Line($"mov [0x100], rbx");
+        b.Line($"mov rbx, [{addressOfHeapSize}]"); // rbx - next heap byte address
+        
+        b.Line($"mov rdx, {heapBaseAddress}"); // rbx - next heap byte address
+        b.Line($"add rdx, rbx");
+        
+        b.Line($"mov qword {storageOfPointerToHeap.RBP}, rdx");
     }
 
     public Variable Register_FunctionArgumentVariable(FieldInfo info, int index)

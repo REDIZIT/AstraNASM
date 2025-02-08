@@ -172,6 +172,14 @@ public class Node_FunctionCall : Node
 
             result = stringLength.Generate(ctx, stringVariable);
         }
+        else if (embeddedFunctionInfo is Alloc_EmbeddedFunctionInfo alloc)
+        {
+            Node bytesCountNode = arguments[0];
+            bytesCountNode.Generate(ctx);
+            Variable bytesCountVariable = bytesCountNode.result;
+
+            result = alloc.Generate(ctx, bytesCountVariable);
+        }
         else
         {
             throw new Exception($"Unknown EmbeddedFunctionInfo '{embeddedFunctionInfo}'");

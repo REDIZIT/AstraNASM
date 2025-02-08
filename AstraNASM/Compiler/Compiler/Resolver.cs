@@ -272,6 +272,10 @@ public static class Resolver
                 // Example: Console.
                 return type;
             }
+            else if (name == "alloc")
+            {
+                return PrimitiveTypes.PTR;
+            }
             else
             {
                 // Access to variable
@@ -478,6 +482,18 @@ public static class Resolver
         if (functionName == "to_ptr")
         {
             return (module.GetType("ptr")).functions.First(f => f.name == "to_ptr");
+        }
+
+        if (functionName == "alloc")
+        {
+            return new Alloc_EmbeddedFunctionInfo()
+            {
+                name = "alloc",
+                owner = null,
+                isStatic = true,
+                arguments = new List<FieldInfo>() { new FieldInfo(PrimitiveTypes.INT, "bytesCount" )},
+                returns = new List<TypeInfo>() { PrimitiveTypes.PTR }
+            };
         }
 
         return null;

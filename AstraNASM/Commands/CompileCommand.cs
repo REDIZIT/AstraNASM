@@ -121,8 +121,8 @@ public class CompileCommand : ConsoleCommand
     }
     private int CompileProject()
     {
-        try
-        {
+        // try
+        // {
             if (string.IsNullOrEmpty(inputPath))
             {
                 inputPath = Environment.CurrentDirectory;
@@ -147,12 +147,12 @@ public class CompileCommand : ConsoleCommand
 
             PrintSuccess();
             return 0;
-        }
-        catch (Exception err)
-        {
-            PrintFail(err);
-            return 1;
-        }
+        // }
+        // catch (Exception err)
+        // {
+        //     PrintFail(err);
+        //     return 1;
+        // }
     }
 
     private void Compile(string astraFilePath, string nasmFilePath)

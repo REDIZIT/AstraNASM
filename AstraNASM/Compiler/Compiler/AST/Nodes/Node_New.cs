@@ -25,7 +25,7 @@ public class Node_New : Node
         // If ref type
         if (classInfo.isStruct == false)
         {
-            ctx.gen.AllocateHeap(result);
+            ctx.gen.AllocateHeap(result, 8);
         }
     }
 }
