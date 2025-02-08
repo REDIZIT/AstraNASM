@@ -375,20 +375,41 @@ public static class Resolver
             returns = new(),
             owner = ptrInfo
         };
-        FunctionInfo get = new PtrGet_EmbeddedFunctionInfo()
+        FunctionInfo get_byte = new PtrGet_Byte()
         {
-            name = "get",
-            arguments = new(),
-            returns = new() { classInfoByName["int"] },
+            name = "get_byte",
+            returns = new() { PrimitiveTypes.BYTE },
             owner = ptrInfo
         };
+        FunctionInfo get_short = new PtrGet_Byte()
+        {
+            name = "get_short",
+            returns = new() { PrimitiveTypes.SHORT },
+            owner = ptrInfo
+        };
+        FunctionInfo get_int = new PtrGet_Byte()
+        {
+            name = "get_int",
+            returns = new() { PrimitiveTypes.INT },
+            owner = ptrInfo
+        };
+        FunctionInfo get_long = new PtrGet_Byte()
+        {
+            name = "get_long",
+            returns = new() { PrimitiveTypes.LONG },
+            owner = ptrInfo
+        };
+        
 
         ptrInfo.functions = new() 
         {
             toPtr,
             shift,
             set,
-            get
+            get_byte,
+            get_short,
+            get_int,
+            get_long,
         };
 
         
