@@ -14,7 +14,6 @@ public class ErrorLogger
 
 public class LogEntry
 {
-    //public int tokenBeginIndex, tokenEndIndex;
     public Token token;
     public string message;
 }

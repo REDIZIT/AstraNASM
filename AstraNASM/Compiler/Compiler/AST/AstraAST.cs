@@ -53,8 +53,6 @@ public class AstraAST : ASTBuilder
         {
             entry = new LogEntry()
             {
-                //tokenBeginIndex = current,
-                //tokenEndIndex = current,
                 token = tokens[current],
                 message = messageText
             };
@@ -65,8 +63,6 @@ public class AstraAST : ASTBuilder
 
             entry = new LogEntry()
             {
-                //tokenBeginIndex = tokenIndex,
-                //tokenEndIndex = tokenIndex,
                 token = tokens[tokenIndex],
                 message = messageText
             };
@@ -519,6 +515,8 @@ public class AstraAST : ASTBuilder
     private Node New()
     {
         StartNewFrame();
+
+        Consume<Token_New>("Expected 'new' keyword");
         
         Token_Identifier ident = Consume<Token_Identifier>("Expected ref type name");
 
@@ -557,6 +555,8 @@ public class AstraAST : ASTBuilder
     private Node For()
     {
         StartNewFrame();
+
+        Consume<Token_For>("Expected 'for' keyword");
         
         Consume(typeof(Token_BracketOpen), "Expected '(' after 'for'");
         Node declaration = Declaration();
@@ -583,6 +583,8 @@ public class AstraAST : ASTBuilder
     {
         StartNewFrame();
         
+        Consume<Token_For>("Expected 'while' keyword");
+        
         Consume(typeof(Token_BracketOpen), "Expected '(' before condition.");
         Node condition = Expression();
         Consume(typeof(Token_BracketClose), "Expected ')' after condition.");
@@ -602,7 +604,7 @@ public class AstraAST : ASTBuilder
     {
         StartNewFrame();
 
-        Consume<Token_If>("Expected if statement");
+        Consume<Token_If>("Expected 'if' keyword");
         
         Consume(typeof(Token_BracketOpen), "Expected '(' before condition.");
         Node condition = Expression();
