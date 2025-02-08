@@ -190,13 +190,16 @@ public class CodeGenerator
     {
         AllocateHeap(storageOfPointerToHeap);
         
-        b.Line($"add rbx, {bytesToAllocateVariable.RBP}");
+        b.Line($"mov rbx, [{addressOfHeapSize}]"); 
+        b.Line($"mov rdx, {bytesToAllocateVariable.RBP}");
+        b.Line($"add rbx, [rdx]"); // TODO: Why double depoint required? Think about that in daytime
         b.Line($"mov [{addressOfHeapSize}], rbx");
     }
     public void AllocateHeap(Variable storageOfPointerToHeap, int bytesToAllocate)
     {
         AllocateHeap(storageOfPointerToHeap);
         
+        b.Line($"mov rbx, [{addressOfHeapSize}]");
         b.Line($"add rbx, {bytesToAllocate}");
         b.Line($"mov [{addressOfHeapSize}], rbx");
     }
@@ -206,7 +209,7 @@ public class CodeGenerator
         b.CommentLine($"heap alloc");
         b.Line($"mov rbx, [{addressOfHeapSize}]"); // rbx - next heap byte address
         
-        b.Line($"mov rdx, {heapBaseAddress}"); // rbx - next heap byte address
+        b.Line($"mov rdx, {heapBaseAddress}");
         b.Line($"add rdx, rbx");
         
         b.Line($"mov qword {storageOfPointerToHeap.RBP}, rdx");
