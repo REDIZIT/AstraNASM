@@ -269,7 +269,7 @@ public class CodeGenerator
     }
 
 
-    public void FieldAccess(int baseOffset, int fieldOffset, Variable result, bool isGetter)
+    public void FieldAccess(int baseOffset, TypeInfo fieldType, int fieldOffset, Variable result, bool isGetter)
     {
         if (fieldOffset < 0) throw new Exception("Negative fieldOffset is not allowed.");
         
@@ -290,11 +290,17 @@ public class CodeGenerator
         if (isGetter)
         {
             // Depoint rbx to get actual field value
-            b.Line($"mov rbx, [rbx] ; depoint one more time due to getter");
+            
+            string nasmType = Utils.GetNASMType(fieldType);
+            b.Line($"mov {nasmType} {Utils.ClampRegister(nasmType, "rbx")}, [rbx] ; depoint one more time due to getter");
+            
+            // b.Line($"mov rbx, [rbx] ; depoint one more time due to getter");
         }
         
         // Put result (ref for setter and value for getter) inside result variable
         b.Line($"mov {result.RBP}, rbx");
+        
+        
     }
 
 

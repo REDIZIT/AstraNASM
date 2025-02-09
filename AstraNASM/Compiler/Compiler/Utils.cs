@@ -11,6 +11,18 @@ public static class Utils
 
         throw new Exception($"Failed to clamp register for nasm type '{nasmType}'");
     }
+    
+    public static string ClampRegister(string nasmType, string regName)
+    {
+        if (regName.Length != 3) throw new Exception($"Failed to clamp register '{regName}' due to it is not size of 3");
+
+        if (nasmType == "byte") return regName[1] + "l";        // al,  bl,  cl,  dl
+        if (nasmType == "word") return regName[1] + "x";        // ax,  bx,  cx,  dx
+        if (nasmType == "dword") return "e" + regName[1] + "x"; // eax, ebx, ecx, edx
+        if (nasmType == "qword") return "r" + regName[1] + "x"; // rax, rbx, rcx, rdx
+
+        throw new Exception($"Failed to clamp register for nasm type '{nasmType}'");
+    }
 
     public static string GetNASMType(TypeInfo t)
     {

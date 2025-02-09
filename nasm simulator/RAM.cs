@@ -66,7 +66,7 @@
     {
         //if (address < 0 || address + bytesToRead >= bytes.Count) throw new Exception($"Address 0x{address.ToString("X")} is out of RAM bounds.");
 
-        byte[] valueBytes = new byte[bytesToRead];
+        byte[] valueBytes = new byte[8]; // 8 bytes for long
 
         for (int i = 0; i < bytesToRead; i++)
         {

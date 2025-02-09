@@ -92,6 +92,9 @@ public class Lexer
         currentLine = linedCurrentPos = 0;
 
         lexicalState = initialState;
+        
+        isCollectingMultilineComment = false;
+        multilineCommentOpenningLength = 0;
 
         //Console.WriteLine($"Lexer got {chars.Count} chars, {start}:{end} with state {initialState}");
     }

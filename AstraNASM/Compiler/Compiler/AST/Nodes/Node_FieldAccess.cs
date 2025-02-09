@@ -69,7 +69,7 @@ public class Node_FieldAccess : Node
             // (getter) result - variable
             
             result = ctx.gen.Allocate(PrimitiveTypes.PTR);
-            ctx.gen.FieldAccess(target.result.rbpOffset, fieldOffsetInBytes, result, isGetter);
+            ctx.gen.FieldAccess(target.result.rbpOffset, field.type, fieldOffsetInBytes, result, isGetter);
         }
     }
 }
