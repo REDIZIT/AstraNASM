@@ -16,7 +16,7 @@ public class CodeGenerator
     private int addressOfHeapSize = 0x100; // On this address located a long, that describes the heap size
     private int heapBaseAddress = 0x110; // The start (zero address) of heap
     
-    private int thrownExceptionAddress = 0x400;
+    private int thrownExceptionAddress = 0x104000;
     private int exceptionsHandlersStackAddress => thrownExceptionAddress + 8;
 
     public void Label(string labelName)
@@ -558,7 +558,7 @@ public class CodeGenerator
         
         b.Line($"mov rdx, rbx");
         b.Line($"add rdx, {addressOfStackBegin}");
-        b.Line($"mov [rdx], {catchLabel}");
+        b.Line($"mov qword [rdx], {catchLabel}");
         
         b.Line($"add rbx, 8");
         b.Line($"mov [{addressOfStackSize}], rbx");
@@ -576,7 +576,8 @@ public class CodeGenerator
         
         // Place exception into memory
         b.Line($"mov rdx, {addressOfException}");
-        b.Line($"mov [rdx], {exception.RBP}");
+        b.Line($"mov rbx, {exception.RBP}");
+        b.Line($"mov [rdx], rbx");
         
         // Pop stack
         b.Line($"mov rbx, [{addressOfStackSize}]");
@@ -587,9 +588,6 @@ public class CodeGenerator
         
         b.Line($"add rbx, {addressOfStackBegin}");
         b.Line($"mov rbx, [rbx]");
-        
-        b.Line($"print \"jump to\"");
-        b.Line($"print rbx");
         
         b.Line($"jmp rbx");
         b.Space();
@@ -605,9 +603,9 @@ public class CodeGenerator
     {
         b.Line("section .text");
     }
-    public void BufferString(string str)
+    public void BufferString(string id, string value)
     {
-        b.Line($"str_{str.Replace(' ', '_')} db {str.Length}, \"{str}\", 0");
+        b.Line($"{id} db {value.Length}, \"{value}\", 0");
     }
 
     public void Extern(string variableName)

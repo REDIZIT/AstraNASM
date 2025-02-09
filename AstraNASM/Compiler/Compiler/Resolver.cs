@@ -129,8 +129,7 @@ public static class Resolver
             {
                 if (lit.constant is Token_String)
                 {
-                    module.strings.Add(lit.constant.value);
-                    lit.constant.value = "str_" + lit.constant.value.Replace(' ', '_');
+                    lit.constant.value = module.RegisterString(lit.constant.value);
                 }
             }
         }

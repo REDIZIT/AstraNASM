@@ -64,13 +64,13 @@ public static class Generator
         
         
         
-        if (module.strings.Count > 0)
+        if (module.stringValueByID.Count > 0)
         {
             ctx.gen.SectionData();
             
-            foreach (string str in module.strings)
+            foreach (KeyValuePair<string, string> kv in module.stringValueByID)
             {
-                ctx.gen.BufferString(str);
+                ctx.gen.BufferString(kv.Key, kv.Value);
             }
 
             ctx.gen.Space(1);
