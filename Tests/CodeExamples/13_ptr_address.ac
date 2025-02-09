@@ -6,11 +6,14 @@ class program
 	    ptr b = new ptr()
 	    
 	    a.address = 123
-	    a.set(777)
+	    
+	    int value = 777
+	    
+	    a.set(value)
 	    
 	    b.address = 123
 	    
-	    return b.get()
+	    return b.get_int()
 	}
 }
 

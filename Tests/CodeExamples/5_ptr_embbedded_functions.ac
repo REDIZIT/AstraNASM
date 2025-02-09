@@ -8,7 +8,7 @@ class program
 
 		pointer.set(123)
 
-		int b = pointer.get()
+		int b = pointer.get_int()
 
 		return b
 	}

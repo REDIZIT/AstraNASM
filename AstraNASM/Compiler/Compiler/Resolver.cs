@@ -381,19 +381,19 @@ public static class Resolver
             returns = new() { PrimitiveTypes.BYTE },
             owner = ptrInfo
         };
-        FunctionInfo get_short = new PtrGet_Byte()
+        FunctionInfo get_short = new PtrGet_Short()
         {
             name = "get_short",
             returns = new() { PrimitiveTypes.SHORT },
             owner = ptrInfo
         };
-        FunctionInfo get_int = new PtrGet_Byte()
+        FunctionInfo get_int = new PtrGet_Int()
         {
             name = "get_int",
             returns = new() { PrimitiveTypes.INT },
             owner = ptrInfo
         };
-        FunctionInfo get_long = new PtrGet_Byte()
+        FunctionInfo get_long = new PtrGet_Long()
         {
             name = "get_long",
             returns = new() { PrimitiveTypes.LONG },

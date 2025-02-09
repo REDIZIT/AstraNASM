@@ -10,7 +10,7 @@ class program
 	    
 	    b.address = 0x60
 	    
-	    return b.get()
+	    return b.get_int()
 	}
 }
 

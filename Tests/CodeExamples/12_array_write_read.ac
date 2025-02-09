@@ -34,7 +34,7 @@ class Array
 		ptr pointer = self.to_ptr()
 		pointer.shift(index * 8)
 
-		return pointer.get()
+		return pointer.get_long()
 	}
 }
 

@@ -583,7 +583,7 @@ public class AstraAST : ASTBuilder
     {
         StartNewFrame();
         
-        Consume<Token_For>("Expected 'while' keyword");
+        Consume<Token_While>("Expected 'while' keyword");
         
         Consume(typeof(Token_BracketOpen), "Expected '(' before condition.");
         Node condition = Expression();

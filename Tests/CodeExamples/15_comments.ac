@@ -19,7 +19,7 @@ class program
 		---
 		p.set(c)
 
-		return p.get()
+		return p.get_int()
 	}
 }
 

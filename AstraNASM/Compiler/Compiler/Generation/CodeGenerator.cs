@@ -456,7 +456,7 @@ public class CodeGenerator
     {
         string nasmType = Utils.GetNASMType(result.type);
         
-        Comment("Ptr get");
+        Comment($"Ptr get");
         b.Line($"mov rbx, {pointerVariable.RBP}");
         b.Line($"mov rdx, [rbx]");
         b.Line($"mov {nasmType} {result.RBP}, {Utils.ClampRegister(nasmType)}");
