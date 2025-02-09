@@ -182,6 +182,13 @@ public static class Resolver
 
                 varUse.type = targetType;
             }
+            else if (node is Node_TryCatch tryCatch)
+            {
+                if (tryCatch.exceptionRawVariable != null)
+                {
+                    tryCatch.exceptionVariableType = module.classInfoByName[tryCatch.exceptionRawVariable.rawType];
+                }
+            }
         }
 
         return module;
@@ -235,6 +242,14 @@ public static class Resolver
             foreach (FieldInfo argument in func.functionInfo.arguments)
             {
                 scope.variables.Add(argument);
+            }
+        }
+        else if (node is Node_TryCatch tryCatch)
+        {
+            if (tryCatch.exceptionRawVariable != null)
+            {
+                scope.variables.Add(new FieldInfo(tryCatch.exceptionVariableType, tryCatch.exceptionRawVariable.name));
+                Console.WriteLine("Register scope for " + tryCatch.exceptionRawVariable.name);
             }
         }
 

@@ -2,6 +2,8 @@
 
 public class CodeGenerator
 {
+    public int ExceptionPointerAddress => thrownExceptionAddress;
+    
     public CodeGenerator parent;
     public List<CodeGenerator> children = new();
     
@@ -232,7 +234,6 @@ public class CodeGenerator
 
         return variable;
     }
-
     public void Unregister_FunctionArgumentVariable(Variable variable)
     {
         variableByName.Remove(variable.name);
@@ -247,6 +248,12 @@ public class CodeGenerator
     public void SetValue(Variable destination, Variable value)
     {
         b.Line($"mov qword rbx, {value.RBP}");
+        b.Line($"mov qword {destination.RBP}, rbx");
+    }
+    
+    public void SetValue(Variable destination, int address)
+    {
+        b.Line($"mov qword rbx, [{address}]");
         b.Line($"mov qword {destination.RBP}, rbx");
     }
 

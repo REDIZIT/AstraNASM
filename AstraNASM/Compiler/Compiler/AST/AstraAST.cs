@@ -568,6 +568,30 @@ public class AstraAST : ASTBuilder
         ConsumeSpace(true);
         Consume<Token_Catch>("Expected 'catch' keyword");
 
+
+        VariableRawData exceptionVariable = null;
+        
+        ConsumeSpace(false);
+        if (Check<Token_BracketOpen>())
+        {
+            Consume<Token_BracketOpen>("Expected '(' before catch exception declaration");
+
+            ConsumeSpace(false);
+            Token_Identifier typeToken = Consume<Token_Identifier>("Expected type of exception variable");
+            
+            ConsumeSpace(false);
+            Token_Identifier nameToken = Consume<Token_Identifier>("Expected name of exception variable");
+            
+            ConsumeSpace(false);
+            Consume<Token_BracketClose>("Expected ')' after catch exception declaration");
+
+            exceptionVariable = new VariableRawData()
+            {
+                rawType = typeToken.name,
+                name = nameToken.name
+            };
+        }
+
         ConsumeSpace(true);
         Consume<Token_BlockOpen>("Expected '{' before catch block");
         Node catchBlock = Block();
@@ -576,6 +600,7 @@ public class AstraAST : ASTBuilder
         {
             tryBlock = tryBlock,
             catchBlock = catchBlock,
+            exceptionRawVariable = exceptionVariable,
             consumedTokens = PopFrame()
         };
     }
