@@ -10,7 +10,6 @@ public class Lexer
     public int startRead;
     public int endRead;
     public int markedPos;
-    public int lexicalState;
 
     public int beginLine;
     public int currentLine;
@@ -33,6 +32,9 @@ public class Lexer
         { "class", typeof(Token_Class) },
         { "new", typeof(Token_New) },
         { "static", typeof(Token_Static) },
+        { "try", typeof(Token_Try) },
+        { "catch", typeof(Token_Catch) },
+        { "throw", typeof(Token_Throw) },
     };
     private static Dictionary<string, Type> tokenTypeBySingleChar = new Dictionary<string, Type>()
     {
@@ -90,8 +92,6 @@ public class Lexer
         endRead = end;
 
         currentLine = linedCurrentPos = 0;
-
-        lexicalState = initialState;
         
         isCollectingMultilineComment = false;
         multilineCommentOpenningLength = 0;

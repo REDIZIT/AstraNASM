@@ -143,3 +143,13 @@ public class Token_String(string value) : Token_Constant(value);
 public class Token_Static() : Token
 {
 }
+
+public class Token_Try() : Token
+{
+}
+public class Token_Catch() : Token
+{
+}
+public class Token_Throw() : Token
+{
+}

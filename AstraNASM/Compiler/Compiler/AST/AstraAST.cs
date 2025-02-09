@@ -131,6 +131,8 @@ public class AstraAST : ASTBuilder
         if (Check<Token_While>()) return While();
         if (Check<Token_For>()) return For();
         if (Check<Token_Return>()) return Return();
+        if (Check<Token_Try>()) return TryCatch();
+        if (Check<Token_Throw>()) return Throw();
 
         return Expression();
     }
@@ -552,6 +554,47 @@ public class AstraAST : ASTBuilder
             };
         }
     }
+
+    private Node TryCatch()
+    {
+        StartNewFrame();
+
+        Consume<Token_Try>("Expected 'try' keyword");
+        
+        ConsumeSpace(true);
+        Consume<Token_BlockOpen>("Expected '{' before try block");
+        Node tryBlock = Block();
+
+        ConsumeSpace(true);
+        Consume<Token_Catch>("Expected 'catch' keyword");
+
+        ConsumeSpace(true);
+        Consume<Token_BlockOpen>("Expected '{' before catch block");
+        Node catchBlock = Block();
+
+        return new Node_TryCatch()
+        {
+            tryBlock = tryBlock,
+            catchBlock = catchBlock,
+            consumedTokens = PopFrame()
+        };
+    }
+
+    private Node Throw()
+    {
+        StartNewFrame();
+
+        Consume<Token_Throw>("Expected 'throw' keyword");
+
+        Node exception = Declaration();
+
+        return new Node_Throw()
+        {
+            exception = exception,
+            consumedTokens = PopFrame()
+        };
+    }
+    
     private Node For()
     {
         StartNewFrame();

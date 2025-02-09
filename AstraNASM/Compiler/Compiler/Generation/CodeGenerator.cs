@@ -15,6 +15,9 @@ public class CodeGenerator
 
     private int addressOfHeapSize = 0x100; // On this address located a long, that describes the heap size
     private int heapBaseAddress = 0x110; // The start (zero address) of heap
+    
+    private int thrownExceptionAddress = 0x400;
+    private int exceptionsHandlersStackAddress => thrownExceptionAddress + 8;
 
     public void Label(string labelName)
     {
@@ -542,6 +545,54 @@ public class CodeGenerator
     public void Call(string functionName)
     {
         b.Line($"call {functionName}");
+    }
+
+    public void PushExceptionHandler(string catchLabel)
+    {
+        string addressOfStackSize = $"0x{exceptionsHandlersStackAddress.ToString("x")}";
+        string addressOfStackBegin = $"0x{(exceptionsHandlersStackAddress + 8).ToString("x")}";
+        
+        b.Space();
+        b.CommentLine($"Push exception handler: catch '{catchLabel}'");
+        b.Line($"mov rbx, [{addressOfStackSize}]");
+        
+        b.Line($"mov rdx, rbx");
+        b.Line($"add rdx, {addressOfStackBegin}");
+        b.Line($"mov [rdx], {catchLabel}");
+        
+        b.Line($"add rbx, 8");
+        b.Line($"mov [{addressOfStackSize}], rbx");
+        b.Space();
+    }
+
+    public void ThrowException(Variable exception)
+    {
+        b.Space();
+        b.CommentLine($"Throw exception");
+        
+        string addressOfStackSize = $"0x{exceptionsHandlersStackAddress.ToString("x")}";
+        string addressOfStackBegin = $"0x{(exceptionsHandlersStackAddress + 8).ToString("x")}";
+        string addressOfException = $"0x{(thrownExceptionAddress).ToString("x")}";
+        
+        // Place exception into memory
+        b.Line($"mov rdx, {addressOfException}");
+        b.Line($"mov [rdx], {exception.RBP}");
+        
+        // Pop stack
+        b.Line($"mov rbx, [{addressOfStackSize}]");
+        
+        // b.Line($"mov rbx, rdx");
+        b.Line($"sub rbx, 8");
+        b.Line($"mov [{addressOfStackSize}], rbx");
+        
+        b.Line($"add rbx, {addressOfStackBegin}");
+        b.Line($"mov rbx, [rbx]");
+        
+        b.Line($"print \"jump to\"");
+        b.Line($"print rbx");
+        
+        b.Line($"jmp rbx");
+        b.Space();
     }
 
 

@@ -8,6 +8,7 @@ public class Simulator
     public DataSection data;
 
     public long currentInstructionPointer;
+    public long totalInstructionsExecuted;
 
     public const bool FILL_ZERO_ON_POP = true;
 
@@ -38,6 +39,7 @@ public class Simulator
         {
             Execute(instructions[(int)currentInstructionPointer]);
             currentInstructionPointer++;
+            totalInstructionsExecuted++;
         }
 
         ram.Dump(ramDumpFilepath);
@@ -108,7 +110,7 @@ public class Simulator
         }
         else if (cmd.StartsWith("j"))
         {
-            int.TryParse(args[1], out int absAddress);
+            long absAddress = Utils.ParseDec(args[1], regs);
 
             if (cmd == "jmp")
             {
