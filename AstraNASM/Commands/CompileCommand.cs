@@ -158,8 +158,8 @@ public class CompileCommand : ConsoleCommand
     private void Compile(string astraFilePath, string nasmFilePath)
     {
         string fileContent = File.ReadAllText(astraFilePath);
-        string nasmCode = Compiler.Compile_Astra_to_NASM(fileContent, target);
-        File.WriteAllText(nasmFilePath, nasmCode);
+        byte[] data = Compiler.Compile_Astra_to_NASM(fileContent, target);
+        File.WriteAllBytes(nasmFilePath, data);
     }
     private void Compile(List<string> astraFiles, string nasmFilePath)
     {
@@ -170,8 +170,8 @@ public class CompileCommand : ConsoleCommand
             astraFileContent.Add(File.ReadAllText(path));
         }
 
-        string nasmCode = Compiler.Compile_AstraProject(astraFileContent, target);
-        File.WriteAllText(nasmFilePath, nasmCode);
+        byte[] code = Compiler.Compile_AstraProject(astraFileContent, target);
+        File.WriteAllBytes(nasmFilePath, code);
     }
 
     private void PrintSuccess()

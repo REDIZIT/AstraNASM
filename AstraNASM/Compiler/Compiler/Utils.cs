@@ -33,4 +33,16 @@ public static class Utils
 
         throw new Exception($"Failed to get nasm type for type '{t}'");
     }
+
+    public static byte GetSizeInBytes(TypeInfo t)
+    {
+        switch (GetNASMType(t))
+        {
+            case "byte": return 1;
+            case "word": return 2;
+            case "dword": return 4;
+            case "qword": return 8;
+            default: throw new Exception($"Failed to get size in bytes for type '{t}'");
+        }
+    }
 }

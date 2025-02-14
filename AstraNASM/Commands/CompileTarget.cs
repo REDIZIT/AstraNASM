@@ -1,5 +1,6 @@
 ﻿public enum CompileTarget
 {
     Simulator,
-    NASM
+    NASM,
+    AVM
 }

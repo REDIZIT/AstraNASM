@@ -25,9 +25,11 @@ public class FileTests
         string code = testContent.Substring(0, testIndex).Trim();
         string returnResult = testContent.Substring(testIndex + 3, testContent.Length - testIndex - 3).Trim();
 
+
+
+        byte[] data = Compilation.Compiler.Compile_Astra_to_NASM(code, CompileTarget.Simulator);
         
-        
-        string[] nasm = Compilation.Compiler.Compile_Astra_to_NASM(code, CompileTarget.Simulator).Split('\n');
+        string[] nasm = Encoding.UTF8.GetString(data).Split('\n');
 
 
         Simulator sim = new();

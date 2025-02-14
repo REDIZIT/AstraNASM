@@ -9,6 +9,9 @@
 
   <ItemGroup>
     <Compile Remove="Tests\**" />
+    <Compile Include="..\..\Astra-VM\AVM\OpCode.cs">
+      <Link>OpCode.cs</Link>
+    </Compile>
     <EmbeddedResource Remove="Tests\**" />
     <None Remove="Tests\**" />
   </ItemGroup>

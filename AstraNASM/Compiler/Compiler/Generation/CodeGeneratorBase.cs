@@ -1,27 +1,24 @@
-﻿namespace Astra.Compilation;
+﻿using System.Text;
 
-public class CodeGenerator
+namespace Astra.Compilation;
+
+public abstract class CodeGeneratorBase
 {
-    public int ExceptionPointerAddress => thrownExceptionAddress;
-    
-    public CodeGenerator parent;
-    public List<CodeGenerator> children = new();
-    
+    public CodeGeneratorBase parent;
+    public List<CodeGeneratorBase> children = new();
     public CodeStringBuilder b;
-    private int rbpOffset;
-
-    private Dictionary<string, Variable> variableByName = new();
-    private Dictionary<int, Variable> variableByRBPOffset = new();
-    private Stack<Variable> variableStack = new();
+    protected int rbpOffset;
+    protected Dictionary<string, Variable> variableByName = new();
+    protected Dictionary<int, Variable> variableByRBPOffset = new();
+    protected Stack<Variable> variableStack = new();
     private int anonVariableNameIndex;
-
     private int addressOfHeapSize = 0x100; // On this address located a long, that describes the heap size
     private int heapBaseAddress = 0x110; // The start (zero address) of heap
-    
     private int thrownExceptionAddress = 0x104000;
+    public virtual int ExceptionPointerAddress => thrownExceptionAddress;
     private int exceptionsHandlersStackAddress => thrownExceptionAddress + 8;
 
-    public void Label(string labelName)
+    public virtual void Label(string labelName)
     {
         if (b.labels.Contains(labelName) == false)
         {
@@ -31,7 +28,7 @@ public class CodeGenerator
         b.Line(labelName + ":");
     }
 
-    public string RegisterLabel(string labelName)
+    public virtual string RegisterLabel(string labelName)
     {
         if (b.labels.Contains(labelName))
         {
@@ -51,18 +48,20 @@ public class CodeGenerator
         }
         return uniqueLabelName;
     }
-    
-    public void Prologue()
+
+    public virtual void Prologue()
     {
         b.Line("push rbp");
         b.Line("mov rbp, rsp");
     }
-    public void Epilogue()
+
+    public virtual void Epilogue()
     {
         b.Line("mov rsp, rbp");
         b.Line("pop rbp");
     }
-    public void PrologueForSimulation(CompileTarget target)
+
+    public virtual void PrologueForSimulation(CompileTarget target)
     {
         if (target == CompileTarget.Simulator)
         {
@@ -92,11 +91,12 @@ public class CodeGenerator
         b.Space(2);
     }
 
-    public void Return_Void()
+    public virtual void Return_Void()
     {
         b.Line("ret");
     }
-    public void Return_Variable(FunctionInfo function, Variable variable)
+
+    public virtual void Return_Variable(FunctionInfo function, Variable variable)
     {
         int rbpOffset = 16 + function.arguments.Count * 8;
         if (function.isStatic == false) rbpOffset += 8;
@@ -104,7 +104,8 @@ public class CodeGenerator
         b.Line($"mov rbx, {variable.RBP}");
         b.Line($"mov [rbp+{rbpOffset}], rbx");
     }
-    public void Return_Field(FunctionInfo function, Variable variable)
+
+    public virtual void Return_Field(FunctionInfo function, Variable variable)
     {
         int rbpOffset = 16 + function.arguments.Count * 8;
         if (function.owner != null) rbpOffset += 8;
@@ -114,13 +115,13 @@ public class CodeGenerator
         b.Line($"mov [rbp+{rbpOffset}], [rbx] ; [rbx] - value of primitive");
     }
 
-    public Variable Allocate(TypeInfo type)
+    public virtual Variable Allocate(TypeInfo type)
     {
         anonVariableNameIndex++;
         return Allocate(type, $"anon_{anonVariableNameIndex}");
     }
 
-    public Variable Allocate(TypeInfo type, string name)
+    public virtual Variable Allocate(TypeInfo type, string name)
     {
         if (type == null)
         {
@@ -146,23 +147,25 @@ public class CodeGenerator
         return variable;
     }
 
-    public int AllocateRSPSaver()
+    public virtual int AllocateRSPSaver()
     {
         rbpOffset -= 8;
         b.Line($"push rsp ; allocate saver at [rbp{rbpOffset}]");
         return rbpOffset;
     }
-    public void RestoreRSPSaver(int saverRBPOffset)
+
+    public virtual void RestoreRSPSaver(int saverRBPOffset)
     {
         b.Line($"mov rsp, [rbp{saverRBPOffset}] ; restore saver");
     }
-    public void DeallocateRSPSaver()
+
+    public virtual void DeallocateRSPSaver()
     {
         rbpOffset -= 8;
         b.Line($"pop rsp ; deallocate saver");
     }
-    
-    public void Deallocate(Variable variable)
+
+    public virtual void Deallocate(Variable variable)
     {
         if (variable == null)
         {
@@ -186,12 +189,12 @@ public class CodeGenerator
         b.Line($"add rsp, {sizeInBytes}");
     }
 
-    public void Deallocate(int sizeInBytes)
+    public virtual void Deallocate(int sizeInBytes)
     {
         b.Line($"add rsp, {sizeInBytes}");
     }
-    
-    public void AllocateHeap(Variable storageOfPointerToHeap, Variable bytesToAllocateVariable)
+
+    public virtual void AllocateHeap(Variable storageOfPointerToHeap, Variable bytesToAllocateVariable)
     {
         AllocateHeap(storageOfPointerToHeap);
         
@@ -200,7 +203,8 @@ public class CodeGenerator
         b.Line($"add rbx, [rdx]"); // TODO: Why double depoint required? Think about that in daytime
         b.Line($"mov [{addressOfHeapSize}], rbx");
     }
-    public void AllocateHeap(Variable storageOfPointerToHeap, int bytesToAllocate)
+
+    public virtual void AllocateHeap(Variable storageOfPointerToHeap, int bytesToAllocate)
     {
         AllocateHeap(storageOfPointerToHeap);
         
@@ -220,7 +224,7 @@ public class CodeGenerator
         b.Line($"mov qword {storageOfPointerToHeap.RBP}, rdx");
     }
 
-    public Variable Register_FunctionArgumentVariable(FieldInfo info, int index)
+    public virtual Variable Register_FunctionArgumentVariable(FieldInfo info, int index)
     {
         Variable variable = new Variable()
         {
@@ -234,52 +238,54 @@ public class CodeGenerator
 
         return variable;
     }
-    public void Unregister_FunctionArgumentVariable(Variable variable)
+
+    public virtual void Unregister_FunctionArgumentVariable(Variable variable)
     {
         variableByName.Remove(variable.name);
         variableByRBPOffset.Remove(variable.rbpOffset);
     }
 
-    public void SetValue(Variable variable, string value)
+    public virtual void SetValue(Variable variable, string value)
     {
         b.Line($"mov qword {variable.RBP}, {value}");
     }
 
-    public void SetValue(Variable destination, Variable value)
+    public virtual void SetValue(Variable destination, Variable value)
     {
         b.Line($"mov qword rbx, {value.RBP}");
         b.Line($"mov qword {destination.RBP}, rbx");
     }
-    
-    public void SetValue(Variable destination, int address)
+
+    public virtual void SetValue(Variable destination, int address)
     {
         b.Line($"mov qword rbx, [{address}]");
         b.Line($"mov qword {destination.RBP}, rbx");
     }
 
-    public void SetValueBehindPointer(Variable destination, Variable value)
+    public virtual void SetValueBehindPointer(Variable destination, Variable value)
     {
         b.Line($"mov rbx, {destination.RBP}");
         b.Line($"mov rdx, {value.RBP}");
         b.Line($"mov qword [rbx], rdx");
     }
-    public void SetValueBehindPointer(Variable destination, string value)
+
+    public virtual void SetValueBehindPointer(Variable destination, string value)
     {
         b.Line($"mov rbx, {destination.RBP}");
         b.Line($"mov qword [rbx], {value}");
     }
 
-    public void SetValueFromReg(Variable destination, string sourceReg)
+    public virtual void SetValueFromReg(Variable destination, string sourceReg)
     {
         b.Line($"mov {destination.RBP}, {sourceReg}");
     }
-    public void SetValueToReg(string destReg, Variable source)
+
+    public virtual void SetValueToReg(string destReg, Variable source)
     {
         b.Line($"mov {destReg}, {source.RBP}");
     }
 
-
-    public void FieldAccess(int baseOffset, TypeInfo fieldType, int fieldOffset, Variable result, bool isGetter)
+    public virtual void FieldAccess(int baseOffset, TypeInfo fieldType, int fieldOffset, Variable result, bool isGetter)
     {
         if (fieldOffset < 0) throw new Exception("Negative fieldOffset is not allowed.");
         
@@ -313,26 +319,24 @@ public class CodeGenerator
         
     }
 
-
-
-    public void JumpIfFalse(Variable condition, string label)
+    public virtual void JumpIfFalse(Variable condition, string label)
     {
         b.Line($"mov rbx, {condition.RBP}");
         JumpIfFalse("rbx", label);
     }
-    public void JumpIfFalse(string reg, string label)
+
+    public virtual void JumpIfFalse(string reg, string label)
     {
         b.Line($"cmp {reg}, 0");
         b.Line($"jle {label}");
     }
 
-    public void JumpToLabel(string label)
+    public virtual void JumpToLabel(string label)
     {
         b.Line($"jmp {label}");
     }
-    
 
-    public void Compare(Variable a, Variable b, Token_Operator @operator, Variable result)
+    public virtual void Compare(Variable a, Variable b, Token_Operator @operator, Variable result)
     {
         this.b.Line($"mov rbx, {a.RBP}"); 
         this.b.Line($"mov rdx, {b.RBP}"); 
@@ -344,7 +348,7 @@ public class CodeGenerator
         this.b.Line($"mov {result.RBP}, rbx");
     }
 
-    public void Calculate(Variable a, Variable b, Token_Operator @operator, Variable result)
+    public virtual void Calculate(Variable a, Variable b, Token_Operator @operator, Variable result)
     {
         if (@operator is Token_Factor)
         {
@@ -422,8 +426,7 @@ public class CodeGenerator
         }
     }
 
-
-    public void LogicalNOT(Variable a, Variable result)
+    public virtual void LogicalNOT(Variable a, Variable result)
     {
         b.Line($"mov rbx, {a.RBP}");
         b.Line($"test rbx, rbx");
@@ -432,15 +435,14 @@ public class CodeGenerator
         b.Line($"mov {result.RBP}, rbx");
     }
 
-    public void Negate(Variable a, Variable result)
+    public virtual void Negate(Variable a, Variable result)
     {
         b.Line($"mov rbx, {a.RBP}");
         b.Line($"neg rbx");
         b.Line($"mov {result.RBP}, rbx");
     }
 
-
-    public void ToPtr_Primitive(Variable askedVariable, Variable result)
+    public virtual void ToPtr_Primitive(Variable askedVariable, Variable result)
     {
         b.CommentLine($"ToPtr {askedVariable.name}");
         b.Line($"mov rbx, rbp");
@@ -448,7 +450,7 @@ public class CodeGenerator
         b.Line($"mov {result.RBP}, rbx");
     }
 
-    public void ToPtr_Heap(Variable askedVariable, Variable result)
+    public virtual void ToPtr_Heap(Variable askedVariable, Variable result)
     {
         b.CommentLine($"ToPtr {askedVariable.name} (heap data)");
         b.Line($"mov rbx, rbp");
@@ -457,7 +459,7 @@ public class CodeGenerator
         b.Line($"mov {result.RBP}, rbx");
     }
 
-    public void PtrAddress(Variable pointer, Variable result, bool isGetter)
+    public virtual void PtrAddress(Variable pointer, Variable result, bool isGetter)
     {
         b.Space();
         b.CommentLine($"{pointer.name}.address");
@@ -468,7 +470,7 @@ public class CodeGenerator
         b.Line($"mov {result.RBP}, rbx ; now {result.RBP} is pointer to {pointer.name} (.address)");
     }
 
-    public void PtrGet(Variable pointerVariable, Variable result)
+    public virtual void PtrGet(Variable pointerVariable, Variable result)
     {
         string nasmType = Utils.GetNASMType(result.type);
         
@@ -478,7 +480,7 @@ public class CodeGenerator
         b.Line($"mov {nasmType} {result.RBP}, {Utils.ClampRegister(nasmType)}");
     }
 
-    public void PtrSet(Variable pointerVariable, Variable targetVariable)
+    public virtual void PtrSet(Variable pointerVariable, Variable targetVariable)
     {
         string nasmType = Utils.GetNASMType(targetVariable.type);
         
@@ -488,7 +490,7 @@ public class CodeGenerator
         b.Line($"mov {nasmType} [rbx], {Utils.ClampRegister(nasmType)}");
     }
 
-    public void PtrShift(Variable pointerVariable, Variable shiftVariable, int additionalShift = 0)
+    public virtual void PtrShift(Variable pointerVariable, Variable shiftVariable, int additionalShift = 0)
     {
         Comment("Ptr shift");
         b.Line($"mov rbx, {pointerVariable.RBP}");
@@ -497,64 +499,63 @@ public class CodeGenerator
         if (additionalShift != 0) b.Line($"add rbx, {additionalShift} ; additionalShift");
         b.Line($"mov {pointerVariable.RBP}, rbx");
     }
-    
-    public void PtrShift(Variable pointerVariable, int shift)
+
+    public virtual void PtrShift(Variable pointerVariable, int shift)
     {
         b.Line($"mov rbx, {pointerVariable.RBP}");
         b.Line($"add rbx, {shift}");
         b.Line($"mov {pointerVariable.RBP}, rbx");
     }
 
-    public void Print(Variable variable)
+    public virtual void Print(Variable variable)
     {
         b.Space();
         b.CommentLine($"print {variable.name}");
         b.Line($"mov rbx, {variable.RBP}");
         b.Line($"print [rbx]");
     }
-    
-    
 
-    public void CalculateAddress_RBP_Shift(Variable shiftInBytes, Variable result)
+    public virtual void CalculateAddress_RBP_Shift(Variable shiftInBytes, Variable result)
     {
         b.Line($"mov rbx, rbp");
         b.Line($"add rbx, {shiftInBytes.RBP}");
         SetValueFromReg(result, "rbx");
     }
-    public void CalculateAddress_RBP_Shift(int shiftInBytes, Variable result)
+
+    public virtual void CalculateAddress_RBP_Shift(int shiftInBytes, Variable result)
     {
         b.Line($"mov rbx, rbp");
         b.Line($"add rbx, {shiftInBytes}");
         SetValueFromReg(result, "rbx");
     }
 
-
-    public void PushToStack(Variable variable, string comment = null)
+    public virtual void PushToStack(Variable variable, string comment = null)
     {
         PushToStack(variable.RBP, comment);
     }
-    public void PushToStack(string value, string comment = null)
+
+    public virtual void PushToStack(string value, string comment = null)
     {
         b.Line($"mov rbx, {value}" + (string.IsNullOrWhiteSpace(comment) ? "" : " ; " + comment));
         b.Line($"push rbx");
     }
-    public void PushRegToStack(string regName, string comment = null)
+
+    public virtual void PushRegToStack(string regName, string comment = null)
     {
         b.Line($"push {regName}" + (string.IsNullOrWhiteSpace(comment) ? "" : " ; " + comment));
     }
 
-    public void PopRegFromStack(string regName, string comment = null)
+    public virtual void PopRegFromStack(string regName, string comment = null)
     {
         b.Line($"pop {regName}" + (string.IsNullOrWhiteSpace(comment) ? "" : " ; " + comment));
     }
 
-
-    public void Call(string functionName)
+    public virtual void Call(string functionName)
     {
         b.Line($"call {functionName}");
     }
 
-    public void PushExceptionHandler(string catchLabel)
+    public virtual void PushExceptionHandler(string catchLabel)
     {
         string addressOfStackSize = $"0x{exceptionsHandlersStackAddress.ToString("x")}";
         string addressOfStackBegin = $"0x{(exceptionsHandlersStackAddress + 8).ToString("x")}";
@@ -572,7 +573,7 @@ public class CodeGenerator
         b.Space();
     }
 
-    public void ThrowException(Variable exception)
+    public virtual void ThrowException(Variable exception)
     {
         b.Space();
         b.CommentLine($"Throw exception");
@@ -600,35 +601,37 @@ public class CodeGenerator
         b.Space();
     }
 
-
-    public void SectionData()
+    public virtual void SectionData()
     {
         b.Line("section .data");
     }
 
-    public void SectionText()
+    public virtual void SectionText()
     {
         b.Line("section .text");
     }
-    public void BufferString(string id, string value)
+
+    public virtual void BufferString(string id, string value)
     {
         b.Line($"{id} db {value.Length}, \"{value}\", 0");
     }
 
-    public void Extern(string variableName)
+    public virtual void Extern(string variableName)
     {
         b.Line($"extern {variableName}");
     }
-    
-    public void Space(int lines = 1)
+
+    public virtual void Space(int lines = 1)
     {
         b.Space(lines);
     }
-    public void Comment(string comment)
+
+    public virtual void Comment(string comment)
     {
         b.CommentLine(comment);
     }
-    public void Comment(string comment, int bookmarkDistance)
+
+    public virtual void Comment(string comment, int bookmarkDistance)
     {
         List<char> chars = new();
 
@@ -646,7 +649,7 @@ public class CodeGenerator
         b.CommentLine(string.Concat(chars));
     }
 
-    public Variable GetVariable(string name)
+    public virtual Variable GetVariable(string name)
     {
         if (variableByName.TryGetValue(name, out Variable var)) return var;
 
@@ -655,9 +658,5 @@ public class CodeGenerator
         throw new Exception($"Variable '{name}' not found in scope");
     }
 
-    public string BuildString()
-    {
-        string nasm = string.Join("\n", b.BuildString());
-        return nasm;
-    }
+    public abstract byte[] Build();
 }

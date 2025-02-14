@@ -22,7 +22,7 @@ public static class Generator
     {
         public Context parent;
 
-        public CodeGenerator gen;
+        public CodeGenerator_ByteCode gen;
         public ResolvedModule module;
 
         public Context CreateSubContext()
@@ -45,7 +45,7 @@ public static class Generator
         }
     }
 
-    public static string Generate(List<Node> statements, ResolvedModule module, CompileTarget target)
+    public static byte[] Generate(List<Node> statements, ResolvedModule module, CompileTarget target)
     {
         Context ctx = new()
         {
@@ -85,27 +85,11 @@ public static class Generator
         {
             statement.Generate(ctx);
         }
-
-        return FormatNASM(ctx.gen.BuildString());
+        
+        return ctx.gen.Build();
     }
 
-    private static string FormatNASM(string nasm)
-    {
-        string[] lines = nasm.Split('\n');
-        for (int i = 0; i < lines.Length; i++)
-        {
-            string line = lines[i];
-
-            if (line.Contains(":") == false && line.StartsWith(';') == false)
-            {
-                lines[i] = '\t' + line;
-            }
-        }
-
-        return string.Join('\n', lines);
-    }
-
-    private static void InjectEnvironmentVariables(Node node, CodeGenerator gen)
+    private static void InjectEnvironmentVariables(Node node, CodeGeneratorBase gen)
     {
         if (node is Node_VariableDeclaration decl)
         {
