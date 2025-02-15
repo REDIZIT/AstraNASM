@@ -55,16 +55,6 @@ public abstract class CodeGeneratorBase
     public abstract void Return_Void();
     public abstract void Return_Variable(FunctionInfo function, Variable variable);
 
-    public virtual void Return_Field(FunctionInfo function, Variable variable)
-    {
-        int rbpOffset = 16 + function.arguments.Count * 8;
-        if (function.owner != null) rbpOffset += 8;
-
-        b.Line($"mov rbx, {variable.RBP} ; rbx - address of address to primitive");
-        // b.Line($"mov rbx, [rbx] ; rbx - address to primitive");
-        b.Line($"mov [rbp+{rbpOffset}], [rbx] ; [rbx] - value of primitive");
-    }
-
     public virtual Variable Allocate(TypeInfo type)
     {
         anonVariableNameIndex++;
@@ -143,59 +133,11 @@ public abstract class CodeGeneratorBase
 
     public abstract void SetValue(Variable variable, string value);
     public abstract void SetValue(Variable destination, Variable value);
+    public abstract void SetValue(Variable destination, int address);
+    public abstract void SetValueBehindPointer(Variable destination, Variable value);
+    public abstract void SetValueBehindPointer(Variable destination, string value);
 
-    public virtual void SetValue(Variable destination, int address)
-    {
-        b.Line($"mov qword rbx, [{address}]");
-        b.Line($"mov qword {destination.RBP}, rbx");
-    }
-
-    public virtual void SetValueBehindPointer(Variable destination, Variable value)
-    {
-        b.Line($"mov rbx, {destination.RBP}");
-        b.Line($"mov rdx, {value.RBP}");
-        b.Line($"mov qword [rbx], rdx");
-    }
-
-    public virtual void SetValueBehindPointer(Variable destination, string value)
-    {
-        b.Line($"mov rbx, {destination.RBP}");
-        b.Line($"mov qword [rbx], {value}");
-    }
-    
-    public virtual void FieldAccess(int baseOffset, TypeInfo fieldType, int fieldOffset, Variable result, bool isGetter)
-    {
-        if (fieldOffset < 0) throw new Exception("Negative fieldOffset is not allowed.");
-        
-        // Load from ram address to ref-type inside heap
-        string rbp = baseOffset > 0 ? "+" + baseOffset : baseOffset.ToString();
-        b.Line($"mov rbx, [rbp{rbp}]");
-        
-        // If we accessing not first field
-        if (fieldOffset != 0)
-        {
-            // Add offset to rbx to go to field inside ref-type
-            b.Line($"add rbx, {fieldOffset}");
-        }
-        
-        // Now rbx is pointing to valid address of ref-type.field
-        
-        // If we don't need a pointer (like setter), but want to get a value (like getter)
-        if (isGetter)
-        {
-            // Depoint rbx to get actual field value
-            
-            string nasmType = Utils.GetNASMType(fieldType);
-            b.Line($"mov {nasmType} {Utils.ClampRegister(nasmType, "rbx")}, [rbx] ; depoint one more time due to getter");
-            
-            // b.Line($"mov rbx, [rbx] ; depoint one more time due to getter");
-        }
-        
-        // Put result (ref for setter and value for getter) inside result variable
-        b.Line($"mov {result.RBP}, rbx");
-        
-        
-    }
+    public abstract void FieldAccess(int baseOffset, TypeInfo fieldType, int fieldOffset, Variable result, bool isGetter);
 
     public abstract void JumpIfFalse(Variable condition, string label);
     public abstract void JumpIfFalse(string reg, string label);

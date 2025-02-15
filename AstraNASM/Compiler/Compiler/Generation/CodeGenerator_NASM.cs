@@ -58,7 +58,7 @@ public class CodeGenerator_NASM : CodeGeneratorBase
         b.Line($"mov rbx, {variable.RBP}");
         b.Line($"mov [rbp+{rbpOffset}], rbx");
     }
-    
+
     public override Variable Allocate(TypeInfo type, string name)
     {
         if (type == null)
@@ -140,6 +140,59 @@ public class CodeGenerator_NASM : CodeGeneratorBase
     {
         b.Line($"mov qword rbx, {value.RBP}");
         b.Line($"mov qword {destination.RBP}, rbx");
+    }
+    
+    public override void SetValue(Variable destination, int address)
+    {
+        b.Line($"mov qword rbx, [{address}]");
+        b.Line($"mov qword {destination.RBP}, rbx");
+    }
+    
+    public override void SetValueBehindPointer(Variable destination, Variable value)
+    {
+        b.Line($"mov rbx, {destination.RBP}");
+        b.Line($"mov rdx, {value.RBP}");
+        b.Line($"mov qword [rbx], rdx");
+    }
+
+    public override void SetValueBehindPointer(Variable destination, string value)
+    {
+        b.Line($"mov rbx, {destination.RBP}");
+        b.Line($"mov qword [rbx], {value}");
+    }
+    
+    public override void FieldAccess(int baseOffset, TypeInfo fieldType, int fieldOffset, Variable result, bool isGetter)
+    {
+        if (fieldOffset < 0) throw new Exception("Negative fieldOffset is not allowed.");
+        
+        // Load from ram address to ref-type inside heap
+        string rbp = baseOffset > 0 ? "+" + baseOffset : baseOffset.ToString();
+        b.Line($"mov rbx, [rbp{rbp}]");
+        
+        // If we accessing not first field
+        if (fieldOffset != 0)
+        {
+            // Add offset to rbx to go to field inside ref-type
+            b.Line($"add rbx, {fieldOffset}");
+        }
+        
+        // Now rbx is pointing to valid address of ref-type.field
+        
+        // If we don't need a pointer (like setter), but want to get a value (like getter)
+        if (isGetter)
+        {
+            // Depoint rbx to get actual field value
+            
+            string nasmType = Utils.GetNASMType(fieldType);
+            b.Line($"mov {nasmType} {Utils.ClampRegister(nasmType, "rbx")}, [rbx] ; depoint one more time due to getter");
+            
+            // b.Line($"mov rbx, [rbx] ; depoint one more time due to getter");
+        }
+        
+        // Put result (ref for setter and value for getter) inside result variable
+        b.Line($"mov {result.RBP}, rbx");
+        
+        
     }
     
     public override void Calculate(Variable a, Variable b, Token_Operator @operator, Variable result)

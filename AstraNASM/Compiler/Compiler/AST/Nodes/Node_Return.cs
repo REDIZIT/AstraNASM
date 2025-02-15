@@ -24,12 +24,17 @@ public class Node_Return : Node
             {
                 expr.Generate(ctx);
 
+                if (expr.result.type != function.returns[0])
+                {
+                    throw new Exception($"Failed to generate return node: function returns {function.returns[0]}, but keyword return try to return {expr.result.type}");
+                }
+
                 ctx.gen.Space();
                 ctx.gen.Return_Variable(function, expr.result);
             }
             else
             {
-                throw new Exception("Syntax error: Function has return type, but return node does not have any expression to return.");
+                throw new Exception("Failed to generate return node: Function has return type, but return node does not have any expression to return.");
             }
         }
         

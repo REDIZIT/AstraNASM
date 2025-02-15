@@ -71,8 +71,11 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
 
     public override void Return_Variable(FunctionInfo function, Variable variable)
     {
-        int rbpOffset = 2 * 4 + function.arguments.Count * 4;
-        if (function.isStatic == false) rbpOffset += 4;
+        // int rbpOffset = 2 * 4 + function.arguments.Count * 4;
+        // if (function.isStatic == false) rbpOffset += 4;
+        
+        int rbpOffset = 2 * 4 + function.arguments.Sum(a => Utils.GetSizeInBytes(a.type));
+        if (function.owner != null) rbpOffset += 4;
         
         Add(OpCode.Mov);
         
@@ -82,8 +85,7 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
         Add((byte)1);
         AddInt(variable.rbpOffset);
 
-        byte sizeInBytes = Utils.GetSizeInBytes(variable.type);
-        Add(sizeInBytes);
+        AddSize(variable);
     }
 
     public override void Call(string functionName)
@@ -222,9 +224,65 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
         Add((byte)1);
         AddInt(value.rbpOffset);
         
+        AddSize(destination);
+    }
+
+    public override void SetValue(Variable destination, int address)
+    {
+        Add(OpCode.Mov);
+        
+        Add((byte)1);
+        AddInt(destination.rbpOffset);
+        
+        Add((byte)4);
+        AddInt(address);
+        
+        AddSize(destination);
+    }
+
+    public override void SetValueBehindPointer(Variable destination, string value)
+    {
+        Add(OpCode.Mov);
+        
+        Add((byte)2);
+        AddInt(destination.rbpOffset);
+        
+        Add((byte)2);
         byte sizeInBytes = Utils.GetSizeInBytes(destination.type);
         Add(sizeInBytes);
+
+        byte[] bytes = Utils.ParseNumber(value, sizeInBytes);
+        
+        AddRange(bytes);
     }
+
+    public override void SetValueBehindPointer(Variable destination, Variable value)
+    {
+        if (destination.type != PrimitiveTypes.PTR) throw new Exception("Failed to set value behind pointer: destination is not a pointer");
+        
+        Add(OpCode.Mov);
+        
+        Add((byte)2);
+        AddInt(destination.rbpOffset);
+        
+        Add((byte)1);
+        AddInt(value.rbpOffset);
+        
+        AddSize(destination);
+    }
+
+    public override void FieldAccess(int baseOffset, TypeInfo fieldType, int fieldOffset, Variable result, bool isGetter)
+    {
+        if (fieldOffset < 0) throw new Exception("Negative fieldOffset is not allowed.");
+        
+        Add(OpCode.FieldAccess);
+        AddInt(baseOffset);
+        AddInt(fieldOffset);
+        AddSize(fieldType);
+        Add(isGetter ? (byte)1 : (byte)0);
+        AddInt(result.rbpOffset);
+    }
+
 
     public override void Return_Void()
     {
@@ -390,7 +448,11 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
 
     private void AddSize(Variable variable)
     {
-        Add(Utils.GetSizeInBytes(variable.type));
+        AddSize(variable.type);
+    }
+    private void AddSize(TypeInfo type)
+    {
+        Add(Utils.GetSizeInBytes(type));
     }
     private void AddRange(byte[] bytes)
     {
