@@ -40,7 +40,7 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
     {
         Allocate(PrimitiveTypes.INT);
         Add(OpCode.Call);
-        InsertAddress("Program.main");
+        InsertAddress("program.main");
         Add(OpCode.Exit);
     }
 

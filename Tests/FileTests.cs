@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using AVM;
 using NUnit.Framework.Internal;
 
 namespace Astra.Tests;
@@ -30,15 +31,15 @@ public class FileTests
         byte[] data = Compilation.Compiler.Compile_Astra_to_NASM(code, CompileTarget.Simulator);
         
         string[] nasm = Encoding.UTF8.GetString(data).Split('\n');
+        
+        VM vm = new();
+        vm.Load(data);
+        vm.Execute();
 
-
-        Simulator sim = new();
-        sim.Execute(nasm, 1024);
-
-        CompareResults(sim, returnResult);
+        CompareResults(vm, returnResult);
     }
 
-    private void CompareResults(Simulator sim, string expectedComment)
+    private void CompareResults(VM sim, string expectedComment)
     {
         string[] lines = expectedComment.Split('\n');
         
@@ -52,7 +53,8 @@ public class FileTests
         {
             if (int.TryParse(line, out int expectedExitCode))
             {
-                int actualExitCode = sim.regs.rax.Get32();
+                // int actualExitCode = sim.regs.rax.Get32();
+                int actualExitCode = sim.memory.ReadInt(0);
                 if (actualExitCode != expectedExitCode)
                 {
                     Assert.Fail($"Bad simulation exit code. Expected: {expectedExitCode}. Got: {actualExitCode}");
@@ -60,42 +62,43 @@ public class FileTests
             }
             else
             {
-                List<string> split = Utils.Split_StringSafe(line);
-
-                if (sim.regs.TryGetReg(split[0], out Reg64 reg))
-                {
-                    int expectedValue = int.Parse(split[2]);
-                    if (reg.value != expectedValue)
-                    {
-                        Assert.Fail($"Bad simulation {split[0]} value. Expected: {expectedValue}. Got: {reg.value}");
-                    }
-                }
-                else if (split[0] == "vga")
-                {
-                    string text = split[2].Substring(1, split[2].Length - 2);
-                    byte[] expectedTextBytes = Encoding.ASCII.GetBytes(text);
-                    byte[] vgaTextBytes = new byte[expectedTextBytes.Length];
-
-                    for (int i = 0; i < expectedTextBytes.Length; i++)
-                    {
-                        vgaTextBytes[i] = sim.ram.ReadByte(0xB8000 + i * 2);
-                    }
-                    
-                    Console.WriteLine(text);
-                    Console.WriteLine(Encoding.ASCII.GetString(vgaTextBytes));
-
-                    for (int i = 0; i < expectedTextBytes.Length; i++)
-                    {
-                        byte expectedByte = expectedTextBytes[i];
-                        byte actualByte = vgaTextBytes[i];
-
-                        if (actualByte != expectedByte)
-                        {
-                            string actualText = Encoding.ASCII.GetString(vgaTextBytes);
-                            Assert.Fail($"Bad simulation vga text content. Expected: {text}. Got: {actualText}. Invalid byte found at index: {i}");
-                        }
-                    }
-                }
+                throw new Exception("Not supported");
+                // List<string> split = Utils.Split_StringSafe(line);
+                //
+                // if (sim.regs.TryGetReg(split[0], out Reg64 reg))
+                // {
+                //     int expectedValue = int.Parse(split[2]);
+                //     if (reg.value != expectedValue)
+                //     {
+                //         Assert.Fail($"Bad simulation {split[0]} value. Expected: {expectedValue}. Got: {reg.value}");
+                //     }
+                // }
+                // else if (split[0] == "vga")
+                // {
+                //     string text = split[2].Substring(1, split[2].Length - 2);
+                //     byte[] expectedTextBytes = Encoding.ASCII.GetBytes(text);
+                //     byte[] vgaTextBytes = new byte[expectedTextBytes.Length];
+                //
+                //     for (int i = 0; i < expectedTextBytes.Length; i++)
+                //     {
+                //         vgaTextBytes[i] = sim.ram.ReadByte(0xB8000 + i * 2);
+                //     }
+                //     
+                //     Console.WriteLine(text);
+                //     Console.WriteLine(Encoding.ASCII.GetString(vgaTextBytes));
+                //
+                //     for (int i = 0; i < expectedTextBytes.Length; i++)
+                //     {
+                //         byte expectedByte = expectedTextBytes[i];
+                //         byte actualByte = vgaTextBytes[i];
+                //
+                //         if (actualByte != expectedByte)
+                //         {
+                //             string actualText = Encoding.ASCII.GetString(vgaTextBytes);
+                //             Assert.Fail($"Bad simulation vga text content. Expected: {text}. Got: {actualText}. Invalid byte found at index: {i}");
+                //         }
+                //     }
+                // }
             }
         }
 
