@@ -92,12 +92,6 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
         InsertAddress(functionName);
     }
 
-    public override Variable Allocate(TypeInfo type)
-    {
-        anonVariableNameIndex++;
-        return Allocate(type, $"anon_{anonVariableNameIndex}");
-    }
-
     public override Variable Allocate(TypeInfo type, string name)
     {
         if (type == null)
@@ -176,12 +170,6 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
     {
         Add(OpCode.Return);
     }
-
-    public override void Comment(string comment)
-    {
-        
-    }
-
     public override void Calculate(Variable a, Variable b, Token_Operator @operator, Variable result)
     {
         OpCode op;
@@ -211,9 +199,96 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
         Add(sizeInBytes);
     }
 
+    public override void Negate(Variable a, Variable result)
+    {
+        Utils.AssertSameSize(a, result);
+        
+        Add(OpCode.Negate);
+        AddInt(a.rbpOffset);
+        AddInt(result.rbpOffset);
+
+        byte size = Utils.GetSizeInBytes(result.type);
+        Add(size);
+    }
+
+    
+    public override void ToPtr_Primitive(Variable askedVariable, Variable result)
+    {
+        Add(OpCode.ToPtr_ValueType);
+        AddInt(askedVariable.rbpOffset);
+        AddInt(result.rbpOffset);
+    }
+    
+    public override void ToPtr_Heap(Variable askedVariable, Variable result)
+    {
+        Add(OpCode.ToPtr_RefType);
+        AddInt(askedVariable.rbpOffset);
+        AddInt(result.rbpOffset);
+    }
+
+    public override void PtrAddress(Variable pointer, Variable result, bool isGetter)
+    {
+        if (isGetter) ToPtr_Heap(pointer, result);
+        else ToPtr_Primitive(pointer, result);
+    }
+
+    public override void PtrGet(Variable pointerVariable, Variable result)
+    {
+        Add(OpCode.PtrGet);
+        AddInt(pointerVariable.rbpOffset);
+        AddInt(result.rbpOffset);
+        
+        AddSize(result);
+    }
+
+    public override void PtrSet(Variable pointerVariable, Variable targetVariable)
+    {
+        Add(OpCode.PtrSet);
+        AddInt(pointerVariable.rbpOffset);
+        AddInt(targetVariable.rbpOffset);
+        
+        AddSize(targetVariable);
+    }
+
+    public override void PtrShift(Variable pointerVariable, Variable shiftVariable, int additionalShift = 0)
+    {
+        Add(OpCode.PtrShift);
+        Add((byte)1);
+        AddInt(pointerVariable.rbpOffset);
+        AddInt(shiftVariable.rbpOffset);
+        AddInt(additionalShift);
+
+        AddSize(shiftVariable);
+    }
+
+    public override void PtrShift(Variable pointerVariable, int shift)
+    {
+        Add(OpCode.PtrShift);
+        Add((byte)0);
+        AddInt(pointerVariable.rbpOffset);
+        AddInt(shift);
+    }
+
+
+    public override void Space(int lines = 1)
+    {
+    }
+    public override void Comment(string comment)
+    {
+    }
+    public override void Comment(string comment, int bookmarkDistance)
+    {
+    }
+
+
     private void Add(byte b)
     {
         byteCode.Add(b);
+    }
+
+    private void AddSize(Variable variable)
+    {
+        Add(Utils.GetSizeInBytes(variable.type));
     }
     private void AddRange(byte[] bytes)
     {
@@ -265,7 +340,7 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
 
         if (b.lines.Count != 0)
         {
-            throw new Exception("Code generator's string builder is not empty.");
+            throw new Exception($"Code generator's string builder is not empty and contains: '{b.BuildString()}'");
         }
         
         return byteCode.ToArray();

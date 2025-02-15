@@ -29,7 +29,7 @@ public static class Utils
         if (t == PrimitiveTypes.BYTE) return "byte";
         if (t == PrimitiveTypes.SHORT) return "word";
         if (t == PrimitiveTypes.INT) return "dword";
-        if (t == PrimitiveTypes.LONG || t == PrimitiveTypes.PTR) return "qword";
+        if (t == PrimitiveTypes.LONG || t == PrimitiveTypes.PTR || t == PrimitiveTypes.BOOL) return "qword";
 
         throw new Exception($"Failed to get nasm type for type '{t}'");
     }
@@ -56,5 +56,13 @@ public static class Utils
         }
 
         return true;
+    }
+
+    public static void AssertSameSize(params Variable[] vars)
+    {
+        if (AreSameSize(vars) == false)
+        {
+            throw new Exception("Assert failed. Variables have different sizes.");
+        }
     }
 }
