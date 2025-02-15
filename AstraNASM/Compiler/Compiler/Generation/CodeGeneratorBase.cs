@@ -12,8 +12,8 @@ public abstract class CodeGeneratorBase
     protected Dictionary<int, Variable> variableByRBPOffset = new();
     protected Stack<Variable> variableStack = new();
     protected int anonVariableNameIndex;
-    private int addressOfHeapSize = 0x100; // On this address located a long, that describes the heap size
-    private int heapBaseAddress = 0x110; // The start (zero address) of heap
+    protected int addressOfHeapSize = 0x100; // On this address located a long, that describes the heap size
+    protected int heapBaseAddress = 0x110; // The start (zero address) of heap
     private int thrownExceptionAddress = 0x104000;
     public virtual int ExceptionPointerAddress => thrownExceptionAddress;
     private int exceptionsHandlersStackAddress => thrownExceptionAddress + 8;
@@ -49,18 +49,8 @@ public abstract class CodeGeneratorBase
         return uniqueLabelName;
     }
 
-    public virtual void Prologue()
-    {
-        b.Line("push rbp");
-        b.Line("mov rbp, rsp");
-    }
-
-    public virtual void Epilogue()
-    {
-        b.Line("mov rsp, rbp");
-        b.Line("pop rbp");
-    }
-
+    public abstract void Prologue();
+    public abstract void Epilogue();
     public abstract void PrologueForSimulation(CompileTarget target);
     public abstract void Return_Void();
     public abstract void Return_Variable(FunctionInfo function, Variable variable);
@@ -125,40 +115,10 @@ public abstract class CodeGeneratorBase
         b.Line($"add rsp, {sizeInBytes}");
     }
 
-    public virtual void Deallocate(int sizeInBytes)
-    {
-        b.Line($"add rsp, {sizeInBytes}");
-    }
+    public abstract void Deallocate(int sizeInBytes);
 
-    public virtual void AllocateHeap(Variable storageOfPointerToHeap, Variable bytesToAllocateVariable)
-    {
-        AllocateHeap(storageOfPointerToHeap);
-        
-        b.Line($"mov rbx, [{addressOfHeapSize}]"); 
-        b.Line($"mov rdx, {bytesToAllocateVariable.RBP}");
-        b.Line($"add rbx, [rdx]"); // TODO: Why double depoint required? Think about that in daytime
-        b.Line($"mov [{addressOfHeapSize}], rbx");
-    }
-
-    public virtual void AllocateHeap(Variable storageOfPointerToHeap, int bytesToAllocate)
-    {
-        AllocateHeap(storageOfPointerToHeap);
-        
-        b.Line($"mov rbx, [{addressOfHeapSize}]");
-        b.Line($"add rbx, {bytesToAllocate}");
-        b.Line($"mov [{addressOfHeapSize}], rbx");
-    }
-
-    private void AllocateHeap(Variable storageOfPointerToHeap)
-    {
-        b.CommentLine($"heap alloc");
-        b.Line($"mov rbx, [{addressOfHeapSize}]"); // rbx - next heap byte address
-        
-        b.Line($"mov rdx, {heapBaseAddress}");
-        b.Line($"add rdx, rbx");
-        
-        b.Line($"mov qword {storageOfPointerToHeap.RBP}, rdx");
-    }
+    public abstract void AllocateHeap(Variable storageOfPointerToHeap, Variable bytesToAllocateVariable);
+    public abstract void AllocateHeap(Variable storageOfPointerToHeap, int bytesToAllocate);
 
     public virtual Variable Register_FunctionArgumentVariable(FieldInfo info, int index)
     {
@@ -202,17 +162,7 @@ public abstract class CodeGeneratorBase
         b.Line($"mov rbx, {destination.RBP}");
         b.Line($"mov qword [rbx], {value}");
     }
-
-    public virtual void SetValueFromReg(Variable destination, string sourceReg)
-    {
-        b.Line($"mov {destination.RBP}, {sourceReg}");
-    }
-
-    public virtual void SetValueToReg(string destReg, Variable source)
-    {
-        b.Line($"mov {destReg}, {source.RBP}");
-    }
-
+    
     public virtual void FieldAccess(int baseOffset, TypeInfo fieldType, int fieldOffset, Variable result, bool isGetter)
     {
         if (fieldOffset < 0) throw new Exception("Negative fieldOffset is not allowed.");
@@ -281,41 +231,10 @@ public abstract class CodeGeneratorBase
         b.Line($"mov rbx, {variable.RBP}");
         b.Line($"print [rbx]");
     }
+    
 
-    public virtual void CalculateAddress_RBP_Shift(Variable shiftInBytes, Variable result)
-    {
-        b.Line($"mov rbx, rbp");
-        b.Line($"add rbx, {shiftInBytes.RBP}");
-        SetValueFromReg(result, "rbx");
-    }
-
-    public virtual void CalculateAddress_RBP_Shift(int shiftInBytes, Variable result)
-    {
-        b.Line($"mov rbx, rbp");
-        b.Line($"add rbx, {shiftInBytes}");
-        SetValueFromReg(result, "rbx");
-    }
-
-    public virtual void PushToStack(Variable variable, string comment = null)
-    {
-        PushToStack(variable.RBP, comment);
-    }
-
-    public virtual void PushToStack(string value, string comment = null)
-    {
-        b.Line($"mov rbx, {value}" + (string.IsNullOrWhiteSpace(comment) ? "" : " ; " + comment));
-        b.Line($"push rbx");
-    }
-
-    public virtual void PushRegToStack(string regName, string comment = null)
-    {
-        b.Line($"push {regName}" + (string.IsNullOrWhiteSpace(comment) ? "" : " ; " + comment));
-    }
-
-    public virtual void PopRegFromStack(string regName, string comment = null)
-    {
-        b.Line($"pop {regName}" + (string.IsNullOrWhiteSpace(comment) ? "" : " ; " + comment));
-    }
+    public abstract void PushToStack(Variable variable, string comment = null);
+    public abstract void PushToStack(string value, string comment = null);
 
     public abstract void Call(string functionName);
 

@@ -115,6 +115,7 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
         
         
         Add(OpCode.Allocate_Stack);
+        Add((byte)0);
         
         Add(sizeInBytes);
 
@@ -125,6 +126,69 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
 
         return variable;
     }
+
+    public override void AllocateHeap(Variable storageOfPointerToHeap, int bytesToAllocate)
+    {
+        Add(OpCode.Allocate_Heap);
+        Add((byte)0);
+        AddInt(storageOfPointerToHeap.rbpOffset);
+        AddInt(bytesToAllocate);
+    }
+
+    public override void AllocateHeap(Variable storageOfPointerToHeap, Variable bytesToAllocateVariable)
+    {
+        Add(OpCode.Allocate_Heap);
+        Add((byte)1);
+        AddInt(storageOfPointerToHeap.rbpOffset);
+        AddInt(bytesToAllocateVariable.rbpOffset);
+        AddSize(bytesToAllocateVariable);
+    }
+
+    public override void PushToStack(Variable variable, string comment = null)
+    {
+        Add(OpCode.Allocate_Stack);
+        Add((byte)1);
+        AddInt(variable.rbpOffset);
+        AddSize(variable);
+    }
+
+    public override void PushToStack(string value, string comment = null)
+    {
+        Add(OpCode.Allocate_Stack);
+        Add((byte)0);
+        
+        if (byte.TryParse(value, out byte b))
+        {
+            Add((byte)1);
+            Add(b);
+        }
+        else if (short.TryParse(value, out short s))
+        {
+            Add((byte)2);
+            AddRange(BitConverter.GetBytes(s));
+        }
+        else if (int.TryParse(value, out int i))
+        {
+            Add((byte)4);
+            AddRange(BitConverter.GetBytes(i));
+        }
+        else if (long.TryParse(value, out long l))
+        {
+            Add((byte)8);
+            AddRange(BitConverter.GetBytes(l));
+        }
+        else
+        {
+            throw new NotImplementedException(value);
+        }
+    }
+
+    public override void Deallocate(int sizeInBytes)
+    {
+        Add(OpCode.Deallocate_Stack);
+        AddInt(sizeInBytes);
+    }
+
 
     public override void SetValue(Variable variable, string value)
     {
@@ -137,11 +201,7 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
         byte sizeInBytes = Utils.GetSizeInBytes(variable.type);
         Add(sizeInBytes);
 
-        byte[] bytes;
-        if (sizeInBytes == 1) bytes = new byte[1] { byte.Parse(value) };
-        else if (sizeInBytes == 2) bytes = BitConverter.GetBytes(short.Parse(value));
-        else if (sizeInBytes == 4) bytes = BitConverter.GetBytes(int.Parse(value));
-        else bytes = BitConverter.GetBytes(long.Parse(value));
+        byte[] bytes = Utils.ParseNumber(value, sizeInBytes);
         
         AddRange(bytes);
     }

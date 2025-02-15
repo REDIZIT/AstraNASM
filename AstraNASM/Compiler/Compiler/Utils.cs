@@ -1,4 +1,6 @@
-﻿namespace Astra.Compilation;
+﻿using System.Globalization;
+
+namespace Astra.Compilation;
 
 public static class Utils
 {
@@ -30,6 +32,8 @@ public static class Utils
         if (t == PrimitiveTypes.SHORT) return "word";
         if (t == PrimitiveTypes.INT) return "dword";
         if (t == PrimitiveTypes.LONG || t == PrimitiveTypes.PTR || t == PrimitiveTypes.BOOL) return "qword";
+
+        if (t.isStruct == false) return "qword";
 
         throw new Exception($"Failed to get nasm type for type '{t}'");
     }
@@ -64,5 +68,41 @@ public static class Utils
         {
             throw new Exception("Assert failed. Variables have different sizes.");
         }
+    }
+
+    public static byte[] ParseNumber(string str, byte sizeInBytes)
+    {
+        NumberStyles style = NumberStyles.Integer;
+        if (str.StartsWith("0b"))
+        {
+            style = NumberStyles.BinaryNumber;
+            str = str.Substring(2, str.Length - 2);
+        }
+        else if (str.StartsWith("0x"))
+        {
+            style = NumberStyles.HexNumber;
+            str = str.Substring(2, str.Length - 2);
+        }
+        
+        
+        byte[] bytes;
+        if (sizeInBytes == 1)
+        {
+            bytes = new byte[1] { byte.Parse(str, style) };
+        }
+        else if (sizeInBytes == 2)
+        {
+            bytes = BitConverter.GetBytes(short.Parse(str, style));
+        }
+        else if (sizeInBytes == 4)
+        {
+            bytes = BitConverter.GetBytes(int.Parse(str, style));
+        }
+        else
+        {
+            bytes = BitConverter.GetBytes(long.Parse(str, style));
+        }
+
+        return bytes;
     }
 }

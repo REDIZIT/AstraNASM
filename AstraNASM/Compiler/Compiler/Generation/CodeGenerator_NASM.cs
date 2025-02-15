@@ -34,6 +34,18 @@ public class CodeGenerator_NASM : CodeGeneratorBase
         b.Space(2);
     }
     
+    public override void Prologue()
+    {
+        b.Line("push rbp");
+        b.Line("mov rbp, rsp");
+    }
+
+    public override void Epilogue()
+    {
+        b.Line("mov rsp, rbp");
+        b.Line("pop rbp");
+    }
+    
     public override void Return_Void()
     {
         b.Line("ret");
@@ -71,6 +83,52 @@ public class CodeGenerator_NASM : CodeGeneratorBase
         b.Line($"sub rsp, {sizeInBytes} ; allocate {variable.type} '{variable.name}' at {variable.RBP}");
 
         return variable;
+    }
+    
+    public override void AllocateHeap(Variable storageOfPointerToHeap, Variable bytesToAllocateVariable)
+    {
+        AllocateHeap(storageOfPointerToHeap);
+        
+        b.Line($"mov rbx, [{addressOfHeapSize}]"); 
+        b.Line($"mov rdx, {bytesToAllocateVariable.RBP}");
+        b.Line($"add rbx, [rdx]"); // TODO: Why double depoint required? Think about that in daytime
+        b.Line($"mov [{addressOfHeapSize}], rbx");
+    }
+
+    public override void AllocateHeap(Variable storageOfPointerToHeap, int bytesToAllocate)
+    {
+        AllocateHeap(storageOfPointerToHeap);
+        
+        b.Line($"mov rbx, [{addressOfHeapSize}]");
+        b.Line($"add rbx, {bytesToAllocate}");
+        b.Line($"mov [{addressOfHeapSize}], rbx");
+    }
+
+    private void AllocateHeap(Variable storageOfPointerToHeap)
+    {
+        b.CommentLine($"heap alloc");
+        b.Line($"mov rbx, [{addressOfHeapSize}]"); // rbx - next heap byte address
+        
+        b.Line($"mov rdx, {heapBaseAddress}");
+        b.Line($"add rdx, rbx");
+        
+        b.Line($"mov qword {storageOfPointerToHeap.RBP}, rdx");
+    }
+    
+    public override void PushToStack(Variable variable, string comment = null)
+    {
+        PushToStack(variable.RBP, comment);
+    }
+
+    public override void PushToStack(string value, string comment = null)
+    {
+        b.Line($"mov rbx, {value}" + (string.IsNullOrWhiteSpace(comment) ? "" : " ; " + comment));
+        b.Line($"push rbx");
+    }
+    
+    public override void Deallocate(int sizeInBytes)
+    {
+        b.Line($"add rsp, {sizeInBytes}");
     }
     
     public override void SetValue(Variable variable, string value)
