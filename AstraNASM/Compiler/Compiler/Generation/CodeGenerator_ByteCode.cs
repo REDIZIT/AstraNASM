@@ -38,7 +38,8 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
     
     public override void PrologueForSimulation(CompileTarget target)
     {
-        Allocate(PrimitiveTypes.INT);
+        Variable retVar = Allocate(PrimitiveTypes.INT);
+        SetValue(retVar, "123");
         Add(OpCode.Call);
         InsertAddress("program.main");
         Add(OpCode.Exit);
@@ -103,7 +104,7 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
         
         byte sizeInBytes = Utils.GetSizeInBytes(type);
 
-        rbpOffset -= sizeInBytes;
+        
         
         Variable variable = new Variable()
         {
@@ -114,6 +115,8 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
         variableByName.Add(variable.name, variable);
         variableByRBPOffset.Add(variable.rbpOffset, variable);
         variableStack.Push(variable);
+        
+        rbpOffset -= sizeInBytes;
         
         
         Add(OpCode.Allocate_Stack);
@@ -154,35 +157,33 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
         AddSize(variable);
     }
 
-    public override void PushToStack(string value, string comment = null)
+    public override void PushToStack(string str, TypeInfo type, string comment = null)
     {
         Add(OpCode.Allocate_Stack);
         Add((byte)0);
+
+        byte[] value = Utils.ParseNumber(str, Utils.GetSizeInBytes(type));
+        Add((byte)value.Length);
+        AddRange(value);
+    }
+
+    public override int AllocateRSPSaver()
+    {
+        Add(OpCode.AllocateRSPSaver);
         
-        if (byte.TryParse(value, out byte b))
-        {
-            Add((byte)1);
-            Add(b);
-        }
-        else if (short.TryParse(value, out short s))
-        {
-            Add((byte)2);
-            AddRange(BitConverter.GetBytes(s));
-        }
-        else if (int.TryParse(value, out int i))
-        {
-            Add((byte)4);
-            AddRange(BitConverter.GetBytes(i));
-        }
-        else if (long.TryParse(value, out long l))
-        {
-            Add((byte)8);
-            AddRange(BitConverter.GetBytes(l));
-        }
-        else
-        {
-            throw new NotImplementedException(value);
-        }
+        rbpOffset -= 4;
+        return rbpOffset;
+    }
+    public override void RestoreRSPSaver(int saverRBPOffset)
+    {
+        Add(OpCode.RestoreRSPSaver);
+        AddInt(saverRBPOffset);
+    }
+    public override void DeallocateRSPSaver()
+    {
+        Add(OpCode.DeallocateRSPSaver);
+        
+        // rbpOffset -= 4; // why -4 works, but not +4?
     }
 
     public override void Deallocate(int sizeInBytes)
@@ -290,6 +291,8 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
     }
     public override void Calculate(Variable a, Variable b, Token_Operator @operator, Variable result)
     {
+        Utils.AssertSameSize(a, b, result);
+        
         OpCode op;
         if (@operator.asmOperatorName == "add") op = OpCode.Add;
         else if (@operator.asmOperatorName == "sub") op = OpCode.Sub;
@@ -308,12 +311,6 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
         AddInt(result.rbpOffset);
 
         byte sizeInBytes = Utils.GetSizeInBytes(a.type);
-
-        if (Utils.GetSizeInBytes(a.type) != Utils.GetSizeInBytes(b.type) || Utils.GetSizeInBytes(b.type) != Utils.GetSizeInBytes(result.type))
-        {
-            throw new Exception("Can not apply math operator to different sized types");
-        }
-        
         Add(sizeInBytes);
     }
 

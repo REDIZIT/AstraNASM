@@ -26,8 +26,8 @@ public class Node_For : Node
 
         ctx.gen.Space();
         ctx.gen.Comment("for.condition", 4);
-        ctx.gen.Label(conditionLabel);
         int rspRbpOffset = ctx.gen.AllocateRSPSaver();
+        ctx.gen.Label(conditionLabel);
         condition.Generate(ctx);
 
 

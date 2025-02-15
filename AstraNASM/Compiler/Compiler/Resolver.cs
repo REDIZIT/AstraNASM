@@ -358,7 +358,7 @@ public static class Resolver
         FieldInfo address = new PtrAddress_EmbeddedFieldInfo()
         {
             name = "address",
-            type = classInfoByName["int"]
+            type = PrimitiveTypes.INT
         };
 
         ptrInfo.fields = new List<FieldInfo>()

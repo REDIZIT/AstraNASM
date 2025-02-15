@@ -117,13 +117,29 @@ public class CodeGenerator_NASM : CodeGeneratorBase
     
     public override void PushToStack(Variable variable, string comment = null)
     {
-        PushToStack(variable.RBP, comment);
+        PushToStack(variable.RBP, variable.type, comment);
     }
 
-    public override void PushToStack(string value, string comment = null)
+    public override void PushToStack(string value, TypeInfo type, string comment = null)
     {
         b.Line($"mov rbx, {value}" + (string.IsNullOrWhiteSpace(comment) ? "" : " ; " + comment));
         b.Line($"push rbx");
+    }
+    
+    public override int AllocateRSPSaver()
+    {
+        rbpOffset -= 8;
+        b.Line($"push rsp ; allocate saver at [rbp{rbpOffset}]");
+        return rbpOffset;
+    }
+    public override void RestoreRSPSaver(int saverRBPOffset)
+    {
+        b.Line($"mov rsp, [rbp{saverRBPOffset}] ; restore saver");
+    }
+    public override void DeallocateRSPSaver()
+    {
+        rbpOffset -= 8; // TODO: why subtract? Not +8?
+        b.Line($"pop rsp ; deallocate saver");
     }
     
     public override void Deallocate(int sizeInBytes)

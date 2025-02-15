@@ -13,9 +13,9 @@ class program
 }
 class Test 
 {
-    long a
-    long b
-    long c
+    int a
+    int b
+    int c
 }
 
 ---

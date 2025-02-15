@@ -63,23 +63,9 @@ public abstract class CodeGeneratorBase
 
     public abstract Variable Allocate(TypeInfo type, string name);
 
-    public virtual int AllocateRSPSaver()
-    {
-        rbpOffset -= 8;
-        b.Line($"push rsp ; allocate saver at [rbp{rbpOffset}]");
-        return rbpOffset;
-    }
-
-    public virtual void RestoreRSPSaver(int saverRBPOffset)
-    {
-        b.Line($"mov rsp, [rbp{saverRBPOffset}] ; restore saver");
-    }
-
-    public virtual void DeallocateRSPSaver()
-    {
-        rbpOffset -= 8;
-        b.Line($"pop rsp ; deallocate saver");
-    }
+    public abstract int AllocateRSPSaver();
+    public abstract void RestoreRSPSaver(int saverRBPOffset);
+    public abstract void DeallocateRSPSaver();
 
     public virtual void Deallocate(Variable variable)
     {
@@ -176,7 +162,7 @@ public abstract class CodeGeneratorBase
     
 
     public abstract void PushToStack(Variable variable, string comment = null);
-    public abstract void PushToStack(string value, string comment = null);
+    public abstract void PushToStack(string str, TypeInfo type, string comment = null);
 
     public abstract void Call(string functionName);
 

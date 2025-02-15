@@ -66,7 +66,7 @@ public static class Utils
     {
         if (AreSameSize(vars) == false)
         {
-            throw new Exception("Assert failed. Variables have different sizes.");
+            throw new Exception("Assert failed. Variables have different sizes: " + string.Join(", ", vars.Select(v => v.name + " (" + Utils.GetSizeInBytes(v.type) + ")")));
         }
     }
 
