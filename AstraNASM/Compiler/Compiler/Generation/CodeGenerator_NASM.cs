@@ -263,6 +263,35 @@ public class CodeGenerator_NASM : CodeGeneratorBase
 
         b.CommentLine(string.Concat(chars));
     }
+    
+    public override void Compare(Variable a, Variable b, Token_Operator @operator, Variable result)
+    {
+        this.b.Line($"mov rbx, {a.RBP}"); 
+        this.b.Line($"mov rdx, {b.RBP}"); 
+        
+        this.b.Line($"cmp rbx, rdx");
+        this.b.Line($"mov rbx, 0");
+        this.b.Line($"set{@operator.asmOperatorName} bl");
+        
+        this.b.Line($"mov {result.RBP}, rbx");
+    }
+    
+    public override void JumpIfFalse(Variable condition, string label)
+    {
+        b.Line($"mov rbx, {condition.RBP}");
+        JumpIfFalse("rbx", label);
+    }
+
+    public override void JumpIfFalse(string reg, string label)
+    {
+        b.Line($"cmp {reg}, 0");
+        b.Line($"jle {label}");
+    }
+
+    public override void JumpToLabel(string label)
+    {
+        b.Line($"jmp {label}");
+    }
 
 
     public override byte[] Build()

@@ -269,6 +269,48 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
         AddInt(shift);
     }
 
+    public override void Compare(Variable a, Variable b, Token_Operator @operator, Variable result)
+    {
+        Utils.AssertSameSize(a, b);
+        if (result.type != PrimitiveTypes.BOOL) throw new Exception($"Failed to compare variables due to result variable is not bool, but '{result.type.name}'");
+        
+        Add(OpCode.Compare);
+        AddInt(a.rbpOffset);
+        AddInt(b.rbpOffset);
+        AddSize(a);
+        AddInt(result.rbpOffset);
+
+        byte op = 0;
+        if (@operator.asmOperatorName == "e") op = 0;
+        else if (@operator.asmOperatorName == "ne") op = 1;
+        else if (@operator.asmOperatorName == "g") op = 2;
+        else if (@operator.asmOperatorName == "ge") op = 3;
+        else if (@operator.asmOperatorName == "l") op = 4;
+        else if (@operator.asmOperatorName == "le") op = 5;
+        else throw new Exception($"Unknown comprassion operator '{@operator.asmOperatorName}'");
+        
+        Add(op);
+    }
+
+    public override void JumpIfFalse(Variable condition, string label)
+    {
+        Add(OpCode.JumpIfFalse);
+        InsertAddress(label);
+        AddInt(condition.rbpOffset);
+        AddSize(condition);
+    }
+
+    public override void JumpIfFalse(string reg, string label)
+    {
+        throw new Exception("This method is not allowed");
+    }
+
+    public override void JumpToLabel(string label)
+    {
+        Add(OpCode.Jump);
+        InsertAddress(label);
+    }
+
 
     public override void Space(int lines = 1)
     {
