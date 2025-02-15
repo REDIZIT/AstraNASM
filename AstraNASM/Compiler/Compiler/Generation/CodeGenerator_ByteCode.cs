@@ -71,15 +71,13 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
 
     public override void Return_Variable(FunctionInfo function, Variable variable)
     {
-        // Add(OpCode.Return);
-        
         int rbpOffset = 2 * 4 + function.arguments.Count * 4;
         if (function.isStatic == false) rbpOffset += 4;
         
         Add(OpCode.Mov);
         
         Add((byte)1);
-        AddInt(rbpOffset); // negate rbpOffset
+        AddInt(rbpOffset);
         
         Add((byte)1);
         AddInt(variable.rbpOffset);
@@ -96,7 +94,8 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
 
     public override Variable Allocate(TypeInfo type)
     {
-        return Allocate(type, "anon");
+        anonVariableNameIndex++;
+        return Allocate(type, $"anon_{anonVariableNameIndex}");
     }
 
     public override Variable Allocate(TypeInfo type, string name)
@@ -153,15 +152,63 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
         AddRange(bytes);
     }
 
+    public override void SetValue(Variable destination, Variable value)
+    {
+        if (Utils.AreSameSize(destination, value) == false)
+        {
+            throw new Exception("Failed to set value due to different variables sizes");
+        }
+        
+        
+        Add(OpCode.Mov);
+        
+        Add((byte)1);
+        AddInt(destination.rbpOffset);
+
+        Add((byte)1);
+        AddInt(value.rbpOffset);
+        
+        byte sizeInBytes = Utils.GetSizeInBytes(destination.type);
+        Add(sizeInBytes);
+    }
+
     public override void Return_Void()
     {
         Add(OpCode.Return);
-        AddInt(0);
     }
 
     public override void Comment(string comment)
     {
         
+    }
+
+    public override void Calculate(Variable a, Variable b, Token_Operator @operator, Variable result)
+    {
+        OpCode op;
+        if (@operator.asmOperatorName == "add") op = OpCode.Add;
+        else if (@operator.asmOperatorName == "sub") op = OpCode.Sub;
+        else if (@operator.asmOperatorName == "mul") op = OpCode.Mul;
+        else if (@operator.asmOperatorName == "div") op = OpCode.Div;
+        else if (@operator.asmOperatorName == "<<") op = OpCode.LeftBitShift;
+        else if (@operator.asmOperatorName == ">>") op = OpCode.RightBitShift;
+        else if (@operator.asmOperatorName == "&") op = OpCode.BitAnd;
+        else if (@operator.asmOperatorName == "|") op = OpCode.BitOr;
+        else throw new Exception($"Unknown operator name '{@operator.asmOperatorName}'");
+        
+        Add(op);
+        
+        AddInt(a.rbpOffset);
+        AddInt(b.rbpOffset);
+        AddInt(result.rbpOffset);
+
+        byte sizeInBytes = Utils.GetSizeInBytes(a.type);
+
+        if (Utils.GetSizeInBytes(a.type) != Utils.GetSizeInBytes(b.type) || Utils.GetSizeInBytes(b.type) != Utils.GetSizeInBytes(result.type))
+        {
+            throw new Exception("Can not apply math operator to different sized types");
+        }
+        
+        Add(sizeInBytes);
     }
 
     private void Add(byte b)
@@ -215,6 +262,11 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
     public override byte[] Build()
     {
         ResolveLabelAddresses();
+
+        if (b.lines.Count != 0)
+        {
+            throw new Exception("Code generator's string builder is not empty.");
+        }
         
         return byteCode.ToArray();
     }

@@ -45,4 +45,16 @@ public static class Utils
             default: throw new Exception($"Failed to get size in bytes for type '{t}'");
         }
     }
+
+    public static bool AreSameSize(params Variable[] vars)
+    {
+        string type = GetNASMType(vars[0].type);
+
+        foreach (Variable var in vars)
+        {
+            if (GetNASMType(var.type) != type) return false;
+        }
+
+        return true;
+    }
 }

@@ -11,7 +11,7 @@ public abstract class CodeGeneratorBase
     protected Dictionary<string, Variable> variableByName = new();
     protected Dictionary<int, Variable> variableByRBPOffset = new();
     protected Stack<Variable> variableStack = new();
-    private int anonVariableNameIndex;
+    protected int anonVariableNameIndex;
     private int addressOfHeapSize = 0x100; // On this address located a long, that describes the heap size
     private int heapBaseAddress = 0x110; // The start (zero address) of heap
     private int thrownExceptionAddress = 0x104000;
