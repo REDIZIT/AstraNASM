@@ -36,12 +36,19 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
     private Dictionary<int, string> _labelsToInsert = new();
     
     
-    public override void PrologueForSimulation(CompileTarget target)
+    public override void PrologueForSimulation(CompileTarget target, ResolvedModule module)
     {
         Variable retVar = Allocate(PrimitiveTypes.INT);
-        SetValue(retVar, "123");
+
+        FunctionInfo main = module.classInfoByName["program"].functions.First(f => f.name == "main");
+        if (main.isStatic == false)
+        {
+            Variable selfVar = Allocate(PrimitiveTypes.INT);    
+        }
+        
+        
         Add(OpCode.Call);
-        InsertAddress("program.main");
+        InsertAddress(main.GetCombinedName());
         Add(OpCode.Exit);
     }
 
@@ -72,11 +79,10 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
 
     public override void Return_Variable(FunctionInfo function, Variable variable)
     {
-        // int rbpOffset = 2 * 4 + function.arguments.Count * 4;
-        // if (function.isStatic == false) rbpOffset += 4;
-        
         int rbpOffset = 2 * 4 + function.arguments.Sum(a => Utils.GetSizeInBytes(a.type));
-        if (function.owner != null) rbpOffset += 4;
+        if (function.isStatic == false) rbpOffset += 4;
+
+        rbpOffset += function.returns.Sum(t => Utils.GetSizeInBytes(t));
         
         Add(OpCode.Mov);
         
@@ -148,6 +154,7 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
         AddInt(bytesToAllocateVariable.rbpOffset);
         AddSize(bytesToAllocateVariable);
     }
+    
 
     public override void PushToStack(Variable variable, string comment = null)
     {
@@ -291,7 +298,7 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
     }
     public override void Calculate(Variable a, Variable b, Token_Operator @operator, Variable result)
     {
-        Utils.AssertSameSize(a, b, result);
+        Utils.AssertSameOrLessSize(result, a, b);
         
         OpCode op;
         if (@operator.asmOperatorName == "add") op = OpCode.Add;
@@ -316,7 +323,7 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
 
     public override void Negate(Variable a, Variable result)
     {
-        Utils.AssertSameSize(a, result);
+        Utils.AssertSameOrLessSize(result, a);
         
         Add(OpCode.Negate);
         AddInt(a.rbpOffset);
@@ -386,7 +393,7 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
 
     public override void Compare(Variable a, Variable b, Token_Operator @operator, Variable result)
     {
-        Utils.AssertSameSize(a, b);
+        Utils.AssertSameOrLessSize(result, a, b);
         if (result.type != PrimitiveTypes.BOOL) throw new Exception($"Failed to compare variables due to result variable is not bool, but '{result.type.name}'");
         
         Add(OpCode.Compare);
@@ -424,6 +431,15 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
     {
         Add(OpCode.Jump);
         InsertAddress(label);
+    }
+
+    public override void Cast(Variable variable, Variable result)
+    {
+        Add(OpCode.Cast);
+        AddInt(variable.rbpOffset);
+        AddSize(variable);
+        AddInt(result.rbpOffset);
+        AddSize(result);
     }
 
 

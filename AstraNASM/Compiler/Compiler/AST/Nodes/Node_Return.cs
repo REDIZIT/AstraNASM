@@ -24,7 +24,8 @@ public class Node_Return : Node
             {
                 expr.Generate(ctx);
 
-                if (expr.result.type != function.returns[0])
+                
+                if (CanReturn(function.returns[0], expr.result.type) == false)
                 {
                     throw new Exception($"Failed to generate return node: function returns {function.returns[0]}, but keyword return try to return {expr.result.type}");
                 }
@@ -40,5 +41,20 @@ public class Node_Return : Node
         
         ctx.gen.Epilogue();
         ctx.gen.Return_Void();
+    }
+
+    private bool CanReturn(TypeInfo declaratedType, TypeInfo retType)
+    {
+        bool isDeclPtrOtNonPrimitive = declaratedType == PrimitiveTypes.PTR || !PrimitiveTypes.IsPrimitive(declaratedType);
+        bool isRetPtrOtNonPrimitive = retType == PrimitiveTypes.PTR || !PrimitiveTypes.IsPrimitive(retType);
+
+        if (isDeclPtrOtNonPrimitive && isRetPtrOtNonPrimitive)
+        {
+            return true;
+        }
+        else
+        {
+            return declaratedType == retType;
+        }
     }
 }

@@ -8,7 +8,7 @@
 
 class CustomClass
 {
-	public static GetNumber(): long
+	public static GetNumber(): int
 	{
 		return 123
 	}

@@ -4,7 +4,7 @@ namespace Astra.Compilation;
 
 public class CodeGenerator_NASM : CodeGeneratorBase
 {
-    public override void PrologueForSimulation(CompileTarget target)
+    public override void PrologueForSimulation(CompileTarget target, ResolvedModule module)
     {
         if (target == CompileTarget.Simulator)
         {
@@ -418,6 +418,11 @@ public class CodeGenerator_NASM : CodeGeneratorBase
     public override void JumpToLabel(string label)
     {
         b.Line($"jmp {label}");
+    }
+
+    public override void Cast(Variable variable, Variable result)
+    {
+        throw new NotImplementedException();
     }
 
 

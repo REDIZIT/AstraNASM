@@ -30,8 +30,8 @@ public static class Utils
     {
         if (t == PrimitiveTypes.BYTE) return "byte";
         if (t == PrimitiveTypes.SHORT) return "word";
-        if (t == PrimitiveTypes.INT) return "dword";
-        if (t == PrimitiveTypes.LONG || t == PrimitiveTypes.PTR || t == PrimitiveTypes.BOOL) return "qword";
+        if (t == PrimitiveTypes.INT || t == PrimitiveTypes.PTR) return "dword";
+        if (t == PrimitiveTypes.LONG || t == PrimitiveTypes.BOOL) return "qword";
 
         if (t.isStruct == false) return "qword";
 
@@ -67,6 +67,19 @@ public static class Utils
         if (AreSameSize(vars) == false)
         {
             throw new Exception("Assert failed. Variables have different sizes: " + string.Join(", ", vars.Select(v => v.name + " (" + Utils.GetSizeInBytes(v.type) + ")")));
+        }
+    }
+
+    public static void AssertSameOrLessSize(Variable result, params Variable[] vars)
+    {
+        byte maxSize = GetSizeInBytes(result.type);
+        foreach (Variable var in vars)
+        {
+            byte varSize = GetSizeInBytes(var.type);
+            if (varSize > maxSize)
+            {
+                throw new Exception($"Assert failed. Variable '{var.name}' is larger than '{result.name}'. Variables: " + string.Join(", ", vars.Select(v => v.name + " (" + Utils.GetSizeInBytes(v.type) + ")")));
+            }
         }
     }
 

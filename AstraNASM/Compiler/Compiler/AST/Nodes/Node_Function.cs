@@ -42,13 +42,13 @@ public class Node_Function : Node
 
         List<Variable> functionParams = new();
 
-        int index = 0;
+        int rbpOffset = 16 + functionInfo.returns.Sum(t => Utils.GetSizeInBytes(t));
 
         for (int i = functionInfo.arguments.Count - 1; i >= 0; i--)
         {
             FieldInfo argInfo = functionInfo.arguments[i];
-            functionParams.Add(ctx.gen.Register_FunctionArgumentVariable(argInfo, index));
-            index++;
+            functionParams.Add(ctx.gen.Register_FunctionArgumentVariable(argInfo, rbpOffset));
+            rbpOffset += 8;
         }
 
 
@@ -58,8 +58,8 @@ public class Node_Function : Node
             {
                 name = "self",
                 type = functionInfo.owner
-            }, index));
-            index++;
+            }, rbpOffset));
+            rbpOffset += Utils.GetSizeInBytes(functionInfo.owner);
         }
 
 

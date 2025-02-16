@@ -51,7 +51,7 @@ public abstract class CodeGeneratorBase
 
     public abstract void Prologue();
     public abstract void Epilogue();
-    public abstract void PrologueForSimulation(CompileTarget target);
+    public abstract void PrologueForSimulation(CompileTarget target, ResolvedModule module);
     public abstract void Return_Void();
     public abstract void Return_Variable(FunctionInfo function, Variable variable);
 
@@ -96,13 +96,13 @@ public abstract class CodeGeneratorBase
     public abstract void AllocateHeap(Variable storageOfPointerToHeap, Variable bytesToAllocateVariable);
     public abstract void AllocateHeap(Variable storageOfPointerToHeap, int bytesToAllocate);
 
-    public virtual Variable Register_FunctionArgumentVariable(FieldInfo info, int index)
+    public Variable Register_FunctionArgumentVariable(FieldInfo info, int rbpOffset)
     {
         Variable variable = new Variable()
         {
             name = info.name,
             type = info.type,
-            rbpOffset = 16 + index * 8
+            rbpOffset = rbpOffset
         };
         
         variableByName.Add(variable.name, variable);
@@ -111,7 +111,7 @@ public abstract class CodeGeneratorBase
         return variable;
     }
 
-    public virtual void Unregister_FunctionArgumentVariable(Variable variable)
+    public void Unregister_FunctionArgumentVariable(Variable variable)
     {
         variableByName.Remove(variable.name);
         variableByRBPOffset.Remove(variable.rbpOffset);
@@ -211,6 +211,8 @@ public abstract class CodeGeneratorBase
         b.Line($"jmp rbx");
         b.Space();
     }
+
+    public abstract void Cast(Variable variable, Variable result);
 
     public virtual void SectionData()
     {

@@ -1,5 +1,4 @@
-﻿
-namespace Astra.Compilation;
+﻿namespace Astra.Compilation;
 
 public class Node_Block : Node
 {

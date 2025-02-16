@@ -78,7 +78,7 @@ public static class Generator
         }
         
 
-        ctx.gen.PrologueForSimulation(target);
+        ctx.gen.PrologueForSimulation(target, module);
         
 
         foreach (Node statement in statements)
