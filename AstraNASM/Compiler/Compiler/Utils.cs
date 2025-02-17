@@ -33,7 +33,7 @@ public static class Utils
         if (t == PrimitiveTypes.INT || t == PrimitiveTypes.PTR) return "dword";
         if (t == PrimitiveTypes.LONG || t == PrimitiveTypes.BOOL) return "qword";
 
-        if (t.isStruct == false) return "qword";
+        if (t.isStruct == false) return "dword";
 
         throw new Exception($"Failed to get nasm type for type '{t}'");
     }
@@ -78,7 +78,7 @@ public static class Utils
             byte varSize = GetSizeInBytes(var.type);
             if (varSize > maxSize)
             {
-                throw new Exception($"Assert failed. Variable '{var.name}' is larger than '{result.name}'. Variables: " + string.Join(", ", vars.Select(v => v.name + " (" + Utils.GetSizeInBytes(v.type) + ")")));
+                throw new Exception($"Assert failed. Variable '{var.name}' is larger than result '{result.name}' ({Utils.GetSizeInBytes(result.type)}). Variables: " + string.Join(", ", vars.Select(v => v.name + " (" + Utils.GetSizeInBytes(v.type) + ")")));
             }
         }
     }
@@ -117,5 +117,15 @@ public static class Utils
         }
 
         return bytes;
+    }
+
+    public static int GetRBP_RetValue(FunctionInfo info)
+    {
+        int rbpOffset = 8 + info.arguments.Sum(a => Utils.GetSizeInBytes(a.type));
+        if (info.isStatic == false) rbpOffset += 4;
+        
+        rbpOffset += info.returns.Sum(t => Utils.GetSizeInBytes(t));
+
+        return rbpOffset;
     }
 }

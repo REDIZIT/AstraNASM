@@ -107,12 +107,15 @@ public class Node_FunctionCall : Node
 
         ctx.gen.Call(function.GetCombinedName());
 
-
-
-        int argumentsSizeInBytes = arguments.Count * 8;
+        
+        int argumentsSizeInBytes = 0;
+        for (int i = 0; i < function.arguments.Count; i++)
+        {
+            argumentsSizeInBytes += Utils.GetSizeInBytes(function.arguments[i].type);
+        }
         if (isStatic == false)
         {
-            argumentsSizeInBytes += 8; // self pointer
+            argumentsSizeInBytes += Utils.GetSizeInBytes(function.owner); // self pointer
         }
         ctx.gen.Deallocate(argumentsSizeInBytes);
     }

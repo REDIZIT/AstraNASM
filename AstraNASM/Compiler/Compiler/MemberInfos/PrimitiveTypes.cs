@@ -17,4 +17,9 @@ public static class PrimitiveTypes
             type == BOOL || type == BYTE || type == SHORT ||
             type == INT || type == LONG;
     }
+    
+    public static bool IsPrimitiveOrPtr(TypeInfo type)
+    {
+        return IsPrimitive(type) || type == PTR;
+    }
 }

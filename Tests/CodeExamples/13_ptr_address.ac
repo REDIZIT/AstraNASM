@@ -2,8 +2,8 @@ class program
 {
 	public main(): int
 	{
-	    ptr a = new ptr()
-	    ptr b = new ptr()
+	    ptr a
+	    ptr b
 	    
 	    a.address = 123
 	    

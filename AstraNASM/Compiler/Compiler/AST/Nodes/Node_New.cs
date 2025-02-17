@@ -14,18 +14,19 @@ public class Node_New : Node
 
     public override void Generate(Generator.Context ctx)
     {
-        result = ctx.gen.Allocate(PrimitiveTypes.LONG);
-        int typeSizeInBytes = 8;
+        // If ref type
+        if (classInfo.isStruct)
+        {
+            throw new Exception("Can not use 'new' for value-types");
+        }
+        
+        // Allocate pointer to heap
+        result = ctx.gen.Allocate(PrimitiveTypes.PTR);
 
         ctx.gen.Space();
         ctx.gen.Comment($"new {classInfo.name}");
         ctx.gen.Allocate(classInfo);
-
-
-        // If ref type
-        if (classInfo.isStruct == false)
-        {
-            ctx.gen.AllocateHeap(result, 8);
-        }
+        
+        ctx.gen.AllocateHeap(result, 16); // TODO: Calculate bytesToAllocate
     }
 }

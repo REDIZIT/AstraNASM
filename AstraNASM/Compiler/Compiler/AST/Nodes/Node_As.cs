@@ -17,7 +17,7 @@ public class Node_As : Node
         TypeInfo type = ctx.module.GetType(typeToken.name);
         
         
-        if (PrimitiveTypes.IsPrimitive(left.result.type) == false || PrimitiveTypes.IsPrimitive(type) == false)
+        if (PrimitiveTypes.IsPrimitiveOrPtr(left.result.type) == false || PrimitiveTypes.IsPrimitiveOrPtr(type) == false)
         {
             throw new Exception("Using 'as' for non-primitive types is not allowed");
         }

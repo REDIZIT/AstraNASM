@@ -1,6 +1,6 @@
 class program
 {
-	public main(): long
+	public main(): int
 	{
 		Array arr = new Array()
 
@@ -13,28 +13,23 @@ class program
 	}
 }
 
-class Pointer
-{
-	int address
-}
-
 class Array 
 {
-	public write(int index, long value)
+	public write(int index, int value)
 	{
 		ptr pointer = self.to_ptr()
 
-		pointer.shift(index * 8)
+		pointer.shift(index * 4)
 		pointer.set(value);
 
 		return
 	}
-	public read(int index): long
+	public read(int index): int
 	{
 		ptr pointer = self.to_ptr()
-		pointer.shift(index * 8)
+		pointer.shift(index * 4)
 
-		return pointer.get_long()
+		return pointer.get_int()
 	}
 }
 

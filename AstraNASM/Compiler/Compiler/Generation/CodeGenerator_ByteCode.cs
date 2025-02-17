@@ -43,7 +43,8 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
         FunctionInfo main = module.classInfoByName["program"].functions.First(f => f.name == "main");
         if (main.isStatic == false)
         {
-            Variable selfVar = Allocate(PrimitiveTypes.INT);    
+            Variable selfStackVar = Allocate(PrimitiveTypes.PTR);
+            AllocateHeap(selfStackVar, 0);
         }
         
         
@@ -79,10 +80,7 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
 
     public override void Return_Variable(FunctionInfo function, Variable variable)
     {
-        int rbpOffset = 2 * 4 + function.arguments.Sum(a => Utils.GetSizeInBytes(a.type));
-        if (function.isStatic == false) rbpOffset += 4;
-
-        rbpOffset += function.returns.Sum(t => Utils.GetSizeInBytes(t));
+        int rbpOffset = Utils.GetRBP_RetValue(function);
         
         Add(OpCode.Mov);
         
@@ -122,6 +120,9 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
         variableByRBPOffset.Add(variable.rbpOffset, variable);
         variableStack.Push(variable);
         
+        
+        // @docs
+        // Change rpb offset after local variable declaration
         rbpOffset -= sizeInBytes;
         
         
