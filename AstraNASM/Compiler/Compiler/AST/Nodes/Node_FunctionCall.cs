@@ -95,7 +95,7 @@ public class Node_FunctionCall : Node
 
             if (arguments[i] is Node_Literal literal)
             {
-                ctx.gen.PushToStack(literal.constant.value, PrimitiveTypes.INT, $"arg[{i}] = {argInfo.name}");
+                ctx.gen.PushToStack(literal.constant.value, argInfo.type, $"arg[{i}] = {argInfo.name}");
             }
             else
             {
