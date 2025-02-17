@@ -138,7 +138,7 @@ public static class Resolver
         // Pass 6: Generate Scopes
         //
         Scope globalScope = new();
-        GenerateScope(globalScope, new Node_Block() { children = ast}, module);
+        ParseScope(globalScope, new Node_Block() { children = ast}, module);
 
         //
         // Pass 7: Resolve Nodes
@@ -217,7 +217,7 @@ public static class Resolver
         }
     }
 
-    private static void GenerateScope(Scope parentScope, Node node, ResolvedModule module)
+    private static void ParseScope(Scope parentScope, Node node, ResolvedModule module)
     {
         Scope scope = parentScope.CreateSubScope();
         node.scope = scope;
@@ -272,7 +272,7 @@ public static class Resolver
                 scope.variables.Add(varDec.fieldInfo);
             }
 
-            GenerateScope(scope, childNode, module);
+            ParseScope(scope, childNode, module);
         }
     }
 

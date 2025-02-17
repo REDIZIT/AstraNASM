@@ -191,7 +191,7 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
     {
         Add(OpCode.DeallocateRSPSaver);
         
-        // rbpOffset -= 4; // why -4 works, but not +4?
+        rbpOffset += 4; // why -4 works, but not +4?
     }
 
     public override void Deallocate(int sizeInBytes)
