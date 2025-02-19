@@ -19,13 +19,17 @@ public abstract class CodeGeneratorBase
     
     public void BeginSubScope()
     {
+        // Prologue before sub scope creation
         Prologue();
+        
         currentScope = currentScope.CreateSubScope(null);
     }
 
     public void DropSubScope()
     {
         currentScope = currentScope.parent;
+        
+        // Epilogue after sub scope drop
         Epilogue();
     }
     
@@ -75,8 +79,7 @@ public abstract class CodeGeneratorBase
     public abstract Variable Allocate(TypeInfo type, string name);
     
     public abstract void Deallocate(Variable variable);
-
-    // public abstract void Deallocate(int sizeInBytes);
+    public abstract void Deallocate(int bytesToDellocate);
 
     public abstract void AllocateHeap(Variable storageOfPointerToHeap, Variable bytesToAllocateVariable);
     public abstract void AllocateHeap(Variable storageOfPointerToHeap, int bytesToAllocate);
@@ -112,8 +115,8 @@ public abstract class CodeGeneratorBase
     public abstract void Print(Variable variable);
     
 
-    public abstract void PushToStack(Variable variable, string comment = null);
-    public abstract void PushToStack(string str, TypeInfo type, string comment = null);
+    public abstract void PushToStack(Variable variable);
+    public abstract void PushToStack(string str, TypeInfo type);
 
     public abstract void Call(string functionName);
 

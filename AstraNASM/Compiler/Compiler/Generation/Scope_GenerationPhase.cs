@@ -1,3 +1,5 @@
+using AVM.Compiler;
+
 namespace Astra.Compilation;
 
 public class Scope_GenerationPhase
@@ -9,6 +11,8 @@ public class Scope_GenerationPhase
 
     public Scope_GenerationPhase parent;
 
+    public UniqueGenerator uniqueGenerator;
+
     public int CurrentRbpOffset
     {
         get
@@ -16,7 +20,7 @@ public class Scope_GenerationPhase
             if (variableStack.Count == 0) return 0;
             
             Variable lastLocalVariable = variableStack.Peek();
-            return lastLocalVariable.inscopeRbpOffset + lastLocalVariable.type.sizeInBytes;
+            return lastLocalVariable.inscopeRbpOffset + lastLocalVariable.type.refSizeInBytes;
         }
     }
 
@@ -29,29 +33,21 @@ public class Scope_GenerationPhase
     {
         Scope_GenerationPhase child = new(subStaticScope);
         child.parent = this;
+        child.uniqueGenerator = uniqueGenerator;
 
         return child;
     }
 
     public Variable RegisterLocalVariable(TypeInfo type, string name)
     {
-        if (IsOverlapStackAllocated(CurrentRbpOffset, type.sizeInBytes))
-        {
-            throw new Exception();
-        }
-
-        int rbp = CurrentRbpOffset;
-        
-        Variable variable = new Variable(this, rbp)
+        Variable variable = new Variable(this, CurrentRbpOffset)
         {
             name = name,
             type = type,
         };
-        variableByName.Add(name, variable);
+        variableByName.Add(variable.name, variable);
         variableStack.Push(variable);
         
-        
-
         return variable;
     }
 
@@ -82,17 +78,36 @@ public class Scope_GenerationPhase
         if (parent != null) return parent.GetVariable(name);
         throw new Exception($"Variable '{name}' not found in current or parents scope");
     }
-    
-    private bool IsOverlapStackAllocated(int askAddress, int askSizeInBytes)
-    {
-        Range askRange = new Range(askAddress, askAddress + askSizeInBytes);
-        
-        foreach (Variable var in variableStack)
-        {
-            Range varRange = new Range(var.inscopeRbpOffset, var.inscopeRbpOffset + var.type.sizeInBytes);
-            if (varRange.IsOverlap(askRange)) return true;
-        }
 
-        return false;
+    public int GetRelativeRBP(Variable askedVariable)
+    {
+        if (variableByName.ContainsValue(askedVariable))
+        {
+            // Asked variable is local variable of current scope
+            // Return positive rbp offset
+            return askedVariable.inscopeRbpOffset;
+        }
+        
+        int relativeRBP = 0;
+        Scope_GenerationPhase scope = this;
+
+        while (scope != null)
+        {
+            scope = scope.parent;
+            relativeRBP -= Constants.RBP_REG_SIZE;
+            
+            for (int i = 0; i < scope.variableStack.Count; i++)
+            {
+                Variable variable = scope.variableStack.ElementAt(i); // where Stack.ElementAt(0) is Stack.Peek()
+                relativeRBP -= variable.type.refSizeInBytes;
+
+                if (variable == askedVariable)
+                {
+                    return relativeRBP;
+                }
+            }
+        }
+        
+        throw new Exception($"Variable '{askedVariable.name}' not found in current or parents scope");
     }
 }

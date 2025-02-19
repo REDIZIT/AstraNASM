@@ -9,7 +9,10 @@ public static class Generator
     
     public static byte[] Generate(List<Node> statements, ResolvedModule module, CompileTarget target)
     {
-        Scope_GenerationPhase globalScope = new Scope_GenerationPhase(null);
+        Scope_GenerationPhase globalScope = new Scope_GenerationPhase(null)
+        {
+            uniqueGenerator = new()
+        };
         
         Context ctx = new()
         {

@@ -369,7 +369,7 @@ public static class Resolver
         TypeInfo ptrInfo = new TypeInfo()
         {
             name = "ptr",
-            isStruct = true
+            isValueType = true
         };
 
 

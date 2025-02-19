@@ -5,7 +5,7 @@ public class TypeInfo
     public string name;
     public List<FieldInfo> fields = new();
     public List<FunctionInfo> functions = new();
-    public bool isStruct;
+    public bool isValueType;
 
     public int sizeInBytes
     {
@@ -16,11 +16,22 @@ public class TypeInfo
         }
     }
 
+    public int refSizeInBytes
+    {
+        get
+        {
+            if (isValueType) return _sizeInBytes;
+            return PrimitiveTypes.PTR.sizeInBytes;
+        }
+    }
+
     private int _sizeInBytes = -1;
     
     public void CalculateSizeInBytes()
     {
-        if (PrimitiveTypes.IsPrimitiveOrPtr(this))
+        isValueType = PrimitiveTypes.IsPrimitiveOrPtr(this);
+
+        if (isValueType)
         {
             _sizeInBytes = Utils.GetSizeInBytes(this);
         }

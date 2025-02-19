@@ -33,7 +33,7 @@ public static class Utils
         if (t == PrimitiveTypes.INT || t == PrimitiveTypes.PTR) return "dword";
         if (t == PrimitiveTypes.LONG || t == PrimitiveTypes.BOOL) return "qword";
 
-        if (t.isStruct == false) return "dword";
+        if (t.isValueType == false) return "dword";
 
         throw new Exception($"Failed to get nasm type for type '{t}'");
     }

@@ -16,6 +16,7 @@ public class Node_If : Node
     public override void Generate(Generator.Context ctx)
     {
         base.Generate(ctx);
+        
 
         condition.Generate(ctx);
 

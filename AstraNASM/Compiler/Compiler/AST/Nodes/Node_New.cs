@@ -15,7 +15,7 @@ public class Node_New : Node
     public override void Generate(Generator.Context ctx)
     {
         // If ref type
-        if (classInfo.isStruct)
+        if (classInfo.isValueType)
         {
             throw new Exception("Can not use 'new' for value-types");
         }
