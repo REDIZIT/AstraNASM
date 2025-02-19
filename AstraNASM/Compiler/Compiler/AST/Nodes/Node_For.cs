@@ -27,7 +27,7 @@ public class Node_For : Node
         ctx.gen.Label(conditionLabel);
         ctx.gen.BeginSubScope();
         condition.Generate(ctx);
-        ctx.gen.EndSubScope();
+        ctx.gen.DropSubScope();
         
         ctx.gen.JumpIfFalse(condition.result, endLabel);
         
@@ -35,12 +35,12 @@ public class Node_For : Node
         ctx.gen.BeginSubScope();
         body.Generate(ctx);
         advance.Generate(ctx);
-        ctx.gen.EndSubScope();
+        ctx.gen.DropSubScope();
         
         ctx.gen.JumpToLabel(conditionLabel);
 
 
         ctx.gen.Label(endLabel);
-        ctx.gen.EndSubScope();
+        ctx.gen.DropSubScope();
     }
 }

@@ -22,16 +22,16 @@ public class Node_While : Node
 
         ctx.gen.Label(conditionLabel);
         
-        ctx.gen.BeginSubScope(staticScope);
+        ctx.gen.BeginSubScope();
         condition.Generate(ctx);
-        ctx.gen.EndSubScope();
+        ctx.gen.DropSubScope();
         
         ctx.gen.JumpIfFalse(condition.result, endLabel);
 
 
-        ctx.gen.BeginSubScope(staticScope);
+        ctx.gen.BeginSubScope();
         body.Generate(ctx);
-        ctx.gen.EndSubScope();
+        ctx.gen.DropSubScope();
         
         ctx.gen.JumpToLabel(conditionLabel);
 

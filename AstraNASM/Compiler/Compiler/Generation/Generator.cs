@@ -9,11 +9,13 @@ public static class Generator
     
     public static byte[] Generate(List<Node> statements, ResolvedModule module, CompileTarget target)
     {
+        Scope_GenerationPhase globalScope = new Scope_GenerationPhase(null);
+        
         Context ctx = new()
         {
             gen = new CodeGenerator_ByteCode()
             {
-                currentScope = new Scope_GenerationPhase(null)
+                currentScope = globalScope
             }
         };
 
@@ -44,6 +46,11 @@ public static class Generator
         foreach (Node statement in statements)
         {
             statement.Generate(ctx);
+        }
+
+        if (ctx.gen.currentScope != globalScope)
+        {
+            throw new Exception($"Generation failed due to disbalanced scopes.");
         }
         
         return ctx.gen.Build();

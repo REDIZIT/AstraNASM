@@ -8,7 +8,6 @@ public class Scope_GenerationPhase
     public Stack<Variable> variableStack = new();
 
     public Scope_GenerationPhase parent;
-    public List<Scope_GenerationPhase> children = new();
 
     public int CurrentRbpOffset
     {
@@ -30,21 +29,28 @@ public class Scope_GenerationPhase
     {
         Scope_GenerationPhase child = new(subStaticScope);
         child.parent = this;
-        children.Add(child);
 
         return child;
     }
 
     public Variable RegisterLocalVariable(TypeInfo type, string name)
     {
-        Variable variable = new Variable(this)
+        if (IsOverlapStackAllocated(CurrentRbpOffset, type.sizeInBytes))
+        {
+            throw new Exception();
+        }
+
+        int rbp = CurrentRbpOffset;
+        
+        Variable variable = new Variable(this, rbp)
         {
             name = name,
             type = type,
-            inscopeRbpOffset = CurrentRbpOffset
         };
         variableByName.Add(name, variable);
         variableStack.Push(variable);
+        
+        
 
         return variable;
     }
@@ -58,7 +64,7 @@ public class Scope_GenerationPhase
             throw new Exception($"Failed to deallocate '{variable.name}' because it is not even allocated (or already deallocated) on stack.");
         
         if (variableStack.Peek() != variable)
-            throw new Exception($"Failed to deallocate variable '{variable.name}' because it is not the last variable on stack. Only last variable can be deallocated on stack.'");
+            throw new Exception($"Failed to deallocate variable '{variable.name}' because it is not the last variable on stack, last is '{variableStack.Peek().name}'. Only last variable can be deallocated on stack.'");
 
         variableStack.Pop();
         variableByName.Remove(variable.name);

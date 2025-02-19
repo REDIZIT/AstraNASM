@@ -4,8 +4,6 @@ namespace Astra.Compilation;
 
 public abstract class CodeGeneratorBase
 {
-    // public CodeGeneratorBase parent;
-    // public List<CodeGeneratorBase> children = new();
     public CodeStringBuilder b = new();
 
     public Scope_GenerationPhase currentScope;
@@ -18,21 +16,17 @@ public abstract class CodeGeneratorBase
     
     private int anonVariableNameIndex;
 
-
-    public void BeginSubScope(Scope_StaticAnalysis staticScope)
-    {
-        currentScope = currentScope.CreateSubScope(staticScope);
-        Prologue();
-    }
+    
     public void BeginSubScope()
     {
-        BeginSubScope(null);
+        Prologue();
+        currentScope = currentScope.CreateSubScope(null);
     }
 
-    public void EndSubScope()
+    public void DropSubScope()
     {
-        Epilogue();
         currentScope = currentScope.parent;
+        Epilogue();
     }
     
     public virtual void Label(string labelName)

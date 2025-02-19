@@ -39,7 +39,6 @@ public class Node_Return : Node
             }
         }
         
-        ctx.gen.Epilogue();
         ctx.gen.Return();
     }
 

@@ -24,8 +24,10 @@ public class TypeInfo
         {
             _sizeInBytes = Utils.GetSizeInBytes(this);
         }
-
-        _sizeInBytes = fields.Sum(f => Utils.GetSizeInBytes(this));
+        else
+        {
+            _sizeInBytes = fields.Sum(f => Utils.GetSizeInBytes(this));   
+        }
     }
     
     public override string ToString()

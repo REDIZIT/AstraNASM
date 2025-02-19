@@ -1,7 +1,7 @@
 ﻿
 namespace Astra.Compilation;
 
-public class Node_Function : Node
+public class Node_FunctionBody : Node
 {
     public string name;
     public Node body;
@@ -30,8 +30,8 @@ public class Node_Function : Node
         string functionLabel = ctx.gen.RegisterLabel(functionInfo.GetCombinedName());
         ctx.gen.Label(functionLabel);
         
-        ctx.gen.BeginSubScope(staticScope);
+        ctx.gen.BeginSubScope();
         body.Generate(ctx);
-        ctx.gen.EndSubScope();
+        // ctx.gen.DropSubScope();
     }
 }

@@ -20,9 +20,8 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
             AllocateHeap(selfStackVar, 0);
         }
         
-        
-        Add(OpCode.Call);
-        InsertAddress(main.GetCombinedName());
+        Call(main.GetCombinedName());
+
         Add(OpCode.Exit);
     }
 
@@ -49,31 +48,22 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
     
     public override void Epilogue()
     {
-        currentScope.UnregisterLocalVariable("prologue_pushed_rbp");
         Add(OpCode.FunctionEpilogue);
     }
     
     public override void Call(string functionName)
     {
+        // BeginSubScope(); // will be closed by return
         currentScope.RegisterLocalVariable(PrimitiveTypes.PTR, "call_pushed_instruction");
         
         Add(OpCode.Call);
         InsertAddress(functionName);
     }
-
-    public override void PushExceptionHandler(string catchLabel)
-    {
-        throw new NotImplementedException();
-    }
-
-    public override void ThrowException(Variable exception)
-    {
-        throw new NotImplementedException();
-    }
-
+    
     public override void Return()
     {
-        currentScope.UnregisterLocalVariable("call_pushed_instruction");
+        DropSubScope();
+        
         Add(OpCode.Return);
     }
     
@@ -134,12 +124,6 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
         AddInt(storageOfPointerToHeap.inscopeRbpOffset);
         AddInt(bytesToAllocateVariable.inscopeRbpOffset);
         AddSize(bytesToAllocateVariable);
-    }
-
-
-    public override void Print(Variable variable)
-    {
-        throw new NotImplementedException();
     }
 
     public override void PushToStack(Variable variable, string comment = null)
@@ -286,11 +270,6 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
         Add(sizeInBytes);
     }
 
-    public override void LogicalNOT(Variable a, Variable result)
-    {
-        throw new NotImplementedException();
-    }
-
     public override void Negate(Variable a, Variable result)
     {
         Utils.AssertSameOrLessSize(result, a);
@@ -421,6 +400,26 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
     }
     public override void Comment(string comment, int bookmarkDistance)
     {
+    }
+    
+    public override void PushExceptionHandler(string catchLabel)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override void ThrowException(Variable exception)
+    {
+        throw new NotImplementedException();
+    }
+    
+    public override void LogicalNOT(Variable a, Variable result)
+    {
+        throw new NotImplementedException();
+    }
+    
+    public override void Print(Variable variable)
+    {
+        throw new NotImplementedException();
     }
 
 

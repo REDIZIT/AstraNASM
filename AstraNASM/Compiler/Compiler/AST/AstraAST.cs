@@ -453,7 +453,7 @@ public class AstraAST : ASTBuilder
         }
 
         Node body = Block();
-        return new Node_Function()
+        return new Node_FunctionBody()
         {
             name = functionName.name,
             body = body,

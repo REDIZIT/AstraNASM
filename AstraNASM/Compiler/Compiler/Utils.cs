@@ -121,10 +121,10 @@ public static class Utils
 
     public static int GetRBP_RetValue(FunctionInfo info)
     {
-        int rbpOffset = 8 + info.arguments.Sum(a => Utils.GetSizeInBytes(a.type));
-        if (info.isStatic == false) rbpOffset += 4;
+        int rbpOffset = -8 - info.arguments.Sum(a => Utils.GetSizeInBytes(a.type));
+        if (info.isStatic == false) rbpOffset -= 4;
         
-        rbpOffset += info.returns.Sum(t => Utils.GetSizeInBytes(t));
+        rbpOffset -= info.returns.Sum(t => Utils.GetSizeInBytes(t));
 
         return rbpOffset;
     }

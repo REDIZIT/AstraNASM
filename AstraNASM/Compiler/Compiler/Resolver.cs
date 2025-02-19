@@ -92,7 +92,7 @@ public static class Resolver
 
             foreach (Node child in node.body.EnumerateChildren())
             {
-                if (child is Node_Function funcDec)
+                if (child is Node_FunctionBody funcDec)
                 {
                     FunctionInfo funcInfo = new()
                     {
@@ -245,7 +245,7 @@ public static class Resolver
         {
             scope.typeInfo = cls.classInfo;
         }
-        else if (node is Node_Function func)
+        else if (node is Node_FunctionBody func)
         {
             scope.functionInfo = func.functionInfo;
             
