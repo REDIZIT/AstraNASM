@@ -24,12 +24,9 @@ public class Node_While : Node
         
         ctx.gen.BeginSubScope();
         condition.Generate(ctx);
-        ctx.gen.DropSubScope();
         
         ctx.gen.JumpIfFalse(condition.result, endLabel);
-
-
-        ctx.gen.BeginSubScope();
+        
         body.Generate(ctx);
         ctx.gen.DropSubScope();
         
@@ -38,5 +35,6 @@ public class Node_While : Node
 
         ctx.gen.Space();
         ctx.gen.Label(endLabel);
+        ctx.gen.Epilogue(); // due to runtime JumpIfFalse keeps SubScope openned
     }
 }

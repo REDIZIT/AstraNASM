@@ -89,11 +89,10 @@ public class Scope_GenerationPhase
         }
         
         int relativeRBP = 0;
-        Scope_GenerationPhase scope = this;
+        Scope_GenerationPhase scope = parent;
 
         while (scope != null)
         {
-            scope = scope.parent;
             relativeRBP -= Constants.RBP_REG_SIZE;
             
             for (int i = 0; i < scope.variableStack.Count; i++)
@@ -106,6 +105,8 @@ public class Scope_GenerationPhase
                     return relativeRBP;
                 }
             }
+            
+            scope = scope.parent;
         }
         
         throw new Exception($"Variable '{askedVariable.name}' not found in current or parents scope");

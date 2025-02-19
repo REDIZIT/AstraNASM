@@ -27,12 +27,12 @@ public class Node_For : Node
         ctx.gen.Label(conditionLabel);
         ctx.gen.BeginSubScope();
         condition.Generate(ctx);
-        ctx.gen.DropSubScope();
+        // ctx.gen.DropSubScope();
         
         ctx.gen.JumpIfFalse(condition.result, endLabel);
         
         
-        ctx.gen.BeginSubScope();
+        // ctx.gen.BeginSubScope();
         body.Generate(ctx);
         advance.Generate(ctx);
         ctx.gen.DropSubScope();
@@ -41,6 +41,7 @@ public class Node_For : Node
 
 
         ctx.gen.Label(endLabel);
-        ctx.gen.DropSubScope();
+        ctx.gen.DropSubScope(); // due to compiletime Begin/Drop same amount requirement
+        ctx.gen.Epilogue(); // due to runtime JumpIfFalse keeps SubScope openned
     }
 }
