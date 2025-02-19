@@ -3,6 +3,8 @@ public class Node_While : Node
 {
     public Node condition, body;
 
+    public Scope_StaticAnalysis staticScope;
+
     public override IEnumerable<Node> EnumerateChildren()
     {
         yield return condition;
@@ -19,24 +21,22 @@ public class Node_While : Node
 
 
         ctx.gen.Label(conditionLabel);
-        int rspRbpOffset = ctx.gen.AllocateRSPSaver();
+        
+        ctx.gen.BeginSubScope(staticScope);
         condition.Generate(ctx);
-
-
-        ctx.gen.Space();
+        ctx.gen.EndSubScope();
+        
         ctx.gen.JumpIfFalse(condition.result, endLabel);
 
 
-        ctx.gen.Space();
+        ctx.gen.BeginSubScope(staticScope);
         body.Generate(ctx);
-
-
-        ctx.gen.RestoreRSPSaver(rspRbpOffset);
+        ctx.gen.EndSubScope();
+        
         ctx.gen.JumpToLabel(conditionLabel);
 
 
         ctx.gen.Space();
         ctx.gen.Label(endLabel);
-        ctx.gen.DeallocateRSPSaver();
     }
 }

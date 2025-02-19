@@ -3,7 +3,7 @@
 public abstract class Node
 {
     public Variable result;
-    public Scope scope;
+    public Scope_StaticAnalysis scope;
 
     public List<Token> consumedTokens;
 

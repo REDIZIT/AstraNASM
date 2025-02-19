@@ -2,10 +2,9 @@
 
 public class ToPtr_EmbeddedFunctionInfo : EmbeddedFunctionInfo
 {
-    public Variable Generate(Generator.Context ctx, string valueName)
+    public Variable Generate(Generator.Context ctx, Variable valueVariable)
     {
         Variable result = ctx.gen.Allocate(PrimitiveTypes.PTR);
-        Variable valueVariable = ctx.gen.GetVariable(valueName);
 
         if (valueVariable.type is PrimitiveTypes)
         {

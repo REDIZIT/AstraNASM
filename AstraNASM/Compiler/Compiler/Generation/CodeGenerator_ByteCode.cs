@@ -4,36 +4,9 @@ namespace Astra.Compilation;
 
 public class CodeGenerator_ByteCode : CodeGeneratorBase
 {
-    protected List<byte> byteCode
-    {
-        get
-        {
-            if (parent == null) return _byteCode;
-            else return (parent as CodeGenerator_ByteCode).byteCode;
-        }
-    }
-    private List<byte> _byteCode = new();
-    
-    
-    protected Dictionary<string, int> pointedOpCodeByName
-    {
-        get
-        {
-            if (parent == null) return _pointedOpCodeByName;
-            else return (parent as CodeGenerator_ByteCode).pointedOpCodeByName;
-        }
-    }
-    private Dictionary<string, int> _pointedOpCodeByName = new();
-    
-    protected Dictionary<int, string> labelsToInsert
-    {
-        get
-        {
-            if (parent == null) return _labelsToInsert;
-            else return (parent as CodeGenerator_ByteCode).labelsToInsert;
-        }
-    }
-    private Dictionary<int, string> _labelsToInsert = new();
+    private List<byte> byteCode = new();
+    private Dictionary<string, int> pointedOpCodeByName = new();
+    private Dictionary<int, string> labelsToInsert = new();
     
     
     public override void PrologueForSimulation(CompileTarget target, ResolvedModule module)
@@ -70,34 +43,56 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
     
     public override void Prologue()
     {
+        currentScope.RegisterLocalVariable(PrimitiveTypes.PTR, "prologue_pushed_rbp");
         Add(OpCode.FunctionPrologue);
     }
     
     public override void Epilogue()
     {
+        currentScope.UnregisterLocalVariable("prologue_pushed_rbp");
         Add(OpCode.FunctionEpilogue);
     }
-
-    public override void Return_Variable(FunctionInfo function, Variable variable)
+    
+    public override void Call(string functionName)
     {
-        int rbpOffset = Utils.GetRBP_RetValue(function);
+        currentScope.RegisterLocalVariable(PrimitiveTypes.PTR, "call_pushed_instruction");
+        
+        Add(OpCode.Call);
+        InsertAddress(functionName);
+    }
+
+    public override void PushExceptionHandler(string catchLabel)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override void ThrowException(Variable exception)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override void Return()
+    {
+        currentScope.UnregisterLocalVariable("call_pushed_instruction");
+        Add(OpCode.Return);
+    }
+    
+    public override void Out_Variable(FunctionInfo function, Variable variable)
+    {
+        int inscopeRbpOffset = Utils.GetRBP_RetValue(function);
         
         Add(OpCode.Mov);
         
         Add((byte)1);
-        AddInt(rbpOffset);
+        AddInt(inscopeRbpOffset);
         
         Add((byte)1);
-        AddInt(variable.rbpOffset);
+        AddInt(variable.inscopeRbpOffset);
 
         AddSize(variable);
     }
 
-    public override void Call(string functionName)
-    {
-        Add(OpCode.Call);
-        InsertAddress(functionName);
-    }
+   
 
     public override Variable Allocate(TypeInfo type, string name)
     {
@@ -105,30 +100,15 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
         {
             throw new Exception("Failed to allocated variable with null type.");
         }
+
+
+        Variable variable = currentScope.RegisterLocalVariable(type, name);
+        
+
+        Add(OpCode.Allocate_Stack);
+        Add((byte)Allocate_Stack_Mode.WithDefaultValue);
         
         byte sizeInBytes = Utils.GetSizeInBytes(type);
-
-        
-        
-        Variable variable = new Variable()
-        {
-            name = name,
-            type = type,
-            rbpOffset = rbpOffset,
-        };
-        variableByName.Add(variable.name, variable);
-        variableByRBPOffset.Add(variable.rbpOffset, variable);
-        variableStack.Push(variable);
-        
-        
-        // @docs
-        // Change rpb offset after local variable declaration
-        rbpOffset -= sizeInBytes;
-        
-        
-        Add(OpCode.Allocate_Stack);
-        Add((byte)0);
-        
         Add(sizeInBytes);
 
         for (int i = 0; i < sizeInBytes; i++)
@@ -143,7 +123,7 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
     {
         Add(OpCode.Allocate_Heap);
         Add((byte)0);
-        AddInt(storageOfPointerToHeap.rbpOffset);
+        AddInt(storageOfPointerToHeap.inscopeRbpOffset);
         AddInt(bytesToAllocate);
     }
 
@@ -151,17 +131,22 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
     {
         Add(OpCode.Allocate_Heap);
         Add((byte)1);
-        AddInt(storageOfPointerToHeap.rbpOffset);
-        AddInt(bytesToAllocateVariable.rbpOffset);
+        AddInt(storageOfPointerToHeap.inscopeRbpOffset);
+        AddInt(bytesToAllocateVariable.inscopeRbpOffset);
         AddSize(bytesToAllocateVariable);
     }
-    
+
+
+    public override void Print(Variable variable)
+    {
+        throw new NotImplementedException();
+    }
 
     public override void PushToStack(Variable variable, string comment = null)
     {
         Add(OpCode.Allocate_Stack);
-        Add((byte)1);
-        AddInt(variable.rbpOffset);
+        Add((byte)Allocate_Stack_Mode.PushAlreadyAllocatedVariable);
+        AddInt(variable.inscopeRbpOffset);
         AddSize(variable);
     }
 
@@ -175,29 +160,12 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
         AddRange(value);
     }
 
-    public override int AllocateRSPSaver()
+    public override void Deallocate(Variable variable)
     {
-        Add(OpCode.AllocateRSPSaver);
+        currentScope.UnregisterLocalVariable(variable);
         
-        rbpOffset -= 4;
-        return rbpOffset;
-    }
-    public override void RestoreRSPSaver(int saverRBPOffset)
-    {
-        Add(OpCode.RestoreRSPSaver);
-        AddInt(saverRBPOffset);
-    }
-    public override void DeallocateRSPSaver()
-    {
-        Add(OpCode.DeallocateRSPSaver);
-        
-        rbpOffset += 4; // why -4 works, but not +4?
-    }
-
-    public override void Deallocate(int sizeInBytes)
-    {
         Add(OpCode.Deallocate_Stack);
-        AddInt(sizeInBytes);
+        AddInt(variable.type.sizeInBytes);
     }
 
 
@@ -206,7 +174,7 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
         Add(OpCode.Mov);
         
         Add((byte)1);
-        AddInt(variable.rbpOffset);
+        AddInt(variable.inscopeRbpOffset);
 
         Add((byte)2);
         byte sizeInBytes = Utils.GetSizeInBytes(variable.type);
@@ -228,10 +196,10 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
         Add(OpCode.Mov);
         
         Add((byte)1);
-        AddInt(destination.rbpOffset);
+        AddInt(destination.inscopeRbpOffset);
 
         Add((byte)1);
-        AddInt(value.rbpOffset);
+        AddInt(value.inscopeRbpOffset);
         
         AddSize(destination);
     }
@@ -241,7 +209,7 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
         Add(OpCode.Mov);
         
         Add((byte)1);
-        AddInt(destination.rbpOffset);
+        AddInt(destination.inscopeRbpOffset);
         
         Add((byte)4);
         AddInt(address);
@@ -254,7 +222,7 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
         Add(OpCode.Mov);
         
         Add((byte)2);
-        AddInt(destination.rbpOffset);
+        AddInt(destination.inscopeRbpOffset);
         
         Add((byte)2);
         byte sizeInBytes = Utils.GetSizeInBytes(destination.type);
@@ -272,10 +240,10 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
         Add(OpCode.Mov);
         
         Add((byte)2);
-        AddInt(destination.rbpOffset);
+        AddInt(destination.inscopeRbpOffset);
         
         Add((byte)1);
-        AddInt(value.rbpOffset);
+        AddInt(value.inscopeRbpOffset);
         
         AddSize(destination);
     }
@@ -289,14 +257,10 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
         AddInt(fieldOffset);
         AddSize(fieldType);
         Add(isGetter ? (byte)1 : (byte)0);
-        AddInt(result.rbpOffset);
+        AddInt(result.inscopeRbpOffset);
     }
 
 
-    public override void Return_Void()
-    {
-        Add(OpCode.Return);
-    }
     public override void Calculate(Variable a, Variable b, Token_Operator @operator, Variable result)
     {
         Utils.AssertSameOrLessSize(result, a, b);
@@ -314,12 +278,17 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
         
         Add(op);
         
-        AddInt(a.rbpOffset);
-        AddInt(b.rbpOffset);
-        AddInt(result.rbpOffset);
+        AddInt(a.inscopeRbpOffset);
+        AddInt(b.inscopeRbpOffset);
+        AddInt(result.inscopeRbpOffset);
 
         byte sizeInBytes = Utils.GetSizeInBytes(a.type);
         Add(sizeInBytes);
+    }
+
+    public override void LogicalNOT(Variable a, Variable result)
+    {
+        throw new NotImplementedException();
     }
 
     public override void Negate(Variable a, Variable result)
@@ -327,8 +296,8 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
         Utils.AssertSameOrLessSize(result, a);
         
         Add(OpCode.Negate);
-        AddInt(a.rbpOffset);
-        AddInt(result.rbpOffset);
+        AddInt(a.inscopeRbpOffset);
+        AddInt(result.inscopeRbpOffset);
 
         byte size = Utils.GetSizeInBytes(result.type);
         Add(size);
@@ -338,15 +307,15 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
     public override void ToPtr_Primitive(Variable askedVariable, Variable result)
     {
         Add(OpCode.ToPtr_ValueType);
-        AddInt(askedVariable.rbpOffset);
-        AddInt(result.rbpOffset);
+        AddInt(askedVariable.inscopeRbpOffset);
+        AddInt(result.inscopeRbpOffset);
     }
     
     public override void ToPtr_Heap(Variable askedVariable, Variable result)
     {
         Add(OpCode.ToPtr_RefType);
-        AddInt(askedVariable.rbpOffset);
-        AddInt(result.rbpOffset);
+        AddInt(askedVariable.inscopeRbpOffset);
+        AddInt(result.inscopeRbpOffset);
     }
 
     public override void PtrAddress(Variable pointer, Variable result, bool isGetter)
@@ -358,8 +327,8 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
     public override void PtrGet(Variable pointerVariable, Variable result)
     {
         Add(OpCode.PtrGet);
-        AddInt(pointerVariable.rbpOffset);
-        AddInt(result.rbpOffset);
+        AddInt(pointerVariable.inscopeRbpOffset);
+        AddInt(result.inscopeRbpOffset);
         
         AddSize(result);
     }
@@ -367,8 +336,8 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
     public override void PtrSet(Variable pointerVariable, Variable targetVariable)
     {
         Add(OpCode.PtrSet);
-        AddInt(pointerVariable.rbpOffset);
-        AddInt(targetVariable.rbpOffset);
+        AddInt(pointerVariable.inscopeRbpOffset);
+        AddInt(targetVariable.inscopeRbpOffset);
         
         AddSize(targetVariable);
     }
@@ -377,8 +346,8 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
     {
         Add(OpCode.PtrShift);
         Add((byte)1);
-        AddInt(pointerVariable.rbpOffset);
-        AddInt(shiftVariable.rbpOffset);
+        AddInt(pointerVariable.inscopeRbpOffset);
+        AddInt(shiftVariable.inscopeRbpOffset);
         AddInt(additionalShift);
 
         AddSize(shiftVariable);
@@ -388,7 +357,7 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
     {
         Add(OpCode.PtrShift);
         Add((byte)0);
-        AddInt(pointerVariable.rbpOffset);
+        AddInt(pointerVariable.inscopeRbpOffset);
         AddInt(shift);
     }
 
@@ -398,10 +367,10 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
         if (result.type != PrimitiveTypes.BOOL) throw new Exception($"Failed to compare variables due to result variable is not bool, but '{result.type.name}'");
         
         Add(OpCode.Compare);
-        AddInt(a.rbpOffset);
-        AddInt(b.rbpOffset);
+        AddInt(a.inscopeRbpOffset);
+        AddInt(b.inscopeRbpOffset);
         AddSize(a);
-        AddInt(result.rbpOffset);
+        AddInt(result.inscopeRbpOffset);
 
         byte op = 0;
         if (@operator.asmOperatorName == "e") op = 0;
@@ -419,7 +388,7 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
     {
         Add(OpCode.JumpIfFalse);
         InsertAddress(label);
-        AddInt(condition.rbpOffset);
+        AddInt(condition.inscopeRbpOffset);
         AddSize(condition);
     }
 
@@ -437,9 +406,9 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
     public override void Cast(Variable variable, Variable result)
     {
         Add(OpCode.Cast);
-        AddInt(variable.rbpOffset);
+        AddInt(variable.inscopeRbpOffset);
         AddSize(variable);
-        AddInt(result.rbpOffset);
+        AddInt(result.inscopeRbpOffset);
         AddSize(result);
     }
 

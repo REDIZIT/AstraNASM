@@ -2,12 +2,10 @@
 
 public class PtrShift_EmbeddedFunctionInfo : EmbeddedFunctionInfo
 {
-    public Variable Generate(Generator.Context ctx, string pointerVariableName, Variable shiftVariable)
+    public Variable Generate(Generator.Context ctx, Variable pointerVariable, Variable shiftVariable)
     {
         ctx.gen.Space();
-        ctx.gen.Comment($"Shift pointer {pointerVariableName} by {shiftVariable.name}");
-
-        var pointerVariable = ctx.gen.GetVariable(pointerVariableName);
+        ctx.gen.Comment($"Shift pointer {pointerVariable.name} by {shiftVariable.name}");
 
         ctx.gen.PtrShift(pointerVariable, shiftVariable);
 

@@ -11,6 +11,8 @@ public class Node_Function : Node
 
     public FunctionInfo functionInfo;
 
+    public Scope_StaticAnalysis staticScope;
+
     public override IEnumerable<Node> EnumerateChildren()
     {
         yield return body;
@@ -25,54 +27,11 @@ public class Node_Function : Node
             throw new NotImplementedException("Function has 1+ return values. Generation for this is not supported yet");
         }
 
-       
-
-        ctx = ctx.CreateSubContext();
-
-        ctx.gen.Space(3);
-        
-
         string functionLabel = ctx.gen.RegisterLabel(functionInfo.GetCombinedName());
-        
         ctx.gen.Label(functionLabel);
-        ctx.gen.Prologue();
         
-        ctx.gen.Space();
-
-
-        List<Variable> functionParams = new();
-
-        int rbpOffset = 2 * 4;
-
-        for (int i = functionInfo.arguments.Count - 1; i >= 0; i--)
-        {
-            FieldInfo argInfo = functionInfo.arguments[i];
-            rbpOffset += Utils.GetSizeInBytes(argInfo.type);
-            functionParams.Add(ctx.gen.Register_FunctionArgumentVariable(argInfo, rbpOffset));
-        }
-
-
-        if (functionInfo.isStatic == false)
-        {
-            rbpOffset += Utils.GetSizeInBytes(functionInfo.owner);
-            functionParams.Add(ctx.gen.Register_FunctionArgumentVariable(new FieldInfo()
-            {
-                name = "self",
-                type = functionInfo.owner
-            }, rbpOffset));
-        }
-
-
-
+        ctx.gen.BeginSubScope(staticScope);
         body.Generate(ctx);
-
-
-
-        foreach (Variable param in functionParams)
-        {
-            ctx.gen.Unregister_FunctionArgumentVariable(param);
-        }
-
-        ctx.gen.Space();
+        ctx.gen.EndSubScope();
     }
 }

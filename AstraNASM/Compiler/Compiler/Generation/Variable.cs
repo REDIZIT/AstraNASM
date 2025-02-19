@@ -1,23 +1,17 @@
+using AVM.Compiler;
+
 namespace Astra.Compilation;
 
 public class Variable
 {
     public string name;
     public TypeInfo type;
-    public int rbpOffset;
-    public readonly Scope scope;
+    public int inscopeRbpOffset;
+    
+    public readonly Scope_GenerationPhase scope;
 
-    public Variable(Scope scope)
+    public Variable(Scope_GenerationPhase scope)
     {
         this.scope = scope;
-    }
-
-    public string RBP
-    {
-        get
-        {
-            if (rbpOffset > 0) return $"[rbp+{rbpOffset}]";
-            else return $"[rbp{rbpOffset}]";
-        }
     }
 }

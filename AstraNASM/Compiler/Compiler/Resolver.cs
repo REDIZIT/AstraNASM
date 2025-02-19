@@ -75,6 +75,13 @@ public static class Resolver
             }
         }
 
+
+        foreach (KeyValuePair<string, TypeInfo> kv in classInfoByName)
+        {
+            kv.Value.CalculateSizeInBytes();
+        }
+
+        
         //
         // Pass 4: Register type functions
         //
@@ -137,7 +144,7 @@ public static class Resolver
         //
         // Pass 6: Generate Scopes
         //
-        Scope globalScope = new();
+        Scope_StaticAnalysis globalScope = new();
         ParseScope(globalScope, new Node_Block() { children = ast}, module);
 
         //
@@ -160,7 +167,7 @@ public static class Resolver
             }
             else if (node is Node_Return ret)
             {
-                Scope scope = ret.scope.Find(s => s.functionInfo != null);
+                Scope_StaticAnalysis scope = ret.scope.Find(s => s.functionInfo != null);
                 ret.function = scope.functionInfo;
             }
             else if (node is Node_FieldAccess access)
@@ -188,6 +195,18 @@ public static class Resolver
                 {
                     tryCatch.exceptionVariableType = module.classInfoByName[tryCatch.exceptionRawVariable.rawType];
                 }
+            }
+            else if (node is Node_As nodeAs)
+            {
+                nodeAs.typeInfo = module.GetType(nodeAs.typeToken.name);
+            }
+            else if (node is Node_Binary bin)
+            {
+                bin.resultType = module.GetType(bin.@operator.ResultType);
+            }
+            else if (node is Node_VariableDeclaration varDec)
+            {
+                varDec.variableType = module.GetType(varDec.variable.rawType);
             }
         }
 
@@ -217,9 +236,9 @@ public static class Resolver
         }
     }
 
-    private static void ParseScope(Scope parentScope, Node node, ResolvedModule module)
+    private static void ParseScope(Scope_StaticAnalysis parentScope, Node node, ResolvedModule module)
     {
-        Scope scope = parentScope.CreateSubScope();
+        Scope_StaticAnalysis scope = parentScope.CreateSubScope();
         node.scope = scope;
 
         if (node is Node_Class cls)
@@ -232,7 +251,7 @@ public static class Resolver
             
             if (func.functionInfo.isStatic == false)
             {
-                scope.variables.Add(new FieldInfo()
+                scope.namedVariables.Add(new FieldInfo()
                 {
                     name = "self",
                     type = func.functionInfo.owner
@@ -241,14 +260,14 @@ public static class Resolver
 
             foreach (FieldInfo argument in func.functionInfo.arguments)
             {
-                scope.variables.Add(argument);
+                scope.namedVariables.Add(argument);
             }
         }
         else if (node is Node_TryCatch tryCatch)
         {
             if (tryCatch.exceptionRawVariable != null)
             {
-                scope.variables.Add(new FieldInfo(tryCatch.exceptionVariableType, tryCatch.exceptionRawVariable.name));
+                scope.namedVariables.Add(new FieldInfo(tryCatch.exceptionVariableType, tryCatch.exceptionRawVariable.name));
                 Console.WriteLine("Register scope for " + tryCatch.exceptionRawVariable.name);
             }
         }
@@ -269,7 +288,7 @@ public static class Resolver
                 varDec.ownerInfo = clsInfo;
                 varDec.fieldInfo = fieldInfo;
 
-                scope.variables.Add(varDec.fieldInfo);
+                scope.namedVariables.Add(varDec.fieldInfo);
             }
 
             ParseScope(scope, childNode, module);

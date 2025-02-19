@@ -15,6 +15,6 @@ public class Node_VariableUse : Node
     {
         base.Generate(ctx);
 
-        result = ctx.gen.GetVariable(variableName);
+        result = ctx.gen.currentScope.GetVariable(variableName);
     }
 }

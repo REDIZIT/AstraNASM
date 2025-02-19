@@ -79,9 +79,7 @@ public class Node_FunctionCall : Node
         if (isStatic == false)
         {
             Node_VariableUse variableNode = (Node_VariableUse)((Node_FieldAccess)caller).target;
-
-            selfVar = ctx.gen.GetVariable(variableNode.variableName);
-            // ctx.AllocateStackVariable(selfVar.type);
+            selfVar = variableNode.result;
             
             ctx.gen.PushToStack(selfVar, "self");
 
@@ -106,18 +104,14 @@ public class Node_FunctionCall : Node
 
 
         ctx.gen.Call(function.GetCombinedName());
-
         
-        int argumentsSizeInBytes = 0;
-        for (int i = 0; i < function.arguments.Count; i++)
+        for (int i = 0; i < argumentsResults.Length; i++)
         {
-            argumentsSizeInBytes += Utils.GetSizeInBytes(function.arguments[i].type);
+            Variable argument = argumentsResults[i];
+            if (argument == null) continue;
+            
+            ctx.gen.Deallocate(argument);
         }
-        if (isStatic == false)
-        {
-            argumentsSizeInBytes += Utils.GetSizeInBytes(function.owner); // self pointer
-        }
-        ctx.gen.Deallocate(argumentsSizeInBytes);
     }
 
 
@@ -127,28 +121,24 @@ public class Node_FunctionCall : Node
         if (embeddedFunctionInfo is ToPtr_EmbeddedFunctionInfo toPtr)
         {
             Node_VariableUse variable = (Node_VariableUse)((Node_FieldAccess)caller).target;
-            string valueVariableName = variable.variableName;
-            result = toPtr.Generate(ctx, valueVariableName);
+            result = toPtr.Generate(ctx, variable.result);
         }
         else if (embeddedFunctionInfo is PtrSet_EmbeddedFunctionInfo ptrSet)
         {
             Node_VariableUse variable = (Node_VariableUse)((Node_FieldAccess)caller).target;
-            string pointerVariableName = variable.variableName;
             arguments[0].Generate(ctx);
-            result = ptrSet.Generate(ctx, pointerVariableName, arguments[0].result);
+            result = ptrSet.Generate(ctx, variable.result, arguments[0].result);
         }
         else if (embeddedFunctionInfo is PtrGet_EmbeddedFunctionInfo ptrGet)
         {
             Node_VariableUse variable = (Node_VariableUse)((Node_FieldAccess)caller).target;
-            string pointerVariableName = variable.variableName;
-            result = ptrGet.Generate(ctx, pointerVariableName);
+            result = ptrGet.Generate(ctx, variable.result);
         }
         else if (embeddedFunctionInfo is PtrShift_EmbeddedFunctionInfo ptrShift)
         {
             Node_VariableUse variable = (Node_VariableUse)((Node_FieldAccess)caller).target;
-            string pointerVariableName = variable.variableName;
             arguments[0].Generate(ctx);
-            result = ptrShift.Generate(ctx, pointerVariableName, arguments[0].result);
+            result = ptrShift.Generate(ctx, variable.result, arguments[0].result);
         }
         else if (embeddedFunctionInfo is Print_EmbeddedFunctionInfo print)
         {
@@ -160,7 +150,7 @@ public class Node_FunctionCall : Node
         else if (embeddedFunctionInfo is StringGet_EmbeddedFunctionInfo stringGet)
         {
             Node_VariableUse variableNode = (Node_VariableUse)((Node_FieldAccess)caller).target;
-            Variable stringVariable = ctx.gen.GetVariable(variableNode.variableName);
+            Variable stringVariable = variableNode.result;
             
             Node indexNode = arguments[0];
             indexNode.Generate(ctx);
@@ -171,7 +161,7 @@ public class Node_FunctionCall : Node
         else if (embeddedFunctionInfo is StringLength_EmbeddedFunctionInfo stringLength)
         {
             Node_VariableUse variableNode = (Node_VariableUse)((Node_FieldAccess)caller).target;
-            Variable stringVariable = ctx.gen.GetVariable(variableNode.variableName);
+            Variable stringVariable = variableNode.result;
 
             result = stringLength.Generate(ctx, stringVariable);
         }

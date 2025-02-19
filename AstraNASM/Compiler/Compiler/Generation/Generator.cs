@@ -4,42 +4,18 @@ public static class Generator
 {
     public class Context
     {
-        public Context parent;
-
-        public CodeGenerator_ByteCode gen;
-        public ResolvedModule module;
-
-        public Context CreateSubContext()
-        {
-            Context ctx = new()
-            {
-                parent = this,
-                module = module,
-            };
-
-            ctx.gen = new()
-            {
-                parent = gen,
-                b = gen.b
-            };
-            
-            gen.children.Add(ctx.gen);
-
-            return ctx;
-        }
+        public CodeGeneratorBase gen;
     }
-
+    
     public static byte[] Generate(List<Node> statements, ResolvedModule module, CompileTarget target)
     {
         Context ctx = new()
         {
-            module = module,
-            gen = new()
+            gen = new CodeGenerator_ByteCode()
             {
-                b = new()
+                currentScope = new Scope_GenerationPhase(null)
             }
         };
-
 
         foreach (Node node in statements)
         {

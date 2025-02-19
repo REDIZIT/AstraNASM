@@ -31,7 +31,7 @@ public class Node_Return : Node
                 }
 
                 ctx.gen.Space();
-                ctx.gen.Return_Variable(function, expr.result);
+                ctx.gen.Out_Variable(function, expr.result);
             }
             else
             {
@@ -40,7 +40,7 @@ public class Node_Return : Node
         }
         
         ctx.gen.Epilogue();
-        ctx.gen.Return_Void();
+        ctx.gen.Return();
     }
 
     private bool CanReturn(TypeInfo declaratedType, TypeInfo retType)
