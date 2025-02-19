@@ -397,14 +397,14 @@ public static class Resolver
         FunctionInfo shift = new PtrShift_EmbeddedFunctionInfo()
         {
             name = "shift",
-            arguments = new() { new FieldInfo(classInfoByName["int"], "shiftInBytes") },
+            arguments = new() { new FieldInfo(PrimitiveTypes.INT, "shiftInBytes") },
             returns = new(),
             owner = ptrInfo
         };
         FunctionInfo set = new PtrSet_EmbeddedFunctionInfo()
         {
             name = "set",
-            arguments = new() { new FieldInfo(classInfoByName["int"], "value") },
+            arguments = new() { new FieldInfo(PrimitiveTypes.INT, "value") },
             returns = new(),
             owner = ptrInfo
         };

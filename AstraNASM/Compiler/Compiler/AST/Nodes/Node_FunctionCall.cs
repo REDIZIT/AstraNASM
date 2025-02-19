@@ -43,8 +43,6 @@ public class Node_FunctionCall : Node
 
         ctx.gen.Comment($"arguments generation");
 
-        bool isStatic = function.isStatic;
-
         for (int i = 0; i < arguments.Count; i++)
         {
             Node node = arguments[i];
@@ -78,7 +76,7 @@ public class Node_FunctionCall : Node
 
         int bytesAllocated = 0;
 
-        if (isStatic == false)
+        if (function.isStatic == false)
         {
             Node_VariableUse variableNode = (Node_VariableUse)((Node_FieldAccess)caller).target;
             variableNode.Generate(ctx);
@@ -87,23 +85,31 @@ public class Node_FunctionCall : Node
             bytesAllocated += variableNode.result.type.refSizeInBytes;
         }
 
-        foreach (Node argument in arguments)
+        for (int i = 0; i < arguments.Count; i++)
         {
+            Node argument = arguments[i];
+            FieldInfo argumentInfo = function.arguments[i];
+            
+            TypeInfo passedType;
+
             if (argument is Node_Literal literal)
             {
-                TypeInfo type = PrimitiveTypes.INT;
-                ctx.gen.PushToStack(literal.constant.value, type);
-
-                bytesAllocated += type.refSizeInBytes;
+                passedType = PrimitiveTypes.INT;
+                ctx.gen.PushToStack(literal.constant.value, passedType);
             }
             else
             {
-                ctx.gen.PushToStack(result);
-
-                bytesAllocated += result.type.refSizeInBytes;
+                ctx.gen.PushToStack(argument.result);
+                passedType = argument.result.type;
             }
-        }
 
+            if (passedType != argumentInfo.type)
+            {
+                throw new Exception($"Inside function call passed argument with type {passedType.name} but expected {argumentInfo.type}");
+            }
+
+            bytesAllocated += passedType.refSizeInBytes;
+        }
 
 
         ctx.gen.Call(function.GetCombinedName());

@@ -7,6 +7,11 @@ public class PtrShift_EmbeddedFunctionInfo : EmbeddedFunctionInfo
         ctx.gen.Space();
         ctx.gen.Comment($"Shift pointer {pointerVariable.name} by {shiftVariable.name}");
 
+        if (shiftVariable.type != PrimitiveTypes.INT)
+        {
+            throw new Exception($"Pointer.shift method received only int variables, but got {shiftVariable.type.name}");
+        }
+
         ctx.gen.PtrShift(pointerVariable, shiftVariable);
 
         ctx.gen.Space();

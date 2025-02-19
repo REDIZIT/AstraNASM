@@ -81,6 +81,8 @@ public class Scope_GenerationPhase
 
     public int GetRelativeRBP(Variable askedVariable)
     {
+        if (askedVariable == null) throw new Exception("Failed to get relative rbp due to null variable");
+        
         if (variableByName.ContainsValue(askedVariable))
         {
             // Asked variable is local variable of current scope

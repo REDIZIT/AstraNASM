@@ -1,3 +1,4 @@
+using System.Text;
 using AVM;
 
 namespace Astra.Compilation;
@@ -166,7 +167,15 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
         byte sizeInBytes = Utils.GetSizeInBytes(variable.type);
         Add(sizeInBytes);
 
-        byte[] bytes = Utils.ParseNumber(value, sizeInBytes);
+        byte[] bytes;
+        if (value.StartsWith("'"))
+        {
+            bytes = Encoding.ASCII.GetBytes(value.Substring(1, value.Length - 2));
+        }
+        else
+        {
+            bytes = Utils.ParseNumber(value, sizeInBytes);
+        }
         
         AddRange(bytes);
     }
