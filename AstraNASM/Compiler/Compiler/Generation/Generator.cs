@@ -1,61 +1,26 @@
 ﻿namespace Astra.Compilation;
 
-public class Variable
-{
-    public string name;
-    public TypeInfo type;
-    public int rbpOffset;
-
-    public string RBP
-    {
-        get
-        {
-            if (rbpOffset > 0) return $"[rbp+{rbpOffset}]";
-            else return $"[rbp{rbpOffset}]";
-        }
-    }
-}
-
 public static class Generator
 {
     public class Context
     {
-        public Context parent;
-
-        public CodeGenerator_ByteCode gen;
-        public ResolvedModule module;
-
-        public Context CreateSubContext()
-        {
-            Context ctx = new()
-            {
-                parent = this,
-                module = module,
-            };
-
-            ctx.gen = new()
-            {
-                parent = gen,
-                b = gen.b
-            };
-            
-            gen.children.Add(ctx.gen);
-
-            return ctx;
-        }
+        public CodeGeneratorBase gen;
     }
-
+    
     public static byte[] Generate(List<Node> statements, ResolvedModule module, CompileTarget target)
     {
+        Scope_GenerationPhase globalScope = new Scope_GenerationPhase(null)
+        {
+            uniqueGenerator = new()
+        };
+        
         Context ctx = new()
         {
-            module = module,
-            gen = new()
+            gen = new CodeGenerator_ByteCode()
             {
-                b = new()
+                currentScope = globalScope
             }
         };
-
 
         foreach (Node node in statements)
         {
@@ -78,12 +43,17 @@ public static class Generator
         }
         
 
-        ctx.gen.PrologueForSimulation(target);
+        ctx.gen.PrologueForSimulation(target, module);
         
 
         foreach (Node statement in statements)
         {
             statement.Generate(ctx);
+        }
+
+        if (ctx.gen.currentScope != globalScope)
+        {
+            throw new Exception($"Generation failed due to disbalanced scopes.");
         }
         
         return ctx.gen.Build();

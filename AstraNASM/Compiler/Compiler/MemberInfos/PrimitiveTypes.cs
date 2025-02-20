@@ -10,4 +10,16 @@ public static class PrimitiveTypes
 
     public static TypeInfo PTR;
     public static TypeInfo STRING;
+
+    public static bool IsPrimitive(TypeInfo type)
+    {
+        return
+            type == BOOL || type == BYTE || type == SHORT ||
+            type == INT || type == LONG;
+    }
+    
+    public static bool IsPrimitiveOrPtr(TypeInfo type)
+    {
+        return IsPrimitive(type) || type == PTR;
+    }
 }

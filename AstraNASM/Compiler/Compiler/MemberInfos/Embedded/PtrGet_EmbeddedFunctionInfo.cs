@@ -4,19 +4,16 @@ public abstract class PtrGet_EmbeddedFunctionInfo : EmbeddedFunctionInfo
 {
     protected abstract TypeInfo GetReturnType();
     
-    public Variable Generate(Generator.Context ctx, string pointerVariableName)
+    public Variable Generate(Generator.Context ctx, Variable pointerVariable)
     {
         ctx.gen.Space();
-        ctx.gen.Comment($"Get value from {pointerVariableName}");
-
-
-        var pointerVar = ctx.gen.GetVariable(pointerVariableName);
+        ctx.gen.Comment($"Get value from {pointerVariable.name}");
 
         TypeInfo pointedType = GetReturnType();
 
         var result = ctx.gen.Allocate(pointedType);
 
-        ctx.gen.PtrGet(pointerVar, result);
+        ctx.gen.PtrGet(pointerVariable, result);
 
         ctx.gen.Space();
 

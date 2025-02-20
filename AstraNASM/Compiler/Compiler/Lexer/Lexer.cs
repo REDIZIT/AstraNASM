@@ -35,6 +35,7 @@ public class Lexer
         { "try", typeof(Token_Try) },
         { "catch", typeof(Token_Catch) },
         { "throw", typeof(Token_Throw) },
+        { "as", typeof(Token_As) },
     };
     private static Dictionary<string, Type> tokenTypeBySingleChar = new Dictionary<string, Type>()
     {

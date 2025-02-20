@@ -1,24 +1,24 @@
 ﻿namespace Astra.Compilation;
 
-public class Scope
+public class Scope_StaticAnalysis
 {
-    public List<FieldInfo> variables = new();
     public TypeInfo typeInfo;
     public FunctionInfo functionInfo;
+    public List<FieldInfo> namedVariables = new();
 
-    public Scope parent;
-    public List<Scope> children = new();
+    public Scope_StaticAnalysis parent;
+    public List<Scope_StaticAnalysis> children = new();
 
-    public Scope CreateSubScope()
+    public Scope_StaticAnalysis CreateSubScope()
     {
-        Scope child = new();
+        Scope_StaticAnalysis child = new();
         child.parent = this;
         children.Add(child);
 
         return child;
     }
 
-    public Scope Find(Func<Scope, bool> predicate)
+    public Scope_StaticAnalysis Find(Func<Scope_StaticAnalysis, bool> predicate)
     {
         if (predicate(this)) return this;
         if (parent == null) throw new Exception("Failed to find scope for predicate");
@@ -27,7 +27,7 @@ public class Scope
 
     public FieldInfo FindVariable(string variableName)
     {
-        FieldInfo variable = variables.FirstOrDefault(f => f.name == variableName);
+        FieldInfo variable = namedVariables.FirstOrDefault(f => f.name == variableName);
         if (variable != null) return variable;
         if (parent == null) throw new Exception($"Failed to find variable '{variableName}' in scopes");
         return parent.FindVariable(variableName);

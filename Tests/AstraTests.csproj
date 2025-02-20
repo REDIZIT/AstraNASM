@@ -24,6 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Astra-VM\AVM\AVM.csproj" />
     <ProjectReference Include="..\AstraNASM\AstraNASM.csproj" />
     <ProjectReference Include="..\nasm simulator\nasm simulator.csproj" />
   </ItemGroup>

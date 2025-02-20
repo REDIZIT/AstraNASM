@@ -24,16 +24,46 @@ public class Node_Return : Node
             {
                 expr.Generate(ctx);
 
-                ctx.gen.Space();
-                ctx.gen.Return_Variable(function, expr.result);
+                
+                if (CanReturn(function.returns[0], expr.result.type) == false)
+                {
+                    if (Utils.CanBeCasted(function.returns[0], expr.result.type))
+                    {
+                        Variable castedRetVariable = ctx.gen.Allocate(function.returns[0]);
+                        ctx.gen.Cast(expr.result, castedRetVariable);
+                        ctx.gen.Out_Variable(function, castedRetVariable);
+                    }
+                    else
+                    {
+                        throw new Exception($"Failed to generate return node: function returns {function.returns[0]}, but keyword return try to return {expr.result.type}");    
+                    }
+                }
+                else
+                {
+                     ctx.gen.Out_Variable(function, expr.result);
+                }
             }
             else
             {
-                throw new Exception("Syntax error: Function has return type, but return node does not have any expression to return.");
+                throw new Exception("Failed to generate return node: Function has return type, but return node does not have any expression to return.");
             }
         }
         
-        ctx.gen.Epilogue();
-        ctx.gen.Return_Void();
+        ctx.gen.Return();
+    }
+
+    private bool CanReturn(TypeInfo declaratedType, TypeInfo retType)
+    {
+        bool isDeclPtrOtNonPrimitive = declaratedType == PrimitiveTypes.PTR || !PrimitiveTypes.IsPrimitive(declaratedType);
+        bool isRetPtrOtNonPrimitive = retType == PrimitiveTypes.PTR || !PrimitiveTypes.IsPrimitive(retType);
+
+        if (isDeclPtrOtNonPrimitive && isRetPtrOtNonPrimitive)
+        {
+            return true;
+        }
+        else
+        {
+            return declaratedType == retType;
+        }
     }
 }

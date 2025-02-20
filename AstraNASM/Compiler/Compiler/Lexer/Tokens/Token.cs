@@ -153,3 +153,7 @@ public class Token_Catch() : Token
 public class Token_Throw() : Token
 {
 }
+
+public class Token_As() : Token
+{
+}

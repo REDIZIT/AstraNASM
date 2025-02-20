@@ -1,46 +1,28 @@
+using System.Text;
 using AVM;
 
 namespace Astra.Compilation;
 
 public class CodeGenerator_ByteCode : CodeGeneratorBase
 {
-    protected List<byte> byteCode
+    private List<byte> byteCode = new();
+    private Dictionary<string, int> pointedOpCodeByName = new();
+    private Dictionary<int, string> labelsToInsert = new();
+    
+    
+    public override void PrologueForSimulation(CompileTarget target, ResolvedModule module)
     {
-        get
+        Variable retVar = Allocate(PrimitiveTypes.INT);
+
+        FunctionInfo main = module.classInfoByName["program"].functions.First(f => f.name == "main");
+        if (main.isStatic == false)
         {
-            if (parent == null) return _byteCode;
-            else return (parent as CodeGenerator_ByteCode).byteCode;
+            Variable selfStackVar = Allocate(PrimitiveTypes.PTR);
+            AllocateHeap(selfStackVar, 0);
         }
-    }
-    private List<byte> _byteCode = new();
-    
-    
-    protected Dictionary<string, int> pointedOpCodeByName
-    {
-        get
-        {
-            if (parent == null) return _pointedOpCodeByName;
-            else return (parent as CodeGenerator_ByteCode).pointedOpCodeByName;
-        }
-    }
-    private Dictionary<string, int> _pointedOpCodeByName = new();
-    
-    protected Dictionary<int, string> labelsToInsert
-    {
-        get
-        {
-            if (parent == null) return _labelsToInsert;
-            else return (parent as CodeGenerator_ByteCode).labelsToInsert;
-        }
-    }
-    private Dictionary<int, string> _labelsToInsert = new();
-    
-    
-    public override void PrologueForSimulation(CompileTarget target)
-    {
-        Allocate(PrimitiveTypes.INT);
-        Add(OpCode.Call);
-        InsertAddress("Program.main");
+        
+        Call(main.GetCombinedName());
+
         Add(OpCode.Exit);
     }
 
@@ -68,35 +50,39 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
     {
         Add(OpCode.FunctionEpilogue);
     }
-
-    public override void Return_Variable(FunctionInfo function, Variable variable)
+    
+    public override void Call(string functionName)
     {
-        int rbpOffset = 2 * 4 + function.arguments.Count * 4;
-        if (function.isStatic == false) rbpOffset += 4;
+        // currentScope.RegisterLocalVariable(PrimitiveTypes.PTR, "call_pushed_instruction");
+        
+        Add(OpCode.Call);
+        InsertAddress(functionName);
+    }
+    
+    public override void Return()
+    {
+        // currentScope.parent.UnregisterLocalVariable("call_pushed_instruction");
+        Epilogue();
+        
+        Add(OpCode.Return);
+    }
+    
+    public override void Out_Variable(FunctionInfo function, Variable variable)
+    {
+        int inscopeRbpOffset = Utils.GetRBP_RetValue(function);
         
         Add(OpCode.Mov);
         
         Add((byte)1);
-        AddInt(rbpOffset);
+        AddInt(inscopeRbpOffset);
         
         Add((byte)1);
-        AddInt(variable.rbpOffset);
+        AddRBP(variable);
 
-        byte sizeInBytes = Utils.GetSizeInBytes(variable.type);
-        Add(sizeInBytes);
+        AddSize(variable);
     }
 
-    public override void Call(string functionName)
-    {
-        Add(OpCode.Call);
-        InsertAddress(functionName);
-    }
-
-    public override Variable Allocate(TypeInfo type)
-    {
-        anonVariableNameIndex++;
-        return Allocate(type, $"anon_{anonVariableNameIndex}");
-    }
+   
 
     public override Variable Allocate(TypeInfo type, string name)
     {
@@ -104,24 +90,15 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
         {
             throw new Exception("Failed to allocated variable with null type.");
         }
+
+
+        Variable variable = currentScope.RegisterLocalVariable(type, name);
+        
+
+        Add(OpCode.Allocate_Stack);
+        Add((byte)Allocate_Stack_Mode.WithDefaultValue);
         
         byte sizeInBytes = Utils.GetSizeInBytes(type);
-
-        rbpOffset -= sizeInBytes;
-        
-        Variable variable = new Variable()
-        {
-            name = name,
-            type = type,
-            rbpOffset = rbpOffset,
-        };
-        variableByName.Add(variable.name, variable);
-        variableByRBPOffset.Add(variable.rbpOffset, variable);
-        variableStack.Push(variable);
-        
-        
-        Add(OpCode.Allocate_Stack);
-        
         Add(sizeInBytes);
 
         for (int i = 0; i < sizeInBytes; i++)
@@ -132,22 +109,73 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
         return variable;
     }
 
+    public override void AllocateHeap(Variable storageOfPointerToHeap, int bytesToAllocate)
+    {
+        Add(OpCode.Allocate_Heap);
+        Add((byte)0);
+        AddRBP(storageOfPointerToHeap);
+        AddInt(bytesToAllocate);
+    }
+
+    public override void AllocateHeap(Variable storageOfPointerToHeap, Variable bytesToAllocateVariable)
+    {
+        Add(OpCode.Allocate_Heap);
+        Add((byte)1);
+        AddRBP(storageOfPointerToHeap);
+        AddRBP(bytesToAllocateVariable);
+        AddSize(bytesToAllocateVariable);
+    }
+
+    public override void PushToStack(Variable variable)
+    {
+        Add(OpCode.Allocate_Stack);
+        Add((byte)Allocate_Stack_Mode.PushAlreadyAllocatedVariable);
+        AddRBP(variable);
+        AddSize(variable);
+    }
+
+    public override void PushToStack(string str, TypeInfo type)
+    {
+        Add(OpCode.Allocate_Stack);
+        Add((byte)0);
+
+        byte[] value = Utils.ParseNumber(str, Utils.GetSizeInBytes(type));
+        Add((byte)value.Length);
+        AddRange(value);
+    }
+
+    public override void Deallocate(Variable variable)
+    {
+        currentScope.UnregisterLocalVariable(variable);
+        Deallocate(variable.type.refSizeInBytes);
+    }
+    public override void Deallocate(int bytesToDeallocate)
+    {
+        Add(OpCode.Deallocate_Stack);
+        AddInt(bytesToDeallocate);
+    }
+
+
     public override void SetValue(Variable variable, string value)
     {
         Add(OpCode.Mov);
         
         Add((byte)1);
-        AddInt(variable.rbpOffset);
+        AddRBP(variable);
 
         Add((byte)2);
         byte sizeInBytes = Utils.GetSizeInBytes(variable.type);
         Add(sizeInBytes);
 
         byte[] bytes;
-        if (sizeInBytes == 1) bytes = new byte[1] { byte.Parse(value) };
-        else if (sizeInBytes == 2) bytes = BitConverter.GetBytes(short.Parse(value));
-        else if (sizeInBytes == 4) bytes = BitConverter.GetBytes(int.Parse(value));
-        else bytes = BitConverter.GetBytes(long.Parse(value));
+        if (value.StartsWith("'"))
+        {
+            bytes = Encoding.ASCII.GetBytes(value.Substring(1, value.Length - 2));
+        }
+        else
+        {
+            bytes = Utils.ParseNumber(value, sizeInBytes);
+        }
         
         AddRange(bytes);
     }
@@ -163,27 +191,75 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
         Add(OpCode.Mov);
         
         Add((byte)1);
-        AddInt(destination.rbpOffset);
+        AddRBP(destination);
 
         Add((byte)1);
-        AddInt(value.rbpOffset);
+        AddRBP(value);
         
+        AddSize(destination);
+    }
+
+    public override void SetValue(Variable destination, int address)
+    {
+        Add(OpCode.Mov);
+        
+        Add((byte)1);
+        AddRBP(destination);
+        
+        Add((byte)4);
+        AddInt(address);
+        
+        AddSize(destination);
+    }
+
+    public override void SetValueBehindPointer(Variable destination, string value)
+    {
+        Add(OpCode.Mov);
+        
+        Add((byte)2);
+        AddRBP(destination);
+        
+        Add((byte)2);
         byte sizeInBytes = Utils.GetSizeInBytes(destination.type);
         Add(sizeInBytes);
-    }
 
-    public override void Return_Void()
-    {
-        Add(OpCode.Return);
-    }
-
-    public override void Comment(string comment)
-    {
+        byte[] bytes = Utils.ParseNumber(value, sizeInBytes);
         
+        AddRange(bytes);
     }
+
+    public override void SetValueBehindPointer(Variable destination, Variable value)
+    {
+        if (destination.type != PrimitiveTypes.PTR) throw new Exception("Failed to set value behind pointer: destination is not a pointer");
+        
+        Add(OpCode.Mov);
+        
+        Add((byte)2);
+        AddRBP(destination);
+        
+        Add((byte)1);
+        AddRBP(value);
+        
+        AddSize(destination);
+    }
+
+    public override void FieldAccess(int baseOffset, TypeInfo fieldType, int fieldOffset, Variable result, bool isGetter)
+    {
+        if (fieldOffset < 0) throw new Exception("Negative fieldOffset is not allowed.");
+        
+        Add(OpCode.FieldAccess);
+        AddInt(baseOffset);
+        AddInt(fieldOffset);
+        AddSize(fieldType);
+        Add(isGetter ? (byte)1 : (byte)0);
+        AddRBP(result);
+    }
+
 
     public override void Calculate(Variable a, Variable b, Token_Operator @operator, Variable result)
     {
+        Utils.AssertSameOrLessSize(result, a, b);
+        
         OpCode op;
         if (@operator.asmOperatorName == "add") op = OpCode.Add;
         else if (@operator.asmOperatorName == "sub") op = OpCode.Sub;
@@ -197,23 +273,179 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
         
         Add(op);
         
-        AddInt(a.rbpOffset);
-        AddInt(b.rbpOffset);
-        AddInt(result.rbpOffset);
+        AddRBP(a);
+        AddRBP(b);
+        AddRBP(result);
 
         byte sizeInBytes = Utils.GetSizeInBytes(a.type);
-
-        if (Utils.GetSizeInBytes(a.type) != Utils.GetSizeInBytes(b.type) || Utils.GetSizeInBytes(b.type) != Utils.GetSizeInBytes(result.type))
-        {
-            throw new Exception("Can not apply math operator to different sized types");
-        }
-        
         Add(sizeInBytes);
     }
+
+    public override void Negate(Variable a, Variable result)
+    {
+        Utils.AssertSameOrLessSize(result, a);
+        
+        Add(OpCode.Negate);
+        AddRBP(a);
+        AddRBP(result);
+
+        byte size = Utils.GetSizeInBytes(result.type);
+        Add(size);
+    }
+
+    
+    public override void ToPtr_Primitive(Variable askedVariable, Variable result)
+    {
+        Add(OpCode.ToPtr_ValueType);
+        AddRBP(askedVariable);
+        AddRBP(result);
+    }
+    
+    public override void ToPtr_Heap(Variable askedVariable, Variable result)
+    {
+        Add(OpCode.ToPtr_RefType);
+        AddRBP(askedVariable);
+        AddRBP(result);
+    }
+
+    public override void PtrAddress(Variable pointer, Variable result, bool isGetter)
+    {
+        if (isGetter) ToPtr_Heap(pointer, result);
+        else ToPtr_Primitive(pointer, result);
+    }
+
+    public override void PtrGet(Variable pointerVariable, Variable result)
+    {
+        Add(OpCode.PtrGet);
+        AddRBP(pointerVariable);
+        AddRBP(result);
+        
+        AddSize(result);
+    }
+
+    public override void PtrSet(Variable pointerVariable, Variable targetVariable)
+    {
+        Add(OpCode.PtrSet);
+        AddRBP(pointerVariable);
+        AddRBP(targetVariable);
+        
+        AddSize(targetVariable);
+    }
+
+    public override void PtrShift(Variable pointerVariable, Variable shiftVariable, int additionalShift = 0)
+    {
+        Add(OpCode.PtrShift);
+        Add((byte)1);
+        AddRBP(pointerVariable);
+        AddRBP(shiftVariable);
+        AddInt(additionalShift);
+
+        AddSize(shiftVariable);
+    }
+
+    public override void PtrShift(Variable pointerVariable, int shift)
+    {
+        Add(OpCode.PtrShift);
+        Add((byte)0);
+        AddRBP(pointerVariable);
+        AddInt(shift);
+    }
+
+    public override void Compare(Variable a, Variable b, Token_Operator @operator, Variable result)
+    {
+        Utils.AssertSameOrLessSize(result, a, b);
+        if (result.type != PrimitiveTypes.BOOL) throw new Exception($"Failed to compare variables due to result variable is not bool, but '{result.type.name}'");
+        
+        Add(OpCode.Compare);
+        AddRBP(a);
+        AddRBP(b);
+        AddSize(a);
+        AddRBP(result);
+
+        byte op = 0;
+        if (@operator.asmOperatorName == "e") op = 0;
+        else if (@operator.asmOperatorName == "ne") op = 1;
+        else if (@operator.asmOperatorName == "g") op = 2;
+        else if (@operator.asmOperatorName == "ge") op = 3;
+        else if (@operator.asmOperatorName == "l") op = 4;
+        else if (@operator.asmOperatorName == "le") op = 5;
+        else throw new Exception($"Unknown comprassion operator '{@operator.asmOperatorName}'");
+        
+        Add(op);
+    }
+
+    public override void JumpIfFalse(Variable condition, string label)
+    {
+        Add(OpCode.JumpIfFalse);
+        InsertAddress(label);
+        AddRBP(condition);
+        AddSize(condition);
+    }
+
+    public override void JumpIfFalse(string reg, string label)
+    {
+        throw new Exception("This method is not allowed");
+    }
+
+    public override void JumpToLabel(string label)
+    {
+        Add(OpCode.Jump);
+        InsertAddress(label);
+    }
+
+    public override void Cast(Variable variable, Variable result)
+    {
+        Add(OpCode.Cast);
+        AddRBP(variable);
+        AddSize(variable);
+        AddRBP(result);
+        AddSize(result);
+    }
+
+
+    public override void Space(int lines = 1)
+    {
+    }
+    public override void Comment(string comment)
+    {
+    }
+    public override void Comment(string comment, int bookmarkDistance)
+    {
+    }
+    
+    public override void PushExceptionHandler(string catchLabel)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override void ThrowException(Variable exception)
+    {
+        throw new NotImplementedException();
+    }
+    
+    public override void LogicalNOT(Variable a, Variable result)
+    {
+        throw new NotImplementedException();
+    }
+    
+    public override void Print(Variable variable)
+    {
+        throw new NotImplementedException();
+    }
+
 
     private void Add(byte b)
     {
         byteCode.Add(b);
+    }
+
+    private void AddSize(Variable variable)
+    {
+        AddSize(variable.type);
+    }
+    private void AddSize(TypeInfo type)
+    {
+        Add(Utils.GetSizeInBytes(type));
     }
     private void AddRange(byte[] bytes)
     {
@@ -228,6 +460,11 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
     private void AddInt(int value)
     {
         AddRange(BitConverter.GetBytes(value));
+    }
+
+    private void AddRBP(Variable variable)
+    {
+        AddInt(currentScope.GetRelativeRBP(variable));
     }
 
     private void Fill(byte value, int count)
@@ -265,7 +502,7 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
 
         if (b.lines.Count != 0)
         {
-            throw new Exception("Code generator's string builder is not empty.");
+            throw new Exception($"Code generator's string builder is not empty and contains: '{b.BuildString()}'");
         }
         
         return byteCode.ToArray();

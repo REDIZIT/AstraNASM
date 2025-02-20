@@ -75,6 +75,13 @@ public static class Resolver
             }
         }
 
+
+        foreach (KeyValuePair<string, TypeInfo> kv in classInfoByName)
+        {
+            kv.Value.CalculateSizeInBytes();
+        }
+
+        
         //
         // Pass 4: Register type functions
         //
@@ -85,7 +92,7 @@ public static class Resolver
 
             foreach (Node child in node.body.EnumerateChildren())
             {
-                if (child is Node_Function funcDec)
+                if (child is Node_FunctionBody funcDec)
                 {
                     FunctionInfo funcInfo = new()
                     {
@@ -137,8 +144,8 @@ public static class Resolver
         //
         // Pass 6: Generate Scopes
         //
-        Scope globalScope = new();
-        GenerateScope(globalScope, new Node_Block() { children = ast}, module);
+        Scope_StaticAnalysis globalScope = new();
+        ParseScope(globalScope, new Node_Block() { children = ast}, module);
 
         //
         // Pass 7: Resolve Nodes
@@ -160,7 +167,7 @@ public static class Resolver
             }
             else if (node is Node_Return ret)
             {
-                Scope scope = ret.scope.Find(s => s.functionInfo != null);
+                Scope_StaticAnalysis scope = ret.scope.Find(s => s.functionInfo != null);
                 ret.function = scope.functionInfo;
             }
             else if (node is Node_FieldAccess access)
@@ -188,6 +195,18 @@ public static class Resolver
                 {
                     tryCatch.exceptionVariableType = module.classInfoByName[tryCatch.exceptionRawVariable.rawType];
                 }
+            }
+            else if (node is Node_As nodeAs)
+            {
+                nodeAs.typeInfo = module.GetType(nodeAs.typeToken.name);
+            }
+            else if (node is Node_Binary bin)
+            {
+                bin.resultType = module.GetType(bin.@operator.ResultType);
+            }
+            else if (node is Node_VariableDeclaration varDec)
+            {
+                varDec.variableType = module.GetType(varDec.variable.rawType);
             }
         }
 
@@ -217,22 +236,22 @@ public static class Resolver
         }
     }
 
-    private static void GenerateScope(Scope parentScope, Node node, ResolvedModule module)
+    private static void ParseScope(Scope_StaticAnalysis parentScope, Node node, ResolvedModule module)
     {
-        Scope scope = parentScope.CreateSubScope();
+        Scope_StaticAnalysis scope = parentScope.CreateSubScope();
         node.scope = scope;
 
         if (node is Node_Class cls)
         {
             scope.typeInfo = cls.classInfo;
         }
-        else if (node is Node_Function func)
+        else if (node is Node_FunctionBody func)
         {
             scope.functionInfo = func.functionInfo;
             
             if (func.functionInfo.isStatic == false)
             {
-                scope.variables.Add(new FieldInfo()
+                scope.namedVariables.Add(new FieldInfo()
                 {
                     name = "self",
                     type = func.functionInfo.owner
@@ -241,14 +260,14 @@ public static class Resolver
 
             foreach (FieldInfo argument in func.functionInfo.arguments)
             {
-                scope.variables.Add(argument);
+                scope.namedVariables.Add(argument);
             }
         }
         else if (node is Node_TryCatch tryCatch)
         {
             if (tryCatch.exceptionRawVariable != null)
             {
-                scope.variables.Add(new FieldInfo(tryCatch.exceptionVariableType, tryCatch.exceptionRawVariable.name));
+                scope.namedVariables.Add(new FieldInfo(tryCatch.exceptionVariableType, tryCatch.exceptionRawVariable.name));
                 Console.WriteLine("Register scope for " + tryCatch.exceptionRawVariable.name);
             }
         }
@@ -269,10 +288,10 @@ public static class Resolver
                 varDec.ownerInfo = clsInfo;
                 varDec.fieldInfo = fieldInfo;
 
-                scope.variables.Add(varDec.fieldInfo);
+                scope.namedVariables.Add(varDec.fieldInfo);
             }
 
-            GenerateScope(scope, childNode, module);
+            ParseScope(scope, childNode, module);
         }
     }
 
@@ -350,7 +369,7 @@ public static class Resolver
         TypeInfo ptrInfo = new TypeInfo()
         {
             name = "ptr",
-            isStruct = true
+            isValueType = true
         };
 
 
@@ -358,7 +377,7 @@ public static class Resolver
         FieldInfo address = new PtrAddress_EmbeddedFieldInfo()
         {
             name = "address",
-            type = classInfoByName["int"]
+            type = PrimitiveTypes.INT
         };
 
         ptrInfo.fields = new List<FieldInfo>()
@@ -378,14 +397,14 @@ public static class Resolver
         FunctionInfo shift = new PtrShift_EmbeddedFunctionInfo()
         {
             name = "shift",
-            arguments = new() { new FieldInfo(classInfoByName["int"], "shiftInBytes") },
+            arguments = new() { new FieldInfo(PrimitiveTypes.INT, "shiftInBytes") },
             returns = new(),
             owner = ptrInfo
         };
         FunctionInfo set = new PtrSet_EmbeddedFunctionInfo()
         {
             name = "set",
-            arguments = new() { new FieldInfo(classInfoByName["int"], "value") },
+            arguments = new() { new FieldInfo(PrimitiveTypes.INT, "value") },
             returns = new(),
             owner = ptrInfo
         };

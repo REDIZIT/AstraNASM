@@ -8,6 +8,7 @@ public class Node_VariableDeclaration : Node
 
     public TypeInfo ownerInfo;
     public FieldInfo fieldInfo;
+    public TypeInfo variableType;
 
     public override IEnumerable<Node> EnumerateChildren()
     {
@@ -42,16 +43,12 @@ public class Node_VariableDeclaration : Node
 
     private void Generate_WithDefaultValue(Generator.Context ctx)
     {
-        TypeInfo type = ctx.module.GetType(variable.rawType);
-        
-        result = ctx.gen.Allocate(type, variable.name);
+        result = ctx.gen.Allocate(variableType, variable.name);
         ctx.gen.SetValue(result, "0");
     }
     private void Generate_WithInit_Literal(Generator.Context ctx, Node_Literal literal)
     {
-        TypeInfo type = ctx.module.GetType(variable.rawType);
-        
-        result = ctx.gen.Allocate(type, variable.name);
+        result = ctx.gen.Allocate(variableType, variable.name);
         ctx.gen.SetValue(result, literal.constant.value);
     }
     private void Generate_WithInit_AnyExpression(Generator.Context ctx)

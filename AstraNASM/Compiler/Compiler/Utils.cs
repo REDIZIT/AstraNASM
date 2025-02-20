@@ -1,4 +1,6 @@
-﻿namespace Astra.Compilation;
+﻿using System.Globalization;
+
+namespace Astra.Compilation;
 
 public static class Utils
 {
@@ -28,8 +30,10 @@ public static class Utils
     {
         if (t == PrimitiveTypes.BYTE) return "byte";
         if (t == PrimitiveTypes.SHORT) return "word";
-        if (t == PrimitiveTypes.INT) return "dword";
-        if (t == PrimitiveTypes.LONG || t == PrimitiveTypes.PTR) return "qword";
+        if (t == PrimitiveTypes.INT || t == PrimitiveTypes.PTR) return "dword";
+        if (t == PrimitiveTypes.LONG || t == PrimitiveTypes.BOOL) return "qword";
+
+        if (t.isValueType == false) return "dword";
 
         throw new Exception($"Failed to get nasm type for type '{t}'");
     }
@@ -56,5 +60,77 @@ public static class Utils
         }
 
         return true;
+    }
+
+    public static void AssertSameSize(params Variable[] vars)
+    {
+        if (AreSameSize(vars) == false)
+        {
+            throw new Exception("Assert failed. Variables have different sizes: " + string.Join(", ", vars.Select(v => v.name + " (" + Utils.GetSizeInBytes(v.type) + ")")));
+        }
+    }
+
+    public static void AssertSameOrLessSize(Variable result, params Variable[] vars)
+    {
+        byte maxSize = GetSizeInBytes(result.type);
+        foreach (Variable var in vars)
+        {
+            byte varSize = GetSizeInBytes(var.type);
+            if (varSize > maxSize)
+            {
+                throw new Exception($"Assert failed. Variable '{var.name}' is larger than result '{result.name}' ({Utils.GetSizeInBytes(result.type)}). Variables: " + string.Join(", ", vars.Select(v => v.name + " (" + Utils.GetSizeInBytes(v.type) + ")")));
+            }
+        }
+    }
+
+    public static byte[] ParseNumber(string str, byte sizeInBytes)
+    {
+        NumberStyles style = NumberStyles.Integer;
+        if (str.StartsWith("0b"))
+        {
+            style = NumberStyles.BinaryNumber;
+            str = str.Substring(2, str.Length - 2);
+        }
+        else if (str.StartsWith("0x"))
+        {
+            style = NumberStyles.HexNumber;
+            str = str.Substring(2, str.Length - 2);
+        }
+        
+        
+        byte[] bytes;
+        if (sizeInBytes == 1)
+        {
+            bytes = new byte[1] { byte.Parse(str, style) };
+        }
+        else if (sizeInBytes == 2)
+        {
+            bytes = BitConverter.GetBytes(short.Parse(str, style));
+        }
+        else if (sizeInBytes == 4)
+        {
+            bytes = BitConverter.GetBytes(int.Parse(str, style));
+        }
+        else
+        {
+            bytes = BitConverter.GetBytes(long.Parse(str, style));
+        }
+
+        return bytes;
+    }
+
+    public static int GetRBP_RetValue(FunctionInfo info)
+    {
+        int rbpOffset = -8 - info.arguments.Sum(a => Utils.GetSizeInBytes(a.type));
+        if (info.isStatic == false) rbpOffset -= 4;
+        
+        rbpOffset -= info.returns.Sum(t => Utils.GetSizeInBytes(t));
+
+        return rbpOffset;
+    }
+    
+    public static bool CanBeCasted(TypeInfo declaratedType, TypeInfo retType)
+    {
+        return declaratedType.refSizeInBytes >= retType.refSizeInBytes;
     }
 }

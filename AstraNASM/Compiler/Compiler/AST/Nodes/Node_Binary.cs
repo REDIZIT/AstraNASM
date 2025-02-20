@@ -1,10 +1,10 @@
-﻿
-namespace Astra.Compilation;
+﻿namespace Astra.Compilation;
 
 public class Node_Binary : Node
 {
     public Node left, right;
     public Token_Operator @operator;
+    public TypeInfo resultType;
 
     public override IEnumerable<Node> EnumerateChildren()
     {
@@ -18,10 +18,6 @@ public class Node_Binary : Node
         
         left.Generate(ctx);
         right.Generate(ctx);
-
-        
-        TypeInfo resultType = ctx.module.GetType(@operator.ResultType);
-        
 
         result = ctx.gen.Allocate(resultType);
         

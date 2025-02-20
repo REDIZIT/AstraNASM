@@ -5,11 +5,11 @@ class program
 		ByteArray arr1 = ByteArray.FromSize()
 		ByteArray arr2 = ByteArray.FromSize()
 
-		arr1.set(0, 1)
-		arr1.set(1, 2)
+		arr1.set(0, 1 as byte)
+		arr1.set(1, 2 as byte)
 
-		arr2.set(0, 10)
-		arr2.set(1, 20)
+		arr2.set(0, 10 as byte)
+		arr2.set(1, 20 as byte)
 
 		byte v = arr1.get(0) + arr2.get(0)
 
@@ -25,7 +25,7 @@ class ByteArray
 		return pointer
 	}
 
-	public get(long index): byte
+	public get(int index): byte
 	{
 		ptr pointer = self.to_ptr()
 		pointer.shift(index)
@@ -34,7 +34,7 @@ class ByteArray
 
 		return b
 	}
-	public set(long index, byte value)
+	public set(int index, byte value)
 	{
 		ptr pointer = self.to_ptr()
 		pointer.shift(index)

@@ -2,12 +2,15 @@
 
 public class PtrShift_EmbeddedFunctionInfo : EmbeddedFunctionInfo
 {
-    public Variable Generate(Generator.Context ctx, string pointerVariableName, Variable shiftVariable)
+    public Variable Generate(Generator.Context ctx, Variable pointerVariable, Variable shiftVariable)
     {
         ctx.gen.Space();
-        ctx.gen.Comment($"Shift pointer {pointerVariableName} by {shiftVariable.name}");
+        ctx.gen.Comment($"Shift pointer {pointerVariable.name} by {shiftVariable.name}");
 
-        var pointerVariable = ctx.gen.GetVariable(pointerVariableName);
+        if (shiftVariable.type != PrimitiveTypes.INT)
+        {
+            throw new Exception($"Pointer.shift method received only int variables, but got {shiftVariable.type.name}");
+        }
 
         ctx.gen.PtrShift(pointerVariable, shiftVariable);
 

@@ -2,7 +2,7 @@ class program
 {
 	public main(): int
 	{
-		ptr p = new ptr()
+		ptr p
 		
 		p.address = 0xB8000
 		byte c = 'H'

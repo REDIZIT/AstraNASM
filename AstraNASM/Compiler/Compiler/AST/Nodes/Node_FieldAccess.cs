@@ -39,7 +39,9 @@ public class Node_FieldAccess : Node
         {
             if (field is PtrAddress_EmbeddedFieldInfo ptrAddress)
             {
-                result = ctx.gen.Allocate(PrimitiveTypes.PTR);
+                if (isGetter) result = ctx.gen.Allocate(field.type);
+                else result = ctx.gen.Allocate(PrimitiveTypes.PTR);
+                
                 ctx.gen.PtrAddress(target.result, this.result, isGetter);
             }
             else
@@ -67,9 +69,11 @@ public class Node_FieldAccess : Node
             
             // (setter) result - variable to variable
             // (getter) result - variable
+
+            if (isGetter) result = ctx.gen.Allocate(field.type);
+            else result = ctx.gen.Allocate(PrimitiveTypes.PTR);
             
-            result = ctx.gen.Allocate(PrimitiveTypes.PTR);
-            ctx.gen.FieldAccess(target.result.rbpOffset, field.type, fieldOffsetInBytes, result, isGetter);
+            ctx.gen.FieldAccess(target.result.inscopeRbpOffset, field.type, fieldOffsetInBytes, result, isGetter);
         }
     }
 }

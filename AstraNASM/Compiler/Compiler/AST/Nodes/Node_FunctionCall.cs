@@ -43,10 +43,6 @@ public class Node_FunctionCall : Node
 
         ctx.gen.Comment($"arguments generation");
 
-        bool isStatic = function.isStatic;
-
-        Variable[] argumentsResults = new Variable[isStatic ? arguments.Count : arguments.Count + 1];
-
         for (int i = 0; i < arguments.Count; i++)
         {
             Node node = arguments[i];
@@ -58,63 +54,71 @@ public class Node_FunctionCall : Node
             }
 
             node.Generate(ctx);
-            argumentsResults[i + (isStatic ? 0 : 1)] = node.result;
         }
 
+        
 
         if (function.returns.Count > 0)
         {
             if (function.returns.Count > 1) throw new Exception("Not supported yet");
 
             result = ctx.gen.Allocate(function.returns[0]);
-            
-            // ctx.gen.Deallocate(result);
         }
 
 
         ctx.gen.Comment($"arguments pushing");
 
-        Variable selfVar = null;
+        // Collect info about pushed arguments and write byte-code for pushing
+        // This info is required to write byte-code for deallocation
+        
+        // Here, we DO NOT PROMISE/PROVIDE any arguments
+        // Here, we only write byte-code for pushing these arguments
 
-        if (isStatic == false)
+        int bytesAllocated = 0;
+
+        if (function.isStatic == false)
         {
             Node_VariableUse variableNode = (Node_VariableUse)((Node_FieldAccess)caller).target;
+            variableNode.Generate(ctx);
+            ctx.gen.PushToStack(variableNode.result);
 
-            selfVar = ctx.gen.GetVariable(variableNode.variableName);
-            // ctx.AllocateStackVariable(selfVar.type);
-            
-            ctx.gen.PushToStack(selfVar, "self");
-
-            argumentsResults[0] = selfVar;
+            bytesAllocated += variableNode.result.type.refSizeInBytes;
         }
 
         for (int i = 0; i < arguments.Count; i++)
         {
-            Variable result = argumentsResults[isStatic ? 0 : 1 + i];
-            FieldInfo argInfo = function.arguments[i];
+            Node argument = arguments[i];
+            FieldInfo argumentInfo = function.arguments[i];
+            
+            TypeInfo passedType;
 
-            if (arguments[i] is Node_Literal literal)
+            if (argument is Node_Literal literal)
             {
-                ctx.gen.PushToStack(literal.constant.value, $"arg[{i}] = {argInfo.name}");
+                passedType = PrimitiveTypes.INT;
+                ctx.gen.PushToStack(literal.constant.value, passedType);
             }
             else
             {
-                ctx.gen.PushToStack(result, $"arg[{i}] = {argInfo.name}");
+                ctx.gen.PushToStack(argument.result);
+                passedType = argument.result.type;
             }
-        }
 
+            if (passedType != argumentInfo.type)
+            {
+                throw new Exception($"Inside function call passed argument with type {passedType.name} but expected {argumentInfo.type}");
+            }
+
+            bytesAllocated += passedType.refSizeInBytes;
+        }
 
 
         ctx.gen.Call(function.GetCombinedName());
-
-
-
-        int argumentsSizeInBytes = arguments.Count * 8;
-        if (isStatic == false)
-        {
-            argumentsSizeInBytes += 8; // self pointer
-        }
-        ctx.gen.Deallocate(argumentsSizeInBytes);
+        
+        
+        // Write byte-code for deallocation of pushed arguments
+        // Here, we DO NOT DEALLOCATE variables, but bytes because
+        // we DID NOT give any PROMISES/PROVIDED variables, but only write byte-code
+        ctx.gen.Deallocate(bytesAllocated);
     }
 
 
@@ -123,29 +127,26 @@ public class Node_FunctionCall : Node
     {
         if (embeddedFunctionInfo is ToPtr_EmbeddedFunctionInfo toPtr)
         {
-            Node_VariableUse variable = (Node_VariableUse)((Node_FieldAccess)caller).target;
-            string valueVariableName = variable.variableName;
-            result = toPtr.Generate(ctx, valueVariableName);
+            Variable variable = GetVariable(ctx);
+            result = toPtr.Generate(ctx, variable);
         }
         else if (embeddedFunctionInfo is PtrSet_EmbeddedFunctionInfo ptrSet)
         {
-            Node_VariableUse variable = (Node_VariableUse)((Node_FieldAccess)caller).target;
-            string pointerVariableName = variable.variableName;
+            Variable variable = GetVariable(ctx);
             arguments[0].Generate(ctx);
-            result = ptrSet.Generate(ctx, pointerVariableName, arguments[0].result);
+            result = ptrSet.Generate(ctx, variable, arguments[0].result);
         }
         else if (embeddedFunctionInfo is PtrGet_EmbeddedFunctionInfo ptrGet)
         {
-            Node_VariableUse variable = (Node_VariableUse)((Node_FieldAccess)caller).target;
-            string pointerVariableName = variable.variableName;
-            result = ptrGet.Generate(ctx, pointerVariableName);
+            Variable variable = GetVariable(ctx);
+            result = ptrGet.Generate(ctx, variable);
         }
         else if (embeddedFunctionInfo is PtrShift_EmbeddedFunctionInfo ptrShift)
         {
-            Node_VariableUse variable = (Node_VariableUse)((Node_FieldAccess)caller).target;
-            string pointerVariableName = variable.variableName;
+            Variable variable = GetVariable(ctx);
+            
             arguments[0].Generate(ctx);
-            result = ptrShift.Generate(ctx, pointerVariableName, arguments[0].result);
+            result = ptrShift.Generate(ctx, variable, arguments[0].result);
         }
         else if (embeddedFunctionInfo is Print_EmbeddedFunctionInfo print)
         {
@@ -156,8 +157,7 @@ public class Node_FunctionCall : Node
         }
         else if (embeddedFunctionInfo is StringGet_EmbeddedFunctionInfo stringGet)
         {
-            Node_VariableUse variableNode = (Node_VariableUse)((Node_FieldAccess)caller).target;
-            Variable stringVariable = ctx.gen.GetVariable(variableNode.variableName);
+            Variable stringVariable = GetVariable(ctx);
             
             Node indexNode = arguments[0];
             indexNode.Generate(ctx);
@@ -167,8 +167,7 @@ public class Node_FunctionCall : Node
         }
         else if (embeddedFunctionInfo is StringLength_EmbeddedFunctionInfo stringLength)
         {
-            Node_VariableUse variableNode = (Node_VariableUse)((Node_FieldAccess)caller).target;
-            Variable stringVariable = ctx.gen.GetVariable(variableNode.variableName);
+            Variable stringVariable = GetVariable(ctx);
 
             result = stringLength.Generate(ctx, stringVariable);
         }
@@ -184,5 +183,12 @@ public class Node_FunctionCall : Node
         {
             throw new Exception($"Unknown EmbeddedFunctionInfo '{embeddedFunctionInfo}'");
         }
+    }
+
+    private Variable GetVariable(Generator.Context ctx)
+    {
+        Node_VariableUse variableNode = (Node_VariableUse)((Node_FieldAccess)caller).target;
+        variableNode.Generate(ctx);
+        return variableNode.result;
     }
 }

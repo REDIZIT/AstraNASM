@@ -11,7 +11,7 @@ class program
 }
 class Test 
 {
-    long a
+    int a
 }
 
 ---

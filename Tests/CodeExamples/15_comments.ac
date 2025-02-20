@@ -6,7 +6,7 @@ class program
 
 		-- And another sinle-line
 		
-		ptr p = new --block comment-- ptr()
+		ptr p
 		
 		p.address = 0x42
 

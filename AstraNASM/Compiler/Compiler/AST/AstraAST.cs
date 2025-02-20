@@ -254,7 +254,7 @@ public class AstraAST : ASTBuilder
     }
     private Node BitShift()
     {
-        Node left = NotNeg();
+        Node left = Cast();
 
         while (Check<Token_BitOperator>())
         {
@@ -265,7 +265,26 @@ public class AstraAST : ASTBuilder
             {
                 left = left,
                 @operator = operatorToken,
-                right = NotNeg()
+                right = Cast()
+            };
+        }
+
+        return left;
+    }
+    private Node Cast()
+    {
+        Node left = NotNeg();
+
+        while (Check<Token_As>())
+        {
+            StartNewFrame();
+            Token_As operatorToken = Consume<Token_As>("Expected token 'as' for cast operation");
+            Token_Identifier typeNameToken = Consume<Token_Identifier>("Expected type name after 'as' keyword");
+            
+            left = new Node_As()
+            {
+                left = left,
+                typeToken = typeNameToken,
             };
         }
 
@@ -434,7 +453,7 @@ public class AstraAST : ASTBuilder
         }
 
         Node body = Block();
-        return new Node_Function()
+        return new Node_FunctionBody()
         {
             name = functionName.name,
             body = body,
