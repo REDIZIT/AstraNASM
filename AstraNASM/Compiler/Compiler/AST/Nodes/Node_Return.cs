@@ -27,11 +27,21 @@ public class Node_Return : Node
                 
                 if (CanReturn(function.returns[0], expr.result.type) == false)
                 {
-                    throw new Exception($"Failed to generate return node: function returns {function.returns[0]}, but keyword return try to return {expr.result.type}");
+                    if (Utils.CanBeCasted(function.returns[0], expr.result.type))
+                    {
+                        Variable castedRetVariable = ctx.gen.Allocate(function.returns[0]);
+                        ctx.gen.Cast(expr.result, castedRetVariable);
+                        ctx.gen.Out_Variable(function, castedRetVariable);
+                    }
+                    else
+                    {
+                        throw new Exception($"Failed to generate return node: function returns {function.returns[0]}, but keyword return try to return {expr.result.type}");    
+                    }
                 }
-
-                ctx.gen.Space();
-                ctx.gen.Out_Variable(function, expr.result);
+                else
+                {
+                     ctx.gen.Out_Variable(function, expr.result);
+                }
             }
             else
             {

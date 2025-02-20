@@ -128,4 +128,9 @@ public static class Utils
 
         return rbpOffset;
     }
+    
+    public static bool CanBeCasted(TypeInfo declaratedType, TypeInfo retType)
+    {
+        return declaratedType.refSizeInBytes >= retType.refSizeInBytes;
+    }
 }
