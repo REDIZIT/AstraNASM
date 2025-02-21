@@ -125,20 +125,8 @@ public abstract class CodeGeneratorBase
 
     public abstract void Cast(Variable variable, Variable result);
 
-    public virtual void SectionData()
-    {
-        b.Line("section .data");
-    }
-
-    public virtual void SectionText()
-    {
-        b.Line("section .text");
-    }
-
-    public virtual void BufferString(string id, string value)
-    {
-        b.Line($"{id} db {value.Length}, \"{value}\", 0");
-    }
+    public abstract void SectionData(byte[] bytes);
+    public abstract void SectionText();
 
     public virtual void Extern(string variableName)
     {

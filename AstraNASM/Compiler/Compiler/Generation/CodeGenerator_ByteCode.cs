@@ -433,6 +433,20 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
         throw new NotImplementedException();
     }
 
+    public override void SectionData(byte[] bytes)
+    {
+        Add(OpCode.Section);
+        Add((byte)0);
+        AddInt(bytes.Length);
+        AddRange(bytes);
+    }
+
+    public override void SectionText()
+    {
+        Add(OpCode.Section);
+        Add((byte)1);
+    }
+
 
     private void Add(byte b)
     {

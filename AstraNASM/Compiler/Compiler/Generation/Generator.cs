@@ -28,21 +28,9 @@ public static class Generator
         }
         
         
+        module.data.Generate(ctx);
         
-        if (module.stringValueByID.Count > 0)
-        {
-            ctx.gen.SectionData();
-            
-            foreach (KeyValuePair<string, string> kv in module.stringValueByID)
-            {
-                ctx.gen.BufferString(kv.Key, kv.Value);
-            }
-
-            ctx.gen.Space(1);
-            ctx.gen.SectionText();
-        }
-        
-
+        ctx.gen.SectionText();
         ctx.gen.PrologueForSimulation(target, module);
         
 

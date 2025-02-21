@@ -136,7 +136,7 @@ public static class Resolver
             {
                 if (lit.constant is Token_String)
                 {
-                    lit.constant.value = module.RegisterString(lit.constant.value);
+                    lit.constant.value = module.data.RegisterString(lit.constant.value);
                 }
             }
         }
