@@ -315,6 +315,10 @@ public static class Resolver
             {
                 return PrimitiveTypes.PTR;
             }
+            else if (name == "cmd")
+            {
+                return PrimitiveTypes.PTR;
+            }
             else
             {
                 // Access to variable
@@ -553,6 +557,18 @@ public static class Resolver
                 isStatic = true,
                 arguments = new List<FieldInfo>() { new FieldInfo(PrimitiveTypes.INT, "bytesCount" )},
                 returns = new List<TypeInfo>() { PrimitiveTypes.PTR }
+            };
+        }
+
+        if (functionName == "cmd")
+        {
+            return new Command_EmbeddedFunctionInfo()
+            {
+                name = "cmd",
+                owner = null,
+                isStatic = true,
+                arguments = new List<FieldInfo>(),
+                returns = new List<TypeInfo>()
             };
         }
 

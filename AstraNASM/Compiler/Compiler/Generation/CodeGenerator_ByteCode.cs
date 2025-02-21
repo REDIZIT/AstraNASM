@@ -433,6 +433,25 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
         throw new NotImplementedException();
     }
 
+    public override void VMCmd(VMCommand_Cmd cmd, Variable[] variables)
+    {
+        if (variables.Length < 1)
+        {
+            throw new Exception("Invalid VM command: VM command requires at least 1 argument variable.");
+        }
+        
+        Add(OpCode.VMCommand);
+        Add((byte)cmd);
+        
+        AddInt(variables.Length);
+        foreach (Variable var in variables) 
+        {
+            AddRBP(var);
+            AddSize(var);
+            Add(PrimitiveTypes.GetIndex(var.type));
+        }
+    }
+
     public override void SectionData(byte[] bytes)
     {
         Add(OpCode.Section);

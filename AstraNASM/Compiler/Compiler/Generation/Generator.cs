@@ -5,6 +5,7 @@ public static class Generator
     public class Context
     {
         public CodeGeneratorBase gen;
+        public ResolvedModule module;
     }
     
     public static byte[] Generate(List<Node> statements, ResolvedModule module, CompileTarget target)
@@ -19,7 +20,8 @@ public static class Generator
             gen = new CodeGenerator_ByteCode()
             {
                 currentScope = globalScope
-            }
+            },
+            module = module,
         };
 
         foreach (Node node in statements)

@@ -1,4 +1,6 @@
 ﻿
+using AVM;
+
 namespace Astra.Compilation;
 
 public class Node_FunctionCall : Node
@@ -178,6 +180,20 @@ public class Node_FunctionCall : Node
             Variable bytesCountVariable = bytesCountNode.result;
 
             result = alloc.Generate(ctx, bytesCountVariable);
+        }
+        else if (embeddedFunctionInfo is Command_EmbeddedFunctionInfo cmdInfo)
+        {
+            Node_Literal cmdLit = (Node_Literal)arguments[0];
+
+            string str = ctx.module.data.stringByAddress[int.Parse(cmdLit.constant.value)];
+            VMCommand_Cmd cmd = Enum.Parse<VMCommand_Cmd>(str);
+            
+            foreach (Node node in arguments.Skip(1))
+            {
+                node.Generate(ctx);
+            }
+
+            result = cmdInfo.Generate(ctx, cmd, arguments.Skip(1).Select(n => n.result).ToArray());
         }
         else
         {

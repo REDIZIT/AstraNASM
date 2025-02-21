@@ -5,6 +5,8 @@ namespace Astra.Compilation;
 public class DataSection
 {
     public List<byte> data = new();
+
+    public Dictionary<int, string> stringByAddress = new();
     
     public string RegisterString(string str)
     {
@@ -12,6 +14,8 @@ public class DataSection
         
         data.AddRange(BitConverter.GetBytes((int)str.Length));
         data.AddRange(Encoding.ASCII.GetBytes(str));
+        
+        stringByAddress.Add(address, str);
         
         return address.ToString();
     }

@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using AVM;
 
 namespace Astra.Compilation;
 
@@ -136,6 +137,8 @@ public abstract class CodeGeneratorBase
     public abstract void Space(int lines = 1);
     public abstract void Comment(string comment);
     public abstract void Comment(string comment, int bookmarkDistance);
+
+    public abstract void VMCmd(VMCommand_Cmd cmd, Variable[] variables);
 
     public abstract byte[] Build();
 }

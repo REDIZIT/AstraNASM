@@ -18,13 +18,16 @@ public class Node_Literal : Node
 
         if (constant is Token_Char)
         {
-            ctx.gen.Comment($"Literal = '{constant.value}'");
             result = ctx.gen.Allocate(PrimitiveTypes.INT);
             ctx.gen.SetValue(result, "'" + constant.value + "'");
         }
+        else if (constant is Token_String)
+        {
+            result = ctx.gen.Allocate(PrimitiveTypes.STRING);
+            ctx.gen.SetValue(result, constant.value);
+        }
         else
         {
-            ctx.gen.Comment("Literal = " + constant.value);
             result = ctx.gen.Allocate(PrimitiveTypes.INT);
             ctx.gen.SetValue(result, constant.value);
         }
