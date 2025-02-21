@@ -527,6 +527,18 @@ public static class Resolver
         };
         info.functions.Add(get);
         
+        FunctionInfo set = new StringSet_EmbeddedFunctionInfo()
+        {
+            arguments = new()
+            {
+                new FieldInfo(PrimitiveTypes.INT, "index"),
+                new FieldInfo(PrimitiveTypes.BYTE, "value"),
+            },
+            name = "set",
+            owner = info
+        };
+        info.functions.Add(set);
+        
         FunctionInfo length = new StringLength_EmbeddedFunctionInfo()
         {
             returns = new()

@@ -265,6 +265,7 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
         else if (@operator.asmOperatorName == "sub") op = OpCode.Sub;
         else if (@operator.asmOperatorName == "mul") op = OpCode.Mul;
         else if (@operator.asmOperatorName == "div") op = OpCode.Div;
+        else if (@operator.asmOperatorName == "%") op = OpCode.DivRemainder;
         else if (@operator.asmOperatorName == "<<") op = OpCode.LeftBitShift;
         else if (@operator.asmOperatorName == ">>") op = OpCode.RightBitShift;
         else if (@operator.asmOperatorName == "&") op = OpCode.BitAnd;

@@ -167,6 +167,20 @@ public class Node_FunctionCall : Node
             
             result = stringGet.Generate(ctx, stringVariable, indexVariable);
         }
+        else if (embeddedFunctionInfo is StringSet_EmbeddedFunctionInfo stringSet)
+        {
+            Variable stringVariable = GetVariable(ctx);
+            
+            Node indexNode = arguments[0];
+            indexNode.Generate(ctx);
+            Variable indexVariable = indexNode.result;
+            
+            Node valueNode = arguments[1];
+            valueNode.Generate(ctx);
+            Variable valueVariable = valueNode.result;
+            
+            stringSet.Generate(ctx, stringVariable, indexVariable, valueVariable);
+        }
         else if (embeddedFunctionInfo is StringLength_EmbeddedFunctionInfo stringLength)
         {
             Variable stringVariable = GetVariable(ctx);
