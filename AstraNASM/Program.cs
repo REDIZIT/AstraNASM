@@ -14,7 +14,7 @@ public static class Program
             {
                 inputPath = "C:/Users/REDIZIT/Documents/GitHub/AstraOS/main/vscode project",
                 outputPath = "C:/Users/REDIZIT/Documents/GitHub/AstraOS/main/vscode project/build",
-                target = CompileTarget.NASM,
+                target = CompileTarget.AVM,
                 isProject = true,
             };
 

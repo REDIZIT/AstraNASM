@@ -80,9 +80,9 @@ public class CompileCommand : ConsoleCommand
         {
             if (isFolderMode)
             {
-                foreach (string filePath in Directory.GetFiles(inputPath, "*.ac"))
+                foreach (string filePath in Directory.GetFiles(inputPath, "*.as"))
                 {
-                    string nasmFileName = Path.GetFileNameWithoutExtension(inputPath) + ".nasm";
+                    string nasmFileName = Path.GetFileNameWithoutExtension(inputPath) + ".asc";
                     string nasmFilePath = outputPath + "/" + nasmFileName;
 
                     Compile(filePath, nasmFilePath);
@@ -97,7 +97,7 @@ public class CompileCommand : ConsoleCommand
             {
                 //  string fileContent = File.ReadAllText("C:\\Users\\REDIZIT\\Documents\\GitHub\\Astra-Rider-extension\\vscode extension\\astralanguage\\test\\example.ac");
 
-                string nasmFileName = Path.GetFileNameWithoutExtension(inputPath) + ".nasm";
+                string nasmFileName = Path.GetFileNameWithoutExtension(inputPath) + ".asc";
                 string nasmFilePath = outputPath + "/" + nasmFileName;
 
                 Compile(inputPath, nasmFilePath);
@@ -134,14 +134,14 @@ public class CompileCommand : ConsoleCommand
             }
 
 
-            string nasmFileName = "project.nasm";
-            string nasmFilePath = outputPath + "/" + nasmFileName;
+            string outputFileName = "project.asc";
+            string outputFilePath = outputPath + "/" + outputFileName;
 
-            Compile(Directory.GetFiles(inputPath, "*.ac").ToList(), nasmFilePath);
+            Compile(Directory.GetFiles(inputPath, "*.as").ToList(), outputFilePath);
 
             if (copyOutputPath != null)
             {
-                File.Copy(nasmFilePath, copyOutputPath + "/" + nasmFileName, true);
+                File.Copy(outputFilePath, copyOutputPath + "/" + outputFileName, true);
             }
 
 
@@ -158,7 +158,7 @@ public class CompileCommand : ConsoleCommand
     private void Compile(string astraFilePath, string nasmFilePath)
     {
         string fileContent = File.ReadAllText(astraFilePath);
-        byte[] data = Compiler.Compile_Astra_to_NASM(fileContent, target);
+        byte[] data = Compiler.Compile_Astra(fileContent, target);
         File.WriteAllBytes(nasmFilePath, data);
     }
     private void Compile(List<string> astraFiles, string nasmFilePath)

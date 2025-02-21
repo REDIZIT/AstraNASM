@@ -5,7 +5,7 @@ public static class Compiler
     private static Lexer lexer = new();
     private static AstraAST parser = new();
 
-    public static byte[] Compile_Astra_to_NASM(string astraCode, CompileTarget target)
+    public static byte[] Compile_Astra(string astraCode, CompileTarget target)
     {
         List<Token> tokens = lexer.Tokenize(astraCode, false);
 
@@ -39,6 +39,6 @@ public static class Compiler
             mergedCode.AddRange(astraCode);
         }
 
-        return Compile_Astra_to_NASM(string.Concat(mergedCode), target);
+        return Compile_Astra(string.Concat(mergedCode), target);
     }
 }

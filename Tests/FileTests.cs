@@ -10,7 +10,7 @@ public class FileTests
     private static IEnumerable<TestCaseData> GetTextFiles()
     {
         string folderPath = "../../../CodeExamples";
-        foreach (var filePath in Directory.GetFiles(folderPath, "*.ac"))
+        foreach (var filePath in Directory.GetFiles(folderPath, "*.as"))
         {
             yield return new TestCaseData(filePath).SetName(Path.GetFileName(filePath));
         }
@@ -28,7 +28,7 @@ public class FileTests
 
 
 
-        byte[] data = Compilation.Compiler.Compile_Astra_to_NASM(code, CompileTarget.Simulator);
+        byte[] data = Compilation.Compiler.Compile_Astra(code, CompileTarget.Simulator);
         
         string[] nasm = Encoding.UTF8.GetString(data).Split('\n');
 
@@ -61,7 +61,6 @@ public class FileTests
         {
             if (int.TryParse(line, out int expectedExitCode))
             {
-                // int actualExitCode = sim.regs.rax.Get32();
                 int actualExitCode = sim.memory.ReadInt(0);
                 if (actualExitCode != expectedExitCode)
                 {
