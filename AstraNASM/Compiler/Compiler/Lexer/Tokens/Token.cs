@@ -38,7 +38,7 @@ public class Token_Identifier : Token
         return Regex.IsMatch(word, "[a-zA-Z0-9_]");
     }
 }
-public class Token_Assign : Token
+public class Token_Assign : Token_Operator
 {
     public static bool TryMatch(string word, out Token_Assign token)
     {

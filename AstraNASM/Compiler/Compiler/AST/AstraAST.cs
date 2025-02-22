@@ -273,7 +273,7 @@ public class AstraAST : ASTBuilder
     }
     private Node Cast()
     {
-        Node left = NotNeg();
+        Node left = IncDec();
 
         while (Check<Token_As>())
         {
@@ -291,6 +291,27 @@ public class AstraAST : ASTBuilder
 
         return left;
     }
+
+    private Node IncDec()
+    {
+        Node left = NotNeg();
+        
+        if (Check<Token_IncDec>())
+        {
+            StartNewFrame();
+            Token_IncDec operatorToken = Consume<Token_IncDec>("Expected Token_IncDec for incdec operation");
+            
+            return new Node_IncDec()
+            {
+                @operator = operatorToken,
+                target = left,
+                consumedTokens = PopFrame()
+            };
+        }
+
+        return left;
+    }
+
     private Node NotNeg()
     {
         if (Check<Token_Unary>())
@@ -305,7 +326,7 @@ public class AstraAST : ASTBuilder
                 consumedTokens = PopFrame()
             };
         }
-        else if (Peek() is Token_AddSub tokenAddSub && tokenAddSub.asmOperatorName == "sub")
+        else if (Peek() is Token_AddSub tokenAddSub && tokenAddSub.asmOperatorName == "-")
         {
             // Handle unary '-' token
             // @code_example - 3_ret_-1.ac
@@ -319,10 +340,12 @@ public class AstraAST : ASTBuilder
                 {
                     Consume<Token_AddSub>("Expected '+' or '-'");
 
+                    Node right = NotNeg();
+
                     return new Node_Unary()
                     {
                         @operator = tokenAddSub,
-                        right = NotNeg(),
+                        right = right,
                         consumedTokens = PopFrame()
                     };
                 }

@@ -20,6 +20,8 @@ public class Lexer
     private bool isCollectingMultilineComment = false;
     private int multilineCommentOpenningLength = 0;
 
+    private string CurrentWord => string.Concat(chars[startRead..currentPos]);
+
 
     private static Dictionary<string, Type> tokenTypeBySingleWord = new Dictionary<string, Type>()
     {
@@ -49,6 +51,18 @@ public class Lexer
         { ".", typeof(Token_Dot) },
         { "[", typeof(Token_SquareBracketOpen) },
         { "]", typeof(Token_SquareBracketClose) },
+    };
+
+    private static Dictionary<Type, List<string>> operatorTokens = new()
+    {
+        { typeof(Token_AddSub), new() { "+", "-" } },
+        { typeof(Token_IncDec), new() { "++", "--" } },
+        { typeof(Token_Factor), new() { "*", "/", "%" } },
+        { typeof(Token_BitOperator), new() { "<<", ">>", "&", "|" } },
+        { typeof(Token_Unary), new() { "not" } },
+        { typeof(Token_Comprassion), new() { "<", "<=", ">", ">=" } },
+        { typeof(Token_Equality), new() { "==", "!=" } },
+        { typeof(Token_Assign), new() { "=" } },
     };
 
     public List<Token> Tokenize(List<char> chars, bool includeSpacesAndEOF)
@@ -213,60 +227,20 @@ public class Lexer
             // Iterate chars for tokens
             //
             string word = "";
-
-            while (currentPos < endRead)
+            
+            if (TryParseOperator(out Token_Operator op))
             {
-                word = string.Concat(chars[startRead..currentPos]);
-
-
-
-                if (startChar == '=' || startChar == '!' || startChar == '>' || startChar == '<')
-                {
-                    char opChar = chars[currentPos];
-
-                    while (currentPos < endRead && (opChar == '=' || opChar == '!' || opChar == '>' || opChar == '<'))
-                    {
-                        opChar = chars[opChar];
-                        currentPos++;
-                    }
-
-                    string operatorWord = string.Concat(chars[startRead..currentPos]);
-
-                    if (Token_Equality.TryMatch(operatorWord, out var eq)) return eq;
-                    if (Token_Comprassion.TryMatch(operatorWord, out var cmp)) return cmp;
-                    if (Token_Assign.TryMatch(operatorWord, out var ass)) return ass;
-                    if (Token_BitOperator.TryMatch(operatorWord, out var bitShift)) return bitShift;
-                }
-
-
-                if (tokenTypeBySingleWord.TryGetValue(word, out Type tokenType))
-                {
-                    return (Token)Activator.CreateInstance(tokenType);
-                }
-
-
-                if (Token_AddSub.TryMatch(word, out var term)) return term;
-                if (Token_Factor.TryMatch(word, out var fact)) return fact;
-                if (Token_BitOperator.TryMatch(word, out var bit)) return bit;
-                if (Token_Unary.TryMatch(word, out var un)) return un;
-
-
-                if (currentPos < endRead && (char.IsLetterOrDigit(chars[currentPos]) == false && chars[currentPos] != '_'))
-                {
-                    break;
-                }
-
-                currentPos++;
+                return op;
             }
-
-            if (Token_Visibility.TryMatch(word, out Token_Visibility tokenVisibility))
+            
+            if (TryParseWord(out Token token))
             {
-                return tokenVisibility;
+                return token;
             }
-            return new Token_Identifier()
+            else
             {
-                name = word
-            };
+                throw new Exception($"Failed to parse '{CurrentWord}'");
+            }
         }
     }
 
@@ -631,5 +605,116 @@ public class Lexer
         }
 
         return new Token_Comment();
+    }
+
+    private bool TryParseOperator(out Token_Operator operatorToken)
+    {
+        string word;
+        operatorToken = null;
+        
+        bool? startsWithOperatorChar = null;
+        Type fullMatchTokenType = null;
+
+        while (currentPos < endRead)
+        {
+            word = string.Concat(chars[startRead..currentPos]);
+
+            int matchingCount = 0;
+
+
+            foreach ((Type tokenType, List<string> ls) in operatorTokens)
+            {
+                foreach (string op in ls)
+                {
+                    if (op.StartsWith(word))
+                    {
+                        matchingCount++;
+
+                        if (op == word)
+                        {
+                            fullMatchTokenType = tokenType;
+                        }
+                    }
+                }
+            }
+
+            if (startsWithOperatorChar == null)
+            {
+                startsWithOperatorChar = matchingCount > 0;
+            }
+
+            if (startsWithOperatorChar.Value)
+            {
+                if (matchingCount <= 1)
+                {
+                    if (fullMatchTokenType != null)
+                    {
+                        operatorToken = (Token_Operator)Activator.CreateInstance(fullMatchTokenType);
+
+                        if (matchingCount == 0)
+                        {
+                            currentPos--;
+                            string prevWord = string.Concat(chars[startRead..(currentPos)]);
+                            operatorToken.asmOperatorName = prevWord;
+                        }
+                        else
+                        {
+                            operatorToken.asmOperatorName = word;
+                        }
+                        
+                        return true;
+                    }
+                    else if (matchingCount == 0)
+                    {
+                        return false;
+                    }
+                    else
+                    {
+                        currentPos++;
+                    }
+                }
+                else
+                {
+                    currentPos++;
+                }
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        return false;
+    }
+
+    private bool TryParseWord(out Token token)
+    {
+        while (currentPos < endRead)
+        {
+            if (tokenTypeBySingleWord.TryGetValue(CurrentWord, out Type tokenType))
+            {
+                token = (Token)Activator.CreateInstance(tokenType);
+                return true;
+            }
+            
+            if (Token_Visibility.TryMatch(CurrentWord, out Token_Visibility tokenVisibility))
+            {
+                token = tokenVisibility;
+                return true;
+            }
+            
+            if (currentPos < endRead && (char.IsLetterOrDigit(chars[currentPos]) == false && chars[currentPos] != '_'))
+            {
+                break;
+            }
+
+            currentPos++;
+        }
+
+        token = new Token_Identifier()
+        {
+            name = CurrentWord
+        };
+        return true;
     }
 }

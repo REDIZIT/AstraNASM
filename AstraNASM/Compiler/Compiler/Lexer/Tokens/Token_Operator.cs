@@ -14,142 +14,23 @@ public abstract class Token_Operator : Token
 public class Token_Equality : Token_Operator
 {
     public override string ResultType => "bool";
-
-    public static bool TryMatch(string word, out Token_Equality op)
-    {
-        if (IsMatch(word))
-        {
-            op = new Token_Equality();
-
-            if (word == "==") op.asmOperatorName = "e";
-            if (word == "!=") op.asmOperatorName = "ne";
-
-            return true;
-        }
-
-        op = null;
-        return false;
-    }
-    public static bool IsMatch(string word)
-    {
-        return word == "==" || word == "!=";
-    }
 }
 public class Token_Comprassion : Token_Operator
 {
     public override string ResultType => "bool";
-
-    public static bool TryMatch(string word, out Token_Comprassion op)
-    {
-        if (IsMatch(word))
-        {
-            op = new Token_Comprassion();
-
-            if (word == ">=") op.asmOperatorName = "ge";
-            if (word == ">") op.asmOperatorName = "g";
-            if (word == "<=") op.asmOperatorName = "le";
-            if (word == "<") op.asmOperatorName = "l";
-
-            return true;
-        }
-
-        op = null;
-        return false;
-    }
-    public static bool IsMatch(string word)
-    {
-        return word == ">" || word == ">=" || word == "<" || word == "<=";
-    }
 }
 public class Token_AddSub : Token_Operator
 {
-    public static bool TryMatch(string word, out Token_AddSub op)
-    {
-        if (IsMatch(word))
-        {
-            op = new Token_AddSub();
-
-            if (word == "+") op.asmOperatorName = "add";
-            if (word == "-") op.asmOperatorName = "sub";
-
-            return true;
-        }
-
-        op = null;
-        return false;
-    }
-    public static bool IsMatch(string word)
-    {
-        return word == "+" || word == "-";
-    }
+}
+public class Token_IncDec : Token_Unary
+{
 }
 public class Token_Factor : Token_Operator
 {
-    public static bool TryMatch(string word, out Token_Factor op)
-    {
-        if (IsMatch(word))
-        {
-            op = new Token_Factor();
-
-            if (word == "*") op.asmOperatorName = "mul";
-            if (word == "/") op.asmOperatorName = "div";
-            if (word == "%") op.asmOperatorName = "%";
-
-            return true;
-        }
-
-        op = null;
-        return false;
-    }
-    public static bool IsMatch(string word)
-    {
-        return word == "*" || word == "/" || word == "%";
-    }
 }
-
 public class Token_BitOperator : Token_Operator
 {
-    public static bool TryMatch(string word, out Token_BitOperator op)
-    {
-        if (IsMatch(word))
-        {
-            op = new Token_BitOperator();
-
-            if (word == ">>") op.asmOperatorName = ">>";
-            if (word == "<<") op.asmOperatorName = "<<";
-            if (word == "&") op.asmOperatorName = "&";
-            if (word == "|") op.asmOperatorName = "|";
-
-            return true;
-        }
-
-        op = null;
-        return false;
-    }
-    private static bool IsMatch(string word)
-    {
-        return word == ">>" || word == "<<" || word == "&" || word == "|";
-    }
 }
 public class Token_Unary : Token_Operator
 {
-    public static bool TryMatch(string word, out Token_Unary op)
-    {
-        if (IsMatch(word))
-        {
-            op = new Token_Unary()
-            {
-                asmOperatorName = word
-            };
-
-            return true;
-        }
-
-        op = null;
-        return false;
-    }
-    public static bool IsMatch(string word)
-    {
-        return word == "not";
-    }
 }

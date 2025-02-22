@@ -261,10 +261,10 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
         Utils.AssertSameOrLessSize(result, a, b);
         
         OpCode op;
-        if (@operator.asmOperatorName == "add") op = OpCode.Add;
-        else if (@operator.asmOperatorName == "sub") op = OpCode.Sub;
-        else if (@operator.asmOperatorName == "mul") op = OpCode.Mul;
-        else if (@operator.asmOperatorName == "div") op = OpCode.Div;
+        if (@operator.asmOperatorName == "+") op = OpCode.Add;
+        else if (@operator.asmOperatorName == "-") op = OpCode.Sub;
+        else if (@operator.asmOperatorName == "*") op = OpCode.Mul;
+        else if (@operator.asmOperatorName == "/") op = OpCode.Div;
         else if (@operator.asmOperatorName == "%") op = OpCode.DivRemainder;
         else if (@operator.asmOperatorName == "<<") op = OpCode.LeftBitShift;
         else if (@operator.asmOperatorName == ">>") op = OpCode.RightBitShift;
@@ -294,7 +294,21 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
         Add(size);
     }
 
-    
+    public override void Increment(Variable variable)
+    {
+        Add(OpCode.Increment);
+        AddRBP(variable);
+        AddSize(variable);
+    }
+
+    public override void Decrement(Variable variable)
+    {
+        Add(OpCode.Decrement);
+        AddRBP(variable);
+        AddSize(variable);
+    }
+
+
     public override void ToPtr_Primitive(Variable askedVariable, Variable result)
     {
         Add(OpCode.ToPtr_ValueType);
@@ -364,12 +378,12 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
         AddRBP(result);
 
         byte op = 0;
-        if (@operator.asmOperatorName == "e") op = 0;
-        else if (@operator.asmOperatorName == "ne") op = 1;
-        else if (@operator.asmOperatorName == "g") op = 2;
-        else if (@operator.asmOperatorName == "ge") op = 3;
-        else if (@operator.asmOperatorName == "l") op = 4;
-        else if (@operator.asmOperatorName == "le") op = 5;
+        if (@operator.asmOperatorName == "==") op = 0;
+        else if (@operator.asmOperatorName == "!=") op = 1;
+        else if (@operator.asmOperatorName == ">") op = 2;
+        else if (@operator.asmOperatorName == ">=") op = 3;
+        else if (@operator.asmOperatorName == "<") op = 4;
+        else if (@operator.asmOperatorName == "<=") op = 5;
         else throw new Exception($"Unknown comprassion operator '{@operator.asmOperatorName}'");
         
         Add(op);

@@ -23,7 +23,7 @@ public class Node_Unary : Node
             result = ctx.gen.Allocate(PrimitiveTypes.BOOL);
             ctx.gen.LogicalNOT(right.result, this.result);
         }
-        else if (@operator.asmOperatorName == "sub")
+        else if (@operator.asmOperatorName == "-")
         {
             result = ctx.gen.Allocate(right.result.type);
             ctx.gen.Negate(right.result, this.result);

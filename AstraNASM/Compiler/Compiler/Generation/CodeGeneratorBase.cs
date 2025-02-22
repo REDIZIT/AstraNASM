@@ -102,8 +102,9 @@ public abstract class CodeGeneratorBase
     public abstract void Calculate(Variable a, Variable b, Token_Operator @operator, Variable result);
 
     public abstract void LogicalNOT(Variable a, Variable result);
-
     public abstract void Negate(Variable a, Variable result);
+    public abstract void Increment(Variable variable);
+    public abstract void Decrement(Variable variable);
 
     public abstract void ToPtr_Primitive(Variable askedVariable, Variable result);
     public abstract void ToPtr_Heap(Variable askedVariable, Variable result);
