@@ -8,6 +8,7 @@ public class Node_FunctionCall : Node
     public Node caller;
     public List<Node> arguments;
     public string functionName;
+    public Token_Identifier nameToken;
 
     public FunctionInfo function;
 

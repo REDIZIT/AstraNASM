@@ -285,6 +285,7 @@ public class AstraAST : ASTBuilder
             {
                 left = left,
                 typeToken = typeNameToken,
+                consumedTokens = PopFrame()
             };
         }
 
@@ -321,7 +322,8 @@ public class AstraAST : ASTBuilder
                     return new Node_Unary()
                     {
                         @operator = tokenAddSub,
-                        right = NotNeg()
+                        right = NotNeg(),
+                        consumedTokens = PopFrame()
                     };
                 }
                 else
@@ -338,7 +340,7 @@ public class AstraAST : ASTBuilder
         if (Check<Token_New>()) return New();
 
         Node expr = Primary();
-
+        
         while (true)
         {
             Token_Identifier token = Previous() as Token_Identifier;
@@ -355,7 +357,7 @@ public class AstraAST : ASTBuilder
                 break;
             }
         }
-
+        
         return expr;
     }
 
@@ -781,11 +783,11 @@ public class AstraAST : ASTBuilder
     private Node FinishCall(Node caller, Token_Identifier ident)
     {
         StartNewFrame();
-
+    
         Consume<Token_BracketOpen>("Expected '(' for function call");
         
         List<Node> arguments = new();
-
+    
         if (Check(typeof(Token_BracketClose)) == false)
         {
             do
@@ -794,11 +796,12 @@ public class AstraAST : ASTBuilder
             }
             while (Match(typeof(Token_Comma)));
         }
-
+    
         Consume(typeof(Token_BracketClose), "Expected ')' after arguments for function call");
         return new Node_FunctionCall()
         {
             functionName = ident == null ? "<anon>" : ident.name,
+            nameToken = ident,
             caller = caller,
             arguments = arguments,
             consumedTokens = PopFrame()
