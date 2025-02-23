@@ -208,7 +208,7 @@ public class Node_FunctionCall : Node
                 node.Generate(ctx);
             }
 
-            result = cmdInfo.Generate(ctx, cmd, arguments.Skip(1).Select(n => n.result).ToArray());
+            result = cmdInfo.Generate(ctx, cmd, arguments.Skip(1).Select(n => n.result).ToList());
         }
         else
         {
