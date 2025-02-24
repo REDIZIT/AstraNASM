@@ -1,4 +1,6 @@
-﻿namespace Astra.Compilation;
+﻿using Astra.Shared;
+
+namespace Astra.Compilation;
 
 public static class Generator
 {
@@ -46,7 +48,12 @@ public static class Generator
             throw new Exception($"Generation failed due to disbalanced scopes.");
         }
         
-        return ctx.gen.Build();
+        List<byte> byteCode = ctx.gen.Build();
+
+        CompiledModule file = CompiledModuleExtensions.Compile(module, byteCode.ToArray());
+        byte[] bytes = BinarySerializer.Serialize(file).ToArray();
+        
+        return bytes;
     }
 
     private static void InjectEnvironmentVariables(Node node, CodeGeneratorBase gen)

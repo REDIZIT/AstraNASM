@@ -6,6 +6,7 @@ public class TypeInfo
     public List<FieldInfo> fields = new();
     public List<FunctionInfo> functions = new();
     public bool isValueType;
+    public int inModuleIndex;
 
     public int sizeInBytes
     {

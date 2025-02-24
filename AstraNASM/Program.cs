@@ -12,8 +12,10 @@ public static class Program
 
             var cmd = new CompileCommand()
             {
-                inputPath = "C:/Users/REDIZIT/Documents/GitHub/AstraOS/main/vscode project",
-                outputPath = "C:/Users/REDIZIT/Documents/GitHub/AstraOS/main/vscode project/build",
+                // inputPath = "C:/Users/REDIZIT/Documents/GitHub/AstraOS/main/vscode project",
+                // outputPath = "C:/Users/REDIZIT/Documents/GitHub/AstraOS/main/vscode project/build",
+                inputPath = "C:\\Users\\REDIZIT\\Documents\\GitHub\\Astra Projects\\Desktop\\src",
+                outputPath = "C:\\Users\\REDIZIT\\Documents\\GitHub\\Astra Projects\\Desktop\\bin",
                 target = CompileTarget.AVM,
                 isProject = true,
             };

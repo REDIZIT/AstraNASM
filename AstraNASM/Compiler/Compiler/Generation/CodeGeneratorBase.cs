@@ -33,18 +33,10 @@ public abstract class CodeGeneratorBase
         // Epilogue after sub scope drop
         Epilogue();
     }
-    
-    public virtual void Label(string labelName)
-    {
-        if (b.labels.Contains(labelName) == false)
-        {
-            throw new Exception($"Failed to generate label code because label '{labelName}' is not registered yet. You must register label before it's generation.");
-        }
 
-        b.Line(labelName + ":");
-    }
+    public abstract void Label(string labelName);
 
-    public virtual string RegisterLabel(string labelName)
+    public string RegisterLabel(string labelName)
     {
         if (b.labels.Contains(labelName))
         {
@@ -129,6 +121,7 @@ public abstract class CodeGeneratorBase
 
     public abstract void SectionData(byte[] bytes);
     public abstract void SectionText();
+    public abstract void BindFunction(FunctionInfo functionInfo);
 
     public virtual void Extern(string variableName)
     {
@@ -141,5 +134,5 @@ public abstract class CodeGeneratorBase
 
     public abstract void VMCmd(VMCommand_Cmd cmd, List<Variable> variables);
 
-    public abstract byte[] Build();
+    public abstract List<byte> Build();
 }

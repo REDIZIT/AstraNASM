@@ -125,7 +125,13 @@ public static class Resolver
             }
         }
 
-        module.classInfoByName = classInfoByName;
+        //
+        // Register types and functions inside module
+        //
+        foreach (KeyValuePair<string, TypeInfo> kv in classInfoByName)
+        {
+            module.RegisterType(kv.Value);
+        }
         
         //
         // Pass 5: Register string constants
@@ -193,7 +199,7 @@ public static class Resolver
             {
                 if (tryCatch.exceptionRawVariable != null)
                 {
-                    tryCatch.exceptionVariableType = module.classInfoByName[tryCatch.exceptionRawVariable.rawType];
+                    tryCatch.exceptionVariableType = module.GetType(tryCatch.exceptionRawVariable.rawType);
                 }
             }
             else if (node is Node_As nodeAs)
@@ -281,7 +287,7 @@ public static class Resolver
                 FieldInfo fieldInfo = new()
                 {
                     name = varDec.variable.name,
-                    type = module.classInfoByName[varDec.variable.rawType],
+                    type = module.GetType(varDec.variable.rawType),
                 };
                 clsInfo.fields.Add(fieldInfo);
 
@@ -305,7 +311,7 @@ public static class Resolver
         {
             string name = use.variableName;
 
-            if (module.classInfoByName.TryGetValue(name, out TypeInfo type))
+            if (module.TryGetType(name, out TypeInfo type))
             {
                 // Access to static type name
                 // Example: Console.

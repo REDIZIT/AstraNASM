@@ -14,7 +14,7 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
     {
         Variable retVar = Allocate(PrimitiveTypes.INT);
 
-        FunctionInfo main = module.classInfoByName["program"].functions.First(f => f.name == "main");
+        FunctionInfo main = module.GetType("program").functions.First(f => f.name == "main");
         if (main.isStatic == false)
         {
             Variable selfStackVar = Allocate(PrimitiveTypes.PTR);
@@ -24,11 +24,6 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
         Call(main.GetCombinedName());
 
         Add(OpCode.Exit);
-    }
-
-    public override string RegisterLabel(string labelName)
-    {
-        return base.RegisterLabel(labelName);
     }
 
     public override void Label(string labelName)
@@ -476,6 +471,11 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
         Add((byte)1);
     }
 
+    public override void BindFunction(FunctionInfo functionInfo)
+    {
+        functionInfo.pointedOpCode = byteCode.Count;
+    }
+
 
     private void Add(byte b)
     {
@@ -539,7 +539,7 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
         }
     }
 
-    public override byte[] Build()
+    public override List<byte> Build()
     {
         ResolveLabelAddresses();
 
@@ -548,6 +548,6 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
             throw new Exception($"Code generator's string builder is not empty and contains: '{b.BuildString()}'");
         }
         
-        return byteCode.ToArray();
+        return byteCode;
     }
 }

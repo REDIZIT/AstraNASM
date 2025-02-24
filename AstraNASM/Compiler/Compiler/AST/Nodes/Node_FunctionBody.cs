@@ -29,7 +29,8 @@ public class Node_FunctionBody : Node
 
         string functionLabel = ctx.gen.RegisterLabel(functionInfo.GetCombinedName());
         ctx.gen.Label(functionLabel);
-
+        
+        
         
         // Register arguments and returns before creating function body subscope
         // Registered arguments will have negative RBP offset due to body subscope and current scope are different
@@ -55,7 +56,8 @@ public class Node_FunctionBody : Node
         
         // Creating function body subscope (all arguments, returns genereted not in sub scope, but in current scope)
         ctx.gen.BeginSubScope();
-        
+
+        ctx.gen.BindFunction(functionInfo);
         body.Generate(ctx);
         
         ctx.gen.DropSubScope();

@@ -9,6 +9,9 @@ public class FunctionInfo
     public List<FieldInfo> arguments = new();
     public List<TypeInfo> returns = new();
 
+    public int inModuleIndex;
+    public int pointedOpCode;
+
     public string GetCombinedName()
     {
         return owner.name + "." + name;
