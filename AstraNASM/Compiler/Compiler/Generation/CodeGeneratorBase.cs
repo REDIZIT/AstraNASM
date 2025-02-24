@@ -112,7 +112,7 @@ public abstract class CodeGeneratorBase
     public abstract void PushToStack(Variable variable);
     public abstract void PushToStack(string str, TypeInfo type);
 
-    public abstract void Call(string functionName);
+    public abstract void Call(FunctionInfo function);
 
     public abstract void PushExceptionHandler(string catchLabel);
     public abstract void ThrowException(Variable exception);

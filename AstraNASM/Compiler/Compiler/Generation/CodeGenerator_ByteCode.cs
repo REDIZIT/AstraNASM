@@ -8,6 +8,7 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
     private List<byte> byteCode = new();
     private Dictionary<string, int> pointedOpCodeByName = new();
     private Dictionary<int, string> labelsToInsert = new();
+    private Dictionary<int, FunctionInfo> callsToInsert = new();
     
     
     public override void PrologueForSimulation(CompileTarget target, ResolvedModule module)
@@ -21,7 +22,7 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
             AllocateHeap(selfStackVar, 0);
         }
         
-        Call(main.GetCombinedName());
+        Call(main);
 
         Add(OpCode.Exit);
     }
@@ -46,17 +47,14 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
         Add(OpCode.FunctionEpilogue);
     }
     
-    public override void Call(string functionName)
+    public override void Call(FunctionInfo function)
     {
-        // currentScope.RegisterLocalVariable(PrimitiveTypes.PTR, "call_pushed_instruction");
-        
         Add(OpCode.Call);
-        InsertAddress(functionName);
+        AddInt(function.inModuleIndex);
     }
     
     public override void Return()
     {
-        // currentScope.parent.UnregisterLocalVariable("call_pushed_instruction");
         Epilogue();
         
         Add(OpCode.Return);
@@ -521,6 +519,12 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
     private void InsertAddress(string labelName)
     {
         labelsToInsert.Add(byteCode.Count, labelName);
+        Fill(0, sizeof(int));
+    }
+
+    private void InsertFunction(FunctionInfo info)
+    {
+        callsToInsert.Add(byteCode.Count, info);
         Fill(0, sizeof(int));
     }
 

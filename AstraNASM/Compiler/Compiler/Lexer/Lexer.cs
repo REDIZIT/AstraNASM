@@ -34,6 +34,7 @@ public class Lexer
         { "class", typeof(Token_Class) },
         { "new", typeof(Token_New) },
         { "static", typeof(Token_Static) },
+        { "abstract", typeof(Token_Abstract) },
         { "try", typeof(Token_Try) },
         { "catch", typeof(Token_Catch) },
         { "throw", typeof(Token_Throw) },

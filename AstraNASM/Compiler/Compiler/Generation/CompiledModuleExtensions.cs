@@ -59,6 +59,7 @@ public static class CompiledModuleExtensions
             {
                 name = func.name,
                 isStatic = func.isStatic,
+                isAbstract = func.isAbstract,
                 ownerType = func.owner.inModuleIndex,
                 arguments = new FieldInfo_Blit[func.arguments.Count],
                 returns = new InModuleIndex[func.returns.Count],

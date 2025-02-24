@@ -428,6 +428,7 @@ public class AstraAST : ASTBuilder
         Consume<Token_Visibility>("Expected visibility");
         
         bool isStatic = Match<Token_Static>();
+        bool isAbstract = Match<Token_Abstract>();
         
         Token_Identifier functionName = Consume<Token_Identifier>("Expected function name");
         Consume<Token_BracketOpen>("Expected '(' after function name");
@@ -467,17 +468,29 @@ public class AstraAST : ASTBuilder
 
         ConsumeSpace(true);
 
-        try
+        Node body = null;
+        if (isAbstract)
         {
-            Consume<Token_BlockOpen>("Expected '{' before function body");
+            if (Peek() is Token_BlockOpen)
+            {
+                throw new Exception("Abstract function can not have implementation");
+            }
         }
-        catch (Exception err)
+        else
         {
-            isBlockFailed = true;
-            Log(err, functionName);
-        }
+            try
+            {
+                Consume<Token_BlockOpen>("Expected '{' before function body");
+            }
+            catch (Exception err)
+            {
+                isBlockFailed = true;
+                Log(err, functionName);
+            }
 
-        Node body = Block();
+            body = Block();
+        }
+        
         return new Node_FunctionBody()
         {
             name = functionName.name,
@@ -485,6 +498,7 @@ public class AstraAST : ASTBuilder
             parameters = parameters,
             returnValues = returnValues,
             isStatic = isStatic,
+            isAbstract = isAbstract,
             consumedTokens = PopFrame()
         };
 

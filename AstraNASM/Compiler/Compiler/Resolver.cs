@@ -99,6 +99,7 @@ public static class Resolver
                         name = funcDec.name,
                         owner = clsInfo,
                         isStatic = funcDec.isStatic,
+                        isAbstract = funcDec.isAbstract,
                         arguments = new(),
                         returns = new()
                     };
@@ -573,6 +574,7 @@ public static class Resolver
                 name = "alloc",
                 owner = null,
                 isStatic = true,
+                isAbstract = false,
                 arguments = new List<FieldInfo>() { new FieldInfo(PrimitiveTypes.INT, "bytesCount" )},
                 returns = new List<TypeInfo>() { PrimitiveTypes.PTR }
             };
@@ -585,6 +587,7 @@ public static class Resolver
                 name = "cmd",
                 owner = null,
                 isStatic = true,
+                isAbstract = false,
                 arguments = new List<FieldInfo>(),
                 returns = new List<TypeInfo>()
             };

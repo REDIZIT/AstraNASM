@@ -29,7 +29,7 @@ public class FieldInfo_Blit
 public class FunctionInfo_Blit
 {
     public string name;
-    public bool isStatic;
+    public bool isStatic, isAbstract;
     public InModuleIndex ownerType;
     public FieldInfo_Blit[] arguments;
     public InModuleIndex[] returns;
@@ -58,6 +58,10 @@ public struct InModuleIndex
     public static implicit operator uint(InModuleIndex index)
     {
         return index.value;
+    }
+    public static implicit operator int(InModuleIndex index)
+    {
+        return (int)index.value;
     }
     public static implicit operator InModuleIndex(int value)
     {

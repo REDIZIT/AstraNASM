@@ -7,7 +7,7 @@ public class Node_FunctionBody : Node
     public Node body;
     public List<VariableRawData> parameters = new();
     public List<VariableRawData> returnValues = new();
-    public bool isStatic;
+    public bool isStatic, isAbstract;
 
     public FunctionInfo functionInfo;
 
@@ -15,12 +15,18 @@ public class Node_FunctionBody : Node
 
     public override IEnumerable<Node> EnumerateChildren()
     {
-        yield return body;
+        if (isAbstract == false) yield return body;
     }
 
     public override void Generate(Generator.Context ctx)
     {
         base.Generate(ctx);
+
+        if (isAbstract)
+        {
+            // Abstract functions have no byte-code implementation
+            return;
+        }
 
         if (returnValues.Count > 1)
         {

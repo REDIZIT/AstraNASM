@@ -97,7 +97,7 @@ public class Node_FunctionCall : Node
 
             if (argument is Node_Literal literal)
             {
-                passedType = PrimitiveTypes.INT;
+                passedType = literal.constant is Token_String ? PrimitiveTypes.STRING : PrimitiveTypes.INT;
                 ctx.gen.PushToStack(literal.constant.value, passedType);
             }
             else
@@ -115,7 +115,7 @@ public class Node_FunctionCall : Node
         }
 
 
-        ctx.gen.Call(function.GetCombinedName());
+        ctx.gen.Call(function);
         
         
         // Write byte-code for deallocation of pushed arguments

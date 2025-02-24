@@ -68,6 +68,10 @@ public static class BinarySerializer
         {
             file.AddLong(l);
         }
+        else if (value is bool bl)
+        {
+            file.Add(bl ? (byte)1 : (byte)0);
+        }
         else if (value is Array array)
         {
             file.AddInt(array.Length);
@@ -121,6 +125,10 @@ public static class BinarySerializer
         else if (t == typeof(long))
         {
             return file.NextLong();
+        }
+        else if (t == typeof(bool))
+        {
+            return file.Next() > 0;
         }
         else if (t.IsArray)
         {
