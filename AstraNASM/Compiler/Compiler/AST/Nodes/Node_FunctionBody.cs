@@ -60,10 +60,13 @@ public class Node_FunctionBody : Node
         Variable callPushed = ctx.gen.currentScope.RegisterLocalVariable(PrimitiveTypes.PTR, "call_pushed_instruction");
         
         
+        
+        // Bind function before BeginSubScope due to: BeginSubScope will push rbp, so, we want to take it for function call
+        ctx.gen.BindFunction(functionInfo);
+        
         // Creating function body subscope (all arguments, returns genereted not in sub scope, but in current scope)
         ctx.gen.BeginSubScope();
-
-        ctx.gen.BindFunction(functionInfo);
+       
         body.Generate(ctx);
         
         ctx.gen.DropSubScope();
