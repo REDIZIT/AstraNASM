@@ -84,6 +84,7 @@ public abstract class CodeGeneratorBase
     public abstract void SetValueBehindPointer(Variable destination, string value);
 
     public abstract void FieldAccess(int baseOffset, TypeInfo fieldType, int fieldOffset, Variable result, bool isGetter);
+    public abstract void FunctionAccess(FunctionInfo function, Variable result);
 
     public abstract void JumpIfFalse(Variable condition, string label);
     public abstract void JumpIfFalse(string reg, string label);

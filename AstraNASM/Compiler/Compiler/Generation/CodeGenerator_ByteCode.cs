@@ -247,6 +247,10 @@ public class CodeGenerator_ByteCode : CodeGeneratorBase
         Add(isGetter ? (byte)1 : (byte)0);
         AddRBP(result);
     }
+    public override void FunctionAccess(FunctionInfo function, Variable result)
+    {
+        SetValue(result, function.inModuleIndex.ToString());
+    }
 
 
     public override void Calculate(Variable a, Variable b, Token_Operator @operator, Variable result)

@@ -63,6 +63,7 @@ public static class CompiledModuleExtensions
                 ownerType = func.owner.inModuleIndex,
                 arguments = new FieldInfo_Blit[func.arguments.Count],
                 returns = new InModuleIndex[func.returns.Count],
+                pointedModule = 0,
                 pointedOpCode = func.pointedOpCode
             };
             

@@ -182,13 +182,25 @@ public static class Resolver
                 TypeInfo targetType = CalculateType(access.target, module);
                 access.targetType = targetType;
 
-                if (TryFindFunction(targetType, access.targetFieldName, module) == null && targetType is TypeInfo classInfo)
+                if (targetType is TypeInfo classInfo)
                 {
-                    FieldInfo targetTypeField = TryFindField(classInfo, access.targetFieldName, module);
-                    if (targetTypeField == null) throw new Exception($"Failed to find field '{access.targetFieldName}' inside type '{targetType}'");
+                    FunctionInfo functionInfo = TryFindFunction(targetType, access.targetFieldName, module);
+                    if (functionInfo != null)
+                    {
+                       // Function access
+                       access.function = functionInfo;
+                    }
+                    else
+                    {
+                        // Field access
+                        
+                        FieldInfo targetTypeField = TryFindField(classInfo, access.targetFieldName, module);
+                        if (targetTypeField == null) throw new Exception($"Failed to find field '{access.targetFieldName}' inside type '{targetType}'");
                     
-                    access.field = targetTypeField;
-                }                
+                        access.field = targetTypeField;
+                    }
+                }
+                               
             }
             else if (node is Node_VariableUse varUse)
             {
@@ -326,12 +338,15 @@ public static class Resolver
             {
                 return PrimitiveTypes.PTR;
             }
-            else
+            else if (targetNode.scope.TryFindVariable(name, out FieldInfo variable))
             {
                 // Access to variable
                 // Example: listOfItems.
-                FieldInfo variable = targetNode.scope.FindVariable(name);
-                return variable.type;   
+                return variable.type;
+            }
+            else
+            {
+                throw new Exception($"Failed to calculate type for name '{name}'. Seems, this is out of scope.");
             }
         }
 

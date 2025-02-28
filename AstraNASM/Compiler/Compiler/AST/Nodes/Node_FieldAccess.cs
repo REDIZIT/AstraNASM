@@ -7,7 +7,9 @@ public class Node_FieldAccess : Node
 
     public TypeInfo targetType;
     public FieldInfo field;
+    public FunctionInfo function;
 
+    private bool IsPointingToFunction => function != null;
 
     public override IEnumerable<Node> EnumerateChildren()
     {
@@ -70,10 +72,24 @@ public class Node_FieldAccess : Node
             // (setter) result - variable to variable
             // (getter) result - variable
 
-            if (isGetter) result = ctx.gen.Allocate(field.type);
-            else result = ctx.gen.Allocate(PrimitiveTypes.PTR);
-            
-            ctx.gen.FieldAccess(target.result.inscopeRbpOffset, field.type, fieldOffsetInBytes, result, isGetter);
+            if (isGetter)
+            {
+                result = ctx.gen.Allocate(IsPointingToFunction ? PrimitiveTypes.INT : field.type);
+            }
+            else
+            {
+                if (IsPointingToFunction) throw new Exception("Can not generate setter for function access");
+                result = ctx.gen.Allocate(PrimitiveTypes.PTR);
+            }
+
+            if (IsPointingToFunction)
+            {
+                ctx.gen.FunctionAccess(function, result);
+            }
+            else
+            {
+                ctx.gen.FieldAccess(target.result.inscopeRbpOffset, field.type, fieldOffsetInBytes, result, isGetter);
+            }
         }
     }
 }
