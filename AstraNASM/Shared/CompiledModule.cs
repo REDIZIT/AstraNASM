@@ -33,6 +33,7 @@ public class FunctionInfo_Blit
     public InModuleIndex ownerType;
     public FieldInfo_Blit[] arguments;
     public InModuleIndex[] returns;
+    public byte pointedModule;
     public int pointedOpCode;
 }
 
